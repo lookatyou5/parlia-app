@@ -61,3 +61,26 @@ Parlia è una PWA (app web progressiva) per comunicazione aumentativa (AAC) dest
 - Firebase: aaclaura-c0612
 - Ha chat con Luca, GPS, push notifications FCM
 - Non toccare questo progetto quando lavori su Parlia
+
+## Interazioni e Gesti
+- **Swipe orizzontale**: Naviga tra le 4 pagine della home (Inicio/AAC/Rehab/Yo)
+  - Swipe destra dalla home → torna all'onboarding con history.back()
+  - Touchstart/touchmove/touchend listeners in home.html
+- **Back button (Android/iOS)**: Funziona come swipe
+  - Browser history.pushState() per ogni goTo() navigation
+  - Popstate listener legge lo stato e naviga di conseguenza
+  - Logica: goTo() aggiunge stato → popstate legge stato → naviga indietro
+  - Da Home back → onboarding, da altre pagine back → pagina precedente (con possibile salto)
+
+## Deploy (GitHub + Cloudflare Pages)
+- Repository GitHub: https://github.com/lookatyou5/parlia-app
+- Cloudflare Pages progetto: parlia-app (connesso a GitHub)
+- Auto-deploy: ogni `git push` deploya automaticamente
+- Comando deploy: `git push` (nient'altro necessario!)
+- Dominio: app.parlia.app (CNAME configurato)
+
+## Istruzioni per Claude Code
+- Prima di qualsiasi modifica, fai sempre un commit git con messaggio "backup pre-modifica"
+- Dopo ogni sessione di lavoro, fai un commit con le modifiche fatte
+- Non modificare mai laura.parlia.app o i file dell'app di Laura
+- Deploy: basta `git push` - Cloudflare fa il resto automaticamente!
