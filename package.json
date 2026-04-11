@@ -1,0 +1,15 @@
+{
+  "name": "parlia-app",
+  "version": "1.0.0",
+  "description": "Parlia PWA - Comunicación aumentativa asistida por IA",
+  "scripts": {
+    "deploy": "wrangler deploy",
+    "dev": "wrangler pages dev ."
+  },
+  "keywords": ["aac", "communication", "ai", "pwa"],
+  "author": "Luca",
+  "license": "MIT",
+  "devDependencies": {
+    "wrangler": "^3.0.0"
+  }
+}
