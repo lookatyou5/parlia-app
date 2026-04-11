@@ -1061,28 +1061,13 @@ let curPage = 0;
 const track = document.getElementById('track');
 
 function goTo(idx) {
-  if (idx === curPage) return;
   curPage = idx;
-  history.pushState({page: idx}, '', window.location.href);
   track.style.transition = 'transform .38s cubic-bezier(.4,0,.2,1)';
   track.style.transform = `translateX(-${idx * 25}%)`;
   document.querySelectorAll('.nav-item').forEach((el,i) => el.classList.toggle('active', i===idx));
   document.querySelectorAll('.nav-dot').forEach((d,i) => d.classList.toggle('active', i===idx));
   hideHint();
 }
-
-// Gesto back del sistema (Android back button / iOS swipe)
-window.addEventListener('popstate', (e) => {
-  if (e.state && e.state.page !== undefined) {
-    curPage = e.state.page;
-    track.style.transition = 'none';
-    track.style.transform = `translateX(-${curPage * 25}%)`;
-    document.querySelectorAll('.nav-item').forEach((el,i) => el.classList.toggle('active', i===curPage));
-    document.querySelectorAll('.nav-dot').forEach((d,i) => d.classList.toggle('active', i===curPage));
-  } else {
-    window.location.href = '/index.html';
-  }
-});
 
 let tX=0, tY=0, dragging=false, scrolling=false, blocked=false;
 const wrap = document.getElementById('pagesWrap');
