@@ -1980,11 +1980,19 @@ function init() {
   }
 }
 init();
+
+// History management: keep user in app on back button
+window.history.pushState({inApp: true}, '', window.location.href);
+window.addEventListener('popstate', (e) => {
+  if (!e.state || !e.state.inApp) {
+    window.location.href = '/index.html';
+  }
+});
 </script>
 
 <!-- Copyright Footer -->
-<div style="position:fixed;bottom:0;left:0;right:0;padding:8px;text-align:center;font-size:0.65rem;color:#999;background:rgba(255,255,255,0.8);z-index:50;border-top:1px solid #e5e7eb">
-  © 2026 Parlia.app — Comunicación asistida por IA
+<div style="position:fixed;bottom:72px;left:0;right:0;padding:8px;text-align:center;font-size:0.65rem;color:#999;background:rgba(245,246,250,0.9);border-top:1px solid #e5e7eb;pointer-events:none">
+  © 2026 Parlia.app
 </div>
 
 </body>
