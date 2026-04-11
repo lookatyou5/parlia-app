@@ -301,6 +301,166 @@
     </div>
   </div>
 
+  <!-- HOBBIES -->
+  <div class="field-card" id="fc-hobbies" onclick="toggleExpand('hobbies')">
+    <div class="fc-header">
+      <div class="fc-icon" style="background:#fef3c7">🎨</div>
+      <div class="fc-body">
+        <div class="fc-title">Hobbies</div>
+        <div class="fc-sub">Tus actividades favoritas para personalizar las sugerencias</div>
+      </div>
+      <div class="fc-badge"><div class="badge-todo" id="badge-hobbies">Añadir</div></div>
+    </div>
+    <div class="fc-expand" id="exp-hobbies">
+      <div class="fc-expand-inner">
+        <div class="chip-grid">
+          <div class="chip" onclick="selectChipMulti(this,'hobbies','Leer')">📚 Leer</div>
+          <div class="chip" onclick="selectChipMulti(this,'hobbies','Música')">🎵 Música</div>
+          <div class="chip" onclick="selectChipMulti(this,'hobbies','Películas')">🎬 Películas</div>
+          <div class="chip" onclick="selectChipMulti(this,'hobbies','Deportes')">⚽ Deportes</div>
+          <div class="chip" onclick="selectChipMulti(this,'hobbies','Videojuegos')">🎮 Videojuegos</div>
+          <div class="chip" onclick="selectChipMulti(this,'hobbies','Arte')">🎭 Arte</div>
+          <div class="chip" onclick="selectChipMulti(this,'hobbies','Cocinar')">👨‍🍳 Cocinar</div>
+          <div class="chip" onclick="selectChipMulti(this,'hobbies','Viajar')">✈️ Viajar</div>
+          <div class="chip" onclick="selectChipMulti(this,'hobbies','Jardinería')">🌱 Jardinería</div>
+          <div class="chip" onclick="selectChipMulti(this,'hobbies','Fotografía')">📷 Fotografía</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- INTERESES -->
+  <div class="field-card" id="fc-interests" onclick="toggleExpand('interests')">
+    <div class="fc-header">
+      <div class="fc-icon" style="background:#f5e6ff">💡</div>
+      <div class="fc-body">
+        <div class="fc-title">Intereses</div>
+        <div class="fc-sub">Temas que te interesan para adaptar las conversaciones</div>
+      </div>
+      <div class="fc-badge"><div class="badge-todo" id="badge-interests">Añadir</div></div>
+    </div>
+    <div class="fc-expand" id="exp-interests">
+      <div class="fc-expand-inner">
+        <div class="chip-grid">
+          <div class="chip" onclick="selectChipMulti(this,'interests','Tecnología')">💻 Tecnología</div>
+          <div class="chip" onclick="selectChipMulti(this,'interests','Naturaleza')">🌿 Naturaleza</div>
+          <div class="chip" onclick="selectChipMulti(this,'interests','Historia')">📖 Historia</div>
+          <div class="chip" onclick="selectChipMulti(this,'interests','Ciencia')">🔬 Ciencia</div>
+          <div class="chip" onclick="selectChipMulti(this,'interests','Deporte')">🏆 Deporte</div>
+          <div class="chip" onclick="selectChipMulti(this,'interests','Cultura')">🎪 Cultura</div>
+          <div class="chip" onclick="selectChipMulti(this,'interests','Salud')">⚕️ Salud</div>
+          <div class="chip" onclick="selectChipMulti(this,'interests','Familia')">👨‍👩‍👧‍👦 Familia</div>
+          <div class="chip" onclick="selectChipMulti(this,'interests','Comida')">🍽️ Comida</div>
+          <div class="chip" onclick="selectChipMulti(this,'interests','Finanzas')">💰 Finanzas</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ACTIVIDADES SEMANALES -->
+  <div class="field-card" id="fc-activities" onclick="toggleExpand('activities')">
+    <div class="fc-header">
+      <div class="fc-icon" style="background:#f0fdfa">📅</div>
+      <div class="fc-body">
+        <div class="fc-title">Actividades semanales</div>
+        <div class="fc-sub">Lo que haces regularmente en tu semana</div>
+      </div>
+      <div class="fc-badge"><div class="badge-todo" id="badge-activities">Añadir</div></div>
+    </div>
+    <div class="fc-expand" id="exp-activities">
+      <div class="fc-expand-inner">
+        <div class="chip-grid">
+          <div class="chip" onclick="selectChipMulti(this,'activities','Terapia ocupacional')">🖐️ Terapia ocupacional</div>
+          <div class="chip" onclick="selectChipMulti(this,'activities','Fisioterapia')">🏋️ Fisioterapia</div>
+          <div class="chip" onclick="selectChipMulti(this,'activities','Logopedia')">🗣️ Logopedia</div>
+          <div class="chip" onclick="selectChipMulti(this,'activities','Paseos')">🚶 Paseos</div>
+          <div class="chip" onclick="selectChipMulti(this,'activities','Socializar')">👥 Socializar</div>
+          <div class="chip" onclick="selectChipMulti(this,'activities','Trabajo')">💼 Trabajo</div>
+          <div class="chip" onclick="selectChipMulti(this,'activities','Estudio')">📚 Estudio</div>
+          <div class="chip" onclick="selectChipMulti(this,'activities','Ejercicio')">💪 Ejercicio</div>
+          <div class="chip" onclick="selectChipMulti(this,'activities','Meditación')">🧘 Meditación</div>
+          <div class="chip" onclick="selectChipMulti(this,'activities','Voluntariado')">🤝 Voluntariado</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- FAMILIA Y MASCOTAS -->
+  <div class="field-card" id="fc-family" onclick="toggleExpand('family')">
+    <div class="fc-header">
+      <div class="fc-icon" style="background:#ffe6cc">👨‍👩‍👧‍👦</div>
+      <div class="fc-body">
+        <div class="fc-title">Familia y mascotas</div>
+        <div class="fc-sub">Con quién vives y tus mascotas</div>
+      </div>
+      <div class="fc-badge"><div class="badge-todo" id="badge-family">Añadir</div></div>
+    </div>
+    <div class="fc-expand" id="exp-family">
+      <div class="fc-expand-inner">
+        <div class="chip-grid">
+          <div class="chip" onclick="selectChipMulti(this,'family','Padre')">👨 Padre</div>
+          <div class="chip" onclick="selectChipMulti(this,'family','Madre')">👩 Madre</div>
+          <div class="chip" onclick="selectChipMulti(this,'family','Hermano')">👦 Hermano</div>
+          <div class="chip" onclick="selectChipMulti(this,'family','Hermana')">👧 Hermana</div>
+          <div class="chip" onclick="selectChipMulti(this,'family','Abuelo')">👴 Abuelo</div>
+          <div class="chip" onclick="selectChipMulti(this,'family','Abuela')">👵 Abuela</div>
+          <div class="chip" onclick="selectChipMulti(this,'family','Hijo')">👦 Hijo</div>
+          <div class="chip" onclick="selectChipMulti(this,'family','Hija')">👧 Hija</div>
+          <div class="chip" onclick="selectChipMulti(this,'family','Pareja')">💑 Pareja</div>
+          <div class="chip" onclick="selectChipMulti(this,'family','Perro')">🐕 Perro</div>
+          <div class="chip" onclick="selectChipMulti(this,'family','Gato')">🐱 Gato</div>
+          <div class="chip" onclick="selectChipMulti(this,'family','Otra mascota')">🐾 Otra mascota</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- INFORMACIÓN PERSONAL -->
+  <div class="field-card" id="fc-personal" onclick="toggleExpand('personal')">
+    <div class="fc-header">
+      <div class="fc-icon" style="background:#ffe6e6">👤</div>
+      <div class="fc-body">
+        <div class="fc-title">Información personal</div>
+        <div class="fc-sub">Detalles adicionales sobre ti</div>
+      </div>
+      <div class="fc-badge"><div class="badge-todo" id="badge-personal">Añadir</div></div>
+    </div>
+    <div class="fc-expand" id="exp-personal">
+      <div class="fc-expand-inner" onclick="event.stopPropagation()">
+        <div style="margin-bottom:15px">
+          <label style="font-size:.7rem;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;display:block;margin-bottom:7px">Profesión</label>
+          <input type="text" id="inp-profession" placeholder="Ej: Ingeniero, Profesor…"
+            lang="es" dir="ltr" inputmode="text"
+            style="width:100%;background:#fff;border:2px solid var(--border);border-radius:12px;padding:13px 15px;font-size:1rem;font-weight:600;font-family:'Plus Jakarta Sans',sans-serif;outline:none;color:var(--ink);-webkit-appearance:none;direction:ltr;text-align:left"
+            onclick="event.stopPropagation()"
+            onfocus="event.stopPropagation()"
+            oninput="onPersonalInput()"
+            autocorrect="off" spellcheck="false">
+        </div>
+        <div style="margin-bottom:15px">
+          <label style="font-size:.7rem;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;display:block;margin-bottom:7px">Lugar de origen</label>
+          <input type="text" id="inp-birthplace" placeholder="Ej: Barcelona, Madrid…"
+            lang="es" dir="ltr" inputmode="text"
+            style="width:100%;background:#fff;border:2px solid var(--border);border-radius:12px;padding:13px 15px;font-size:1rem;font-weight:600;font-family:'Plus Jakarta Sans',sans-serif;outline:none;color:var(--ink);-webkit-appearance:none;direction:ltr;text-align:left"
+            onclick="event.stopPropagation()"
+            onfocus="event.stopPropagation()"
+            oninput="onPersonalInput()"
+            autocorrect="off" spellcheck="false">
+        </div>
+        <div>
+          <label style="font-size:.7rem;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;display:block;margin-bottom:7px">Comida favorita</label>
+          <input type="text" id="inp-favoriteFood" placeholder="Ej: Paella, Pizza…"
+            lang="es" dir="ltr" inputmode="text"
+            style="width:100%;background:#fff;border:2px solid var(--border);border-radius:12px;padding:13px 15px;font-size:1rem;font-weight:600;font-family:'Plus Jakarta Sans',sans-serif;outline:none;color:var(--ink);-webkit-appearance:none;direction:ltr;text-align:left"
+            onclick="event.stopPropagation()"
+            onfocus="event.stopPropagation()"
+            oninput="onPersonalInput()"
+            autocorrect="off" spellcheck="false">
+        </div>
+      </div>
+    </div>
+  </div>
+
   <!-- FUNCIONALIDADES -->
   <div class="field-card filled" id="fc-funciones" onclick="toggleExpand('funciones')">
     <div class="fc-header">
@@ -397,14 +557,23 @@
   const extra = JSON.parse(localStorage.getItem('parlia_profile_extra') || '{}');
 
   // condicion è ora array
-  const fields = { condicion: [], movilidad: null, edad: null, funciones: true, cuidador2: null };
+  const fields = {
+    condicion: [], movilidad: null, edad: null, funciones: true, cuidador2: null,
+    hobbies: [], interests: [], activities: [], family: [],
+    personal: { profession: '', birthplace: '', favoriteFood: '' }
+  };
 
   function calcProgress() {
-    let done = 3;
+    let done = 3; // userName, gender, caregiverName (from onboarding)
     if (fields.condicion.length > 0) done++;
     if (fields.movilidad) done++;
     if (fields.edad) done++;
-    return Math.round((done / 6) * 100);
+    if (fields.hobbies.length > 0) done++;
+    if (fields.interests.length > 0) done++;
+    if (fields.activities.length > 0) done++;
+    if (fields.family.length > 0) done++;
+    if (fields.personal.profession || fields.personal.birthplace || fields.personal.favoriteFood) done++;
+    return Math.round((done / 11) * 100);
   }
 
   function updateProgress() {
@@ -558,6 +727,27 @@
     showSaveBtn();
   }
 
+  // ── INFORMACIÓN PERSONAL ──
+  function onPersonalInput() {
+    const profession = document.getElementById('inp-profession').value.trim();
+    const birthplace = document.getElementById('inp-birthplace').value.trim();
+    const favoriteFood = document.getElementById('inp-favoriteFood').value.trim();
+
+    fields.personal = { profession, birthplace, favoriteFood };
+
+    const badge = document.getElementById('badge-personal');
+    if (profession || birthplace || favoriteFood) {
+      const count = [profession, birthplace, favoriteFood].filter(Boolean).length;
+      if (badge) { badge.className = 'badge-done'; badge.textContent = count + ' completos'; }
+      document.getElementById('fc-personal')?.classList.add('filled');
+    } else {
+      if (badge) { badge.className = 'badge-todo'; badge.textContent = 'Añadir'; }
+      document.getElementById('fc-personal')?.classList.remove('filled');
+    }
+    updateProgress();
+    showSaveBtn();
+  }
+
   function showSaveBtn() {
     document.getElementById('saveBtn').classList.add('show');
   }
@@ -566,8 +756,15 @@
   function saveProfile() {
     closeAllEdits();
     localStorage.setItem('parlia_profile', JSON.stringify(profile));
-    const extraData = { ...fields, switchState,
-      cuidador2Name: document.getElementById('inp-cuidador2').value.trim() || null
+    const extraData = {
+      ...fields,
+      switchState,
+      cuidador2Name: document.getElementById('inp-cuidador2').value.trim() || null,
+      personal: {
+        profession: document.getElementById('inp-profession').value.trim() || '',
+        birthplace: document.getElementById('inp-birthplace').value.trim() || '',
+        favoriteFood: document.getElementById('inp-favoriteFood').value.trim() || ''
+      }
     };
     localStorage.setItem('parlia_profile_extra', JSON.stringify(extraData));
     const btn = document.getElementById('saveBtn');
@@ -623,6 +820,23 @@
         });
       }
     });
+    // Hobbies, interests, activities, family (multi-select arrays)
+    ['hobbies','interests','activities','family'].forEach(field => {
+      const items = Array.isArray(extra[field]) ? extra[field] : [];
+      if (items.length > 0) {
+        fields[field] = items;
+        document.querySelectorAll('#exp-' + field + ' .chip').forEach(c => {
+          const m = c.getAttribute('onclick')?.match(/'([^']+)'\)$/);
+          if (m && items.includes(m[1])) c.classList.add('selected');
+        });
+        const badge = document.getElementById('badge-' + field);
+        if (badge) {
+          badge.className = 'badge-done';
+          badge.textContent = items.length === 1 ? items[0] : items.length + ' seleccionados';
+        }
+        document.getElementById('fc-' + field)?.classList.add('filled');
+      }
+    });
     // Toggle
     if (extra.switchState) {
       Object.assign(switchState, extra.switchState);
@@ -640,6 +854,21 @@
       const badge = document.getElementById('badge-cuidador2');
       if (badge) { badge.className = 'badge-done'; badge.textContent = extra.cuidador2Name; }
       document.getElementById('fc-cuidador2')?.classList.add('filled');
+    }
+    // Personal info
+    if (extra.personal) {
+      fields.personal = extra.personal;
+      if (extra.personal.profession) document.getElementById('inp-profession').value = extra.personal.profession;
+      if (extra.personal.birthplace) document.getElementById('inp-birthplace').value = extra.personal.birthplace;
+      if (extra.personal.favoriteFood) document.getElementById('inp-favoriteFood').value = extra.personal.favoriteFood;
+
+      const hasPersonal = extra.personal.profession || extra.personal.birthplace || extra.personal.favoriteFood;
+      if (hasPersonal) {
+        const count = [extra.personal.profession, extra.personal.birthplace, extra.personal.favoriteFood].filter(Boolean).length;
+        const badge = document.getElementById('badge-personal');
+        if (badge) { badge.className = 'badge-done'; badge.textContent = count + ' completos'; }
+        document.getElementById('fc-personal')?.classList.add('filled');
+      }
     }
     updateProgress();
   })();
