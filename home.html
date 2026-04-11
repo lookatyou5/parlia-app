@@ -1060,15 +1060,17 @@ function _closeSettingsOutside(e) {
 let curPage = 0;
 const track = document.getElementById('track');
 
-let prevPage = 0;
+let pageStack = [0];
 function goTo(idx) {
-  if (idx !== curPage) prevPage = curPage;
-  curPage = idx;
-  track.style.transition = 'transform .38s cubic-bezier(.4,0,.2,1)';
-  track.style.transform = `translateX(-${idx * 25}%)`;
-  document.querySelectorAll('.nav-item').forEach((el,i) => el.classList.toggle('active', i===idx));
-  document.querySelectorAll('.nav-dot').forEach((d,i) => d.classList.toggle('active', i===idx));
-  hideHint();
+  if (idx !== curPage) {
+    pageStack.push(idx);
+    curPage = idx;
+    track.style.transition = 'transform .38s cubic-bezier(.4,0,.2,1)';
+    track.style.transform = `translateX(-${idx * 25}%)`;
+    document.querySelectorAll('.nav-item').forEach((el,i) => el.classList.toggle('active', i===idx));
+    document.querySelectorAll('.nav-dot').forEach((d,i) => d.classList.toggle('active', i===idx));
+    hideHint();
+  }
 }
 
 let tX=0, tY=0, dragging=false, scrolling=false, blocked=false;
@@ -1983,12 +1985,15 @@ function init() {
 }
 init();
 
-// History management: back button navigation
+// History management: back button navigation (works like swipe)
 window.history.pushState({inApp: true}, '', window.location.href);
 window.addEventListener('popstate', (e) => {
-  if (curPage > 0) {
-    goTo(0);
-  } else {
+  if (pageStack.length > 1) {
+    pageStack.pop();
+    const prevIdx = pageStack[pageStack.length - 1];
+    curPage = -1;
+    goTo(prevIdx);
+  } else if (curPage === 0) {
     window.location.href = '/index.html';
   }
 });
