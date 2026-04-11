@@ -1983,10 +1983,10 @@ function init() {
 }
 init();
 
-// History management: keep user in app on back button
+// History management: back button navigation
 window.history.pushState({inApp: true}, '', window.location.href);
 window.addEventListener('popstate', (e) => {
-  if (e.state && e.state.inApp) {
+  if (curPage > 0) {
     goTo(prevPage);
   } else {
     window.location.href = '/index.html';
