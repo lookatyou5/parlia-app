@@ -1,0 +1,1000 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>Parlia — Bienvenido</title>
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#2563eb">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Parlia">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<script>if('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js');</script>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Bricolage+Grotesque:wght@700;800&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg: #f9fafb;
+    --ink: #0f0f10;
+    --muted: #6b7280;
+    --border: #e5e7eb;
+    --card: #ffffff;
+
+    --blue: #2563eb;
+    --blue-light: #eff6ff;
+    --violet: #7c3aed;
+    --violet-light: #f5f3ff;
+    --teal: #0d9488;
+    --teal-light: #f0fdfa;
+    --rose: #e11d48;
+
+    --radius-lg: 24px;
+    --radius-md: 16px;
+    --shadow: 0 1px 3px rgba(0,0,0,0.06), 0 8px 24px rgba(0,0,0,0.06);
+  }
+
+  html, body { height: 100%; overflow: hidden; }
+
+  body {
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    background: var(--bg);
+    color: var(--ink);
+  }
+
+  /* ─── MESH BACKGROUND ─── */
+  .mesh {
+    position: fixed; inset: 0; z-index: 0; pointer-events: none;
+    overflow: hidden;
+  }
+  .mesh-blob {
+    position: absolute; border-radius: 50%;
+    filter: blur(80px); opacity: 0.5;
+  }
+  .mesh-blob-1 { width: 400px; height: 400px; top: -100px; right: -100px; background: radial-gradient(circle, #bfdbfe, #ddd6fe); animation: blobFloat 8s ease-in-out infinite; }
+  .mesh-blob-2 { width: 300px; height: 300px; bottom: 0; left: -80px; background: radial-gradient(circle, #99f6e4, #a5f3fc); animation: blobFloat 10s ease-in-out infinite reverse; }
+  .mesh-blob-3 { width: 200px; height: 200px; top: 40%; left: 60%; background: radial-gradient(circle, #fde68a, #fca5a5); animation: blobFloat 12s ease-in-out infinite 2s; }
+  @keyframes blobFloat { 0%,100%{transform:translate(0,0) scale(1)} 33%{transform:translate(20px,-20px) scale(1.05)} 66%{transform:translate(-10px,15px) scale(0.97)} }
+  @keyframes logoPulse { 0%,100%{box-shadow:0 8px 32px rgba(37,99,235,0.3),0 0 0 8px rgba(37,99,235,0.08)} 50%{box-shadow:0 8px 40px rgba(37,99,235,0.45),0 0 0 14px rgba(37,99,235,0.05)} }
+
+  /* ─── PROGRESS ─── */
+  .progress {
+    position: fixed; top: 0; left: 0; right: 0;
+    height: 2px; z-index: 100; background: var(--border);
+  }
+  .progress-track {
+    height: 100%;
+    background: linear-gradient(90deg, var(--blue), var(--violet));
+    transition: width 0.6s cubic-bezier(0.4,0,0.2,1);
+    border-radius: 0 2px 2px 0;
+  }
+
+  /* ─── SCREENS ─── */
+  .screen {
+    position: fixed; inset: 0; z-index: 10;
+    display: flex; flex-direction: column;
+    padding: 56px 24px 36px;
+    opacity: 0; transform: translateX(48px) scale(0.98);
+    pointer-events: none;
+    transition: opacity 0.4s ease, transform 0.4s cubic-bezier(0.4,0,0.2,1);
+    overflow-y: auto; overflow-x: hidden;
+  }
+  .screen.active {
+    opacity: 1; transform: translateX(0) scale(1);
+    pointer-events: all;
+  }
+  .screen.out-left {
+    opacity: 0; transform: translateX(-48px) scale(0.98);
+    pointer-events: none;
+  }
+
+  /* ─── LOGO ─── */
+  .logo {
+    font-family: 'Bricolage Grotesque', sans-serif;
+    font-size: 1.1rem; font-weight: 800;
+    letter-spacing: -0.03em;
+    display: flex; align-items: center; gap: 6px;
+    margin-bottom: 40px;
+  }
+  .logo-mark {
+    width: 32px; height: 32px; border-radius: 10px;
+    background: linear-gradient(135deg, #3b82f6, #6366f1, #8b5cf6);
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0; overflow: hidden;
+  }
+  .logo-text { color: var(--ink); }
+  .logo-text span { color: var(--muted); font-weight: 600; }
+
+  /* ─── STEP INDICATOR ─── */
+  .step-indicator {
+    display: flex; align-items: center; gap: 6px;
+    margin-bottom: 28px;
+  }
+  .step-dot {
+    height: 4px; border-radius: 4px;
+    background: var(--border);
+    transition: all 0.4s ease;
+  }
+  .step-dot.active { background: var(--blue); width: 24px !important; }
+  .step-dot.done { background: var(--teal); }
+
+  /* ─── TYPOGRAPHY ─── */
+  .screen-tag {
+    display: inline-flex; align-items: center; gap: 5px;
+    font-size: 0.67rem; font-weight: 700;
+    text-transform: uppercase; letter-spacing: 0.1em;
+    color: var(--blue); background: var(--blue-light);
+    padding: 4px 10px; border-radius: 20px;
+    margin-bottom: 14px; width: fit-content;
+  }
+  .screen-title {
+    font-family: 'Bricolage Grotesque', sans-serif;
+    font-size: 2rem; font-weight: 800;
+    line-height: 1.12; color: var(--ink);
+    letter-spacing: -0.03em; margin-bottom: 10px;
+  }
+  .screen-title .highlight {
+    background: linear-gradient(135deg, var(--blue), var(--violet));
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+  .screen-sub {
+    font-size: 0.9rem; font-weight: 500;
+    color: var(--muted); line-height: 1.6; margin-bottom: 32px;
+  }
+
+  /* ─── HERO WELCOME ─── */
+  .hero-wrap {
+    display: flex; align-items: flex-start; gap: 0;
+    flex-direction: column;
+    margin-bottom: 32px; position: relative;
+  }
+  .hero-badge {
+    display: inline-flex; align-items: center; gap: 6px;
+    background: white; border: 1px solid var(--border);
+    border-radius: 20px; padding: 6px 12px 6px 8px;
+    font-size: 0.72rem; font-weight: 700; color: var(--muted);
+    box-shadow: 0 1px 4px rgba(0,0,0,0.06); margin-bottom: 20px;
+  }
+  .hero-badge-dot {
+    width: 7px; height: 7px; border-radius: 50%;
+    background: #22c55e;
+    box-shadow: 0 0 0 3px rgba(34,197,94,0.2);
+    animation: glow 2s ease infinite;
+  }
+  @keyframes glow { 0%,100%{box-shadow:0 0 0 3px rgba(34,197,94,0.2)} 50%{box-shadow:0 0 0 6px rgba(34,197,94,0.1)} }
+
+  .feature-pills {
+    display: flex; flex-wrap: wrap; gap: 8px; margin-top: 16px;
+  }
+  .feature-pill {
+    background: white; border: 1.5px solid var(--border);
+    border-radius: 20px; padding: 8px 14px;
+    font-size: 0.75rem; font-weight: 600; color: var(--ink);
+    display: flex; align-items: center; gap: 5px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+    animation: pillIn 0.5s ease both;
+    cursor: pointer; transition: all 0.2s;
+    user-select: none; -webkit-user-select: none;
+    -webkit-tap-highlight-color: transparent;
+    position: relative;
+  }
+  .feature-pill:active { transform: scale(0.95); }
+  .feature-pill.active {
+    border-color: var(--blue); background: var(--blue-light);
+    color: var(--blue); box-shadow: 0 0 0 4px rgba(37,99,235,0.1);
+  }
+  @keyframes pillIn { from{opacity:0;transform:translateY(8px)} to{opacity:1;transform:translateY(0)} }
+
+  /* ─── FEATURE PREVIEW CARD ─── */
+  .feature-preview {
+    margin-top: 14px; border-radius: var(--radius-md);
+    overflow: hidden; border: 1.5px solid var(--border);
+    background: white; box-shadow: var(--shadow);
+    max-height: 0; opacity: 0;
+    transition: max-height 0.45s cubic-bezier(0.4,0,0.2,1), opacity 0.3s ease, margin 0.3s ease;
+  }
+  .feature-preview.show { max-height: 200px; opacity: 1; }
+  .feature-preview-inner { padding: 16px; }
+  .fp-header { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
+  .fp-icon {
+    width: 38px; height: 38px; border-radius: 12px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1.2rem; flex-shrink: 0;
+  }
+  .fp-title { font-size: 0.88rem; font-weight: 800; color: var(--ink); }
+  .fp-desc  { font-size: 0.78rem; font-weight: 500; color: var(--muted); line-height: 1.5; }
+  .fp-demo  { display: flex; gap: 6px; margin-top: 10px; flex-wrap: wrap; }
+  .fp-chip  {
+    background: var(--bg); border: 1.5px solid var(--border);
+    border-radius: 20px; padding: 6px 12px;
+    font-size: 0.72rem; font-weight: 700; color: var(--ink);
+  }
+
+  /* ─── GENDER CARDS ─── */
+  .gender-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 10px; margin-bottom: 28px; }
+  .gender-card {
+    background: var(--card); border: 2px solid var(--border);
+    border-radius: var(--radius-md); padding: 18px 8px 14px;
+    display: flex; flex-direction: column; align-items: center; gap: 8px;
+    cursor: pointer; transition: all 0.22s;
+    user-select: none; -webkit-user-select: none;
+    -webkit-tap-highlight-color: transparent;
+    position: relative; overflow: hidden;
+  }
+  .gender-card::before {
+    content: ''; position: absolute; inset: 0;
+    background: linear-gradient(135deg, var(--blue-light), var(--violet-light));
+    opacity: 0; transition: opacity 0.22s;
+  }
+  .gender-card:active { transform: scale(0.96); }
+  .gender-card.selected { border-color: var(--blue); box-shadow: 0 0 0 4px rgba(37,99,235,0.1); }
+  .gender-card.selected::before { opacity: 1; }
+  .gender-icon { font-size: 2rem; position: relative; z-index: 1; transition: transform 0.3s cubic-bezier(0.34,1.56,0.64,1); }
+  .gender-card.selected .gender-icon { transform: scale(1.15); }
+  .gender-label { font-size: 0.75rem; font-weight: 700; color: var(--muted); position: relative; z-index: 1; }
+  .gender-card.selected .gender-label { color: var(--blue); }
+
+  /* ─── CHOICE CARDS ─── */
+  .choices { display: flex; flex-direction: column; gap: 10px; margin-bottom: 28px; }
+
+  .choice {
+    background: var(--card); border: 2px solid var(--border);
+    border-radius: var(--radius-md); padding: 16px;
+    display: flex; align-items: center; gap: 14px;
+    cursor: pointer; transition: all 0.22s;
+    user-select: none; -webkit-user-select: none;
+    -webkit-tap-highlight-color: transparent;
+    position: relative; overflow: hidden;
+  }
+  .choice::before {
+    content: ''; position: absolute; inset: 0;
+    background: linear-gradient(135deg, var(--blue-light), var(--violet-light));
+    opacity: 0; transition: opacity 0.22s;
+  }
+  .choice:active { transform: scale(0.98); }
+  .choice.selected { border-color: var(--blue); box-shadow: 0 0 0 4px rgba(37,99,235,0.1); }
+  .choice.selected::before { opacity: 1; }
+
+  .choice-icon-wrap {
+    width: 48px; height: 48px; border-radius: 14px;
+    background: var(--bg); display: flex; align-items: center;
+    justify-content: center; font-size: 1.5rem; flex-shrink: 0;
+    position: relative; z-index: 1; transition: background 0.22s;
+  }
+  .choice.selected .choice-icon-wrap { background: white; }
+  .choice-text { flex: 1; position: relative; z-index: 1; }
+  .choice-title { font-size: 0.92rem; font-weight: 700; color: var(--ink); }
+  .choice-desc  { font-size: 0.74rem; font-weight: 500; color: var(--muted); margin-top: 2px; line-height: 1.4; }
+  .choice.selected .choice-title { color: var(--blue); }
+
+  .choice-radio {
+    width: 22px; height: 22px; border-radius: 50%;
+    border: 2px solid var(--border); flex-shrink: 0;
+    display: flex; align-items: center; justify-content: center;
+    position: relative; z-index: 1; transition: all 0.22s;
+  }
+  .choice-radio-inner {
+    width: 10px; height: 10px; border-radius: 50%;
+    background: var(--blue); transform: scale(0);
+    transition: transform 0.25s cubic-bezier(0.34,1.56,0.64,1);
+  }
+  .choice.selected .choice-radio { border-color: var(--blue); }
+  .choice.selected .choice-radio-inner { transform: scale(1); }
+
+  /* ─── INPUT ─── */
+  .field { margin-bottom: 24px; }
+  .field-label {
+    font-size: 0.72rem; font-weight: 700;
+    text-transform: uppercase; letter-spacing: 0.09em;
+    color: var(--muted); margin-bottom: 8px; display: block;
+  }
+  .field-wrap { position: relative; }
+  .field-prefix {
+    position: absolute; left: 16px; top: 50%; transform: translateY(-50%);
+    font-size: 1.1rem; pointer-events: none;
+  }
+  .field-input {
+    width: 100%; background: var(--card);
+    border: 2px solid var(--border); border-radius: var(--radius-md);
+    padding: 16px 16px 16px 48px;
+    font-size: 1.05rem; font-weight: 600;
+    color: var(--ink); font-family: 'Plus Jakarta Sans', sans-serif;
+    outline: none; transition: all 0.2s; -webkit-appearance: none;
+  }
+  .field-input::placeholder { color: #d1d5db; font-weight: 500; }
+  .field-input:focus {
+    border-color: var(--blue);
+    box-shadow: 0 0 0 4px rgba(37,99,235,0.1);
+  }
+  .field-hint { font-size: 0.72rem; color: var(--muted); font-weight: 500; margin-top: 7px; padding-left: 4px; }
+
+  /* ─── BUTTONS ─── */
+  .spacer { flex: 1; min-height: 20px; }
+  .btn-stack { display: flex; flex-direction: column; gap: 10px; }
+
+  .btn-primary {
+    width: 100%;
+    background: linear-gradient(135deg, var(--blue), var(--violet));
+    color: white; border: none; border-radius: var(--radius-md);
+    padding: 17px 20px; font-size: 0.95rem; font-weight: 700;
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    cursor: pointer; transition: all 0.2s;
+    display: flex; align-items: center; justify-content: center; gap: 8px;
+    box-shadow: 0 4px 16px rgba(37,99,235,0.3);
+    -webkit-tap-highlight-color: transparent;
+  }
+  .btn-primary:active { transform: scale(0.98); opacity: 0.92; }
+  .btn-primary:disabled { opacity: 0.35; box-shadow: none; cursor: default; pointer-events: none; }
+  .btn-primary .btn-arrow { transition: transform 0.2s; }
+  .btn-primary:not(:disabled):hover .btn-arrow { transform: translateX(3px); }
+
+  .btn-ghost {
+    width: 100%; background: transparent;
+    color: var(--muted); border: 2px solid var(--border);
+    border-radius: var(--radius-md); padding: 15px;
+    font-size: 0.88rem; font-weight: 600;
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    cursor: pointer; transition: all 0.2s;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .btn-ghost:active { background: var(--bg); }
+
+  /* ─── SUMMARY ─── */
+  .summary-grid { display: flex; flex-direction: column; gap: 10px; margin-bottom: 28px; }
+  .summary-item {
+    background: var(--card); border: 1.5px solid var(--border);
+    border-radius: var(--radius-md); padding: 16px;
+    display: flex; align-items: center; gap: 14px;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.04);
+  }
+  .summary-icon {
+    width: 44px; height: 44px; border-radius: 13px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1.2rem; flex-shrink: 0;
+  }
+  .summary-icon.blue { background: var(--blue-light); }
+  .summary-icon.violet { background: var(--violet-light); }
+  .summary-icon.teal { background: var(--teal-light); }
+  .summary-key { font-size: 0.68rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted); }
+  .summary-val { font-size: 1rem; font-weight: 800; color: var(--ink); margin-top: 2px; }
+
+  /* ─── SUCCESS ─── */
+  @keyframes successPop { from{opacity:0;transform:scale(0.5) rotate(-10deg)} to{opacity:1;transform:scale(1) rotate(0deg)} }
+  @keyframes successFadeUp { from{opacity:0;transform:translateY(16px)} to{opacity:1;transform:translateY(0)} }
+  @keyframes confettiFall {
+    0%   { transform: translateY(-20px) rotate(0deg); opacity: 1; }
+    100% { transform: translateY(100vh) rotate(720deg); opacity: 0; }
+  }
+
+  .confetti-piece {
+    position: fixed; width: 8px; height: 8px; border-radius: 2px;
+    animation: confettiFall linear forwards;
+    z-index: 200; pointer-events: none;
+  }
+
+  .success-wrap { display: flex; flex-direction: column; align-items: center; text-align: center; padding-top: 20px; }
+  .success-ring {
+    width: 88px; height: 88px; border-radius: 50%;
+    background: linear-gradient(135deg, #dcfce7, #bbf7d0);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 2.6rem; margin-bottom: 24px;
+    animation: successPop 0.6s cubic-bezier(0.34,1.56,0.64,1) both;
+    box-shadow: 0 0 0 8px rgba(34,197,94,0.1);
+  }
+  .success-title {
+    font-family: 'Bricolage Grotesque', sans-serif;
+    font-size: 2rem; font-weight: 800;
+    letter-spacing: -0.03em; color: var(--ink);
+    margin-bottom: 8px;
+    animation: successFadeUp 0.5s ease 0.2s both;
+  }
+  .success-sub {
+    font-size: 0.88rem; font-weight: 500; color: var(--muted);
+    line-height: 1.6; margin-bottom: 32px;
+    animation: successFadeUp 0.5s ease 0.35s both;
+  }
+  .profile-card {
+    width: 100%; background: var(--card);
+    border: 1.5px solid var(--border); border-radius: var(--radius-lg);
+    padding: 18px; display: flex; align-items: center; gap: 14px;
+    box-shadow: var(--shadow); text-align: left;
+    animation: successFadeUp 0.5s ease 0.45s both;
+    margin-bottom: 28px;
+  }
+  .profile-avatar {
+    width: 52px; height: 52px; border-radius: 16px;
+    background: linear-gradient(135deg, var(--blue), var(--violet));
+    display: flex; align-items: center; justify-content: center;
+    font-family: 'Bricolage Grotesque', sans-serif;
+    font-size: 1.4rem; font-weight: 800; color: white; flex-shrink: 0;
+  }
+  .profile-name { font-size: 1rem; font-weight: 800; color: var(--ink); }
+  .profile-role { font-size: 0.75rem; font-weight: 500; color: var(--muted); margin-top: 2px; }
+  .profile-tag {
+    margin-left: auto; font-size: 0.65rem; font-weight: 700;
+    color: #16a34a; background: #dcfce7;
+    padding: 3px 9px; border-radius: 20px; flex-shrink: 0;
+  }
+</style>
+</head>
+<body>
+
+<div class="mesh">
+  <div class="mesh-blob mesh-blob-1"></div>
+  <div class="mesh-blob mesh-blob-2"></div>
+  <div class="mesh-blob mesh-blob-3"></div>
+</div>
+
+<div class="progress"><div class="progress-track" id="progressTrack" style="width:0%"></div></div>
+
+<!-- ══ SCREEN 0 · BIENVENIDA ══ -->
+<div class="screen active" id="s0">
+  <div class="logo">
+    <div class="logo-mark"><svg width="18" height="18" viewBox="0 0 60 60" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M6 14C6 10.69 8.69 8 12 8H48C51.31 8 54 10.69 54 14V38C54 41.31 51.31 44 48 44H34L24 55V44H12C8.69 44 6 41.31 6 38V14Z" fill="white" fill-opacity="0.2" stroke="white" stroke-opacity="0.6" stroke-width="2"/><rect x="14" y="22" width="5" height="14" rx="2.5" fill="white" opacity="0.9"/><rect x="23" y="16" width="5" height="20" rx="2.5" fill="white"/><rect x="32" y="19" width="5" height="17" rx="2.5" fill="white" opacity="0.95"/><rect x="41" y="23" width="5" height="13" rx="2.5" fill="white" opacity="0.85"/></svg></div>
+    <div class="logo-text">Parlia<span>.app</span> <span style="font-size:0.55rem;font-weight:800;background:#eff6ff;color:#2563eb;border-radius:20px;padding:2px 7px;vertical-align:middle;letter-spacing:.04em">BETA</span></div>
+    <!-- Selettore lingua -->
+    <div style="margin-left:auto;display:flex;gap:6px;align-items:center">
+      <div id="lang-es" onclick="selectLang('es')" style="display:flex;align-items:center;gap:4px;padding:5px 10px;border-radius:20px;font-size:0.72rem;font-weight:700;cursor:pointer;background:#eff6ff;color:#2563eb;border:1.5px solid #2563eb;-webkit-tap-highlight-color:transparent;transition:all .18s">
+        <img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyNCIgaGVpZ2h0PSIxNiIgdmlld0JveD0iMCAwIDI0IDE2Ij48cmVjdCB3aWR0aD0iMjQiIGhlaWdodD0iMTYiIGZpbGw9IiNjNjBiMWUiLz48cmVjdCB5PSI0IiB3aWR0aD0iMjQiIGhlaWdodD0iOCIgZmlsbD0iI2ZmYzQwMCIvPjwvc3ZnPg==" width="18" height="12" style="border-radius:2px;vertical-align:middle"> ES
+      </div>
+      <div id="lang-ca" onclick="selectLang('ca')" style="display:flex;align-items:center;gap:4px;padding:5px 10px;border-radius:20px;font-size:0.72rem;font-weight:700;cursor:pointer;background:transparent;color:var(--muted);border:1.5px solid var(--border);-webkit-tap-highlight-color:transparent;transition:all .18s;opacity:0.5">
+        <img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyNCIgaGVpZ2h0PSIxNiIgdmlld0JveD0iMCAwIDI0IDE2Ij48cmVjdCB3aWR0aD0iMjQiIGhlaWdodD0iMTYiIGZpbGw9IiNGQ0REMDkiLz48cmVjdCB5PSIyIiB3aWR0aD0iMjQiIGhlaWdodD0iMi40IiBmaWxsPSIjREExMjFBIi8+PHJlY3QgeT0iNi40IiB3aWR0aD0iMjQiIGhlaWdodD0iMi40IiBmaWxsPSIjREExMjFBIi8+PHJlY3QgeT0iMTAuOCIgd2lkdGg9IjI0IiBoZWlnaHQ9IjIuNCIgZmlsbD0iI0RBMTIxQSIvPjxyZWN0IHk9IjEzLjYiIHdpZHRoPSIyNCIgaGVpZ2h0PSIyLjQiIGZpbGw9IiNEQTEyMUEiLz48L3N2Zz4=" width="18" height="12" style="border-radius:2px;vertical-align:middle"> CA
+        <span style="font-size:0.55rem;font-weight:800;background:#f3f4f6;color:#9ca3af;border-radius:10px;padding:1px 5px;margin-left:1px">Pronto</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="hero-wrap">
+    <div class="hero-badge">
+      <div class="hero-badge-dot"></div>
+      Comunicación asistida por IA
+    </div>
+    <div class="screen-title">Tu voz,<br><span class="highlight">amplificada.</span></div>
+    <div class="screen-sub">Parlia ayuda a personas con dificultades del habla a comunicarse con sus familias, usando inteligencia artificial.</div>
+    <div style="font-size:0.68rem;font-weight:600;color:var(--muted);margin-top:16px;margin-bottom:6px;display:flex;align-items:center;gap:5px">
+      <span style="font-size:0.75rem">👆</span> Toca para descubrir cada función
+    </div>
+    <div class="feature-pills">
+      <div class="feature-pill" style="animation-delay:0.1s" onclick="togglePill(this,'ia')">🧠 IA adaptativa</div>
+      <div class="feature-pill" style="animation-delay:0.2s" onclick="togglePill(this,'chat')">💬 Chat en tiempo real</div>
+      <div class="feature-pill" style="animation-delay:0.3s" onclick="togglePill(this,'aac')">🗣️ AAC personalizado</div>
+      <div class="feature-pill" style="animation-delay:0.4s" onclick="togglePill(this,'rehab')">🎯 Rehabilitación</div>
+    </div>
+    <div class="feature-preview" id="featurePreview">
+      <div class="feature-preview-inner" id="featurePreviewInner"></div>
+    </div>
+  </div>
+
+  <div class="spacer"></div>
+  <div class="btn-stack">
+    <button class="btn-primary" onclick="goTo(1)">
+      Empezar configuración <span class="btn-arrow">→</span>
+    </button>
+    <div onclick="skipToHome()" style="text-align:center;padding:10px;font-size:0.75rem;font-weight:700;color:var(--muted);cursor:pointer;-webkit-tap-highlight-color:transparent;letter-spacing:.01em">
+      🧪 Modo test — Ir directo a la home
+    </div>
+  </div>
+</div>
+
+<!-- ══ SCREEN 1 · ¿QUIÉN CONFIGURA? ══ -->
+<div class="screen" id="s1">
+  <div class="logo">
+    <div class="logo-mark"><svg width="18" height="18" viewBox="0 0 60 60" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M6 14C6 10.69 8.69 8 12 8H48C51.31 8 54 10.69 54 14V38C54 41.31 51.31 44 48 44H34L24 55V44H12C8.69 44 6 41.31 6 38V14Z" fill="white" fill-opacity="0.2" stroke="white" stroke-opacity="0.6" stroke-width="2"/><rect x="14" y="22" width="5" height="14" rx="2.5" fill="white" opacity="0.9"/><rect x="23" y="16" width="5" height="20" rx="2.5" fill="white"/><rect x="32" y="19" width="5" height="17" rx="2.5" fill="white" opacity="0.95"/><rect x="41" y="23" width="5" height="13" rx="2.5" fill="white" opacity="0.85"/></svg></div>
+    <div class="logo-text">Parlia<span>.app</span></div>
+  </div>
+  <div class="step-indicator" id="steps1"></div>
+
+  <div class="screen-tag">✦ Paso 1 de 3</div>
+  <div class="screen-title">¿Quién está<br><span class="highlight">configurando</span>?</div>
+  <div class="screen-sub">Esto nos ayuda a personalizar el proceso para ti.</div>
+
+  <div class="choices">
+    <div class="choice" onclick="selectWho('caregiver',this)" id="c-caregiver">
+      <div class="choice-icon-wrap">👨‍👩‍👧</div>
+      <div class="choice-text">
+        <div class="choice-title">Un familiar o cuidador</div>
+        <div class="choice-desc">Configuro la app para la persona que la usará</div>
+      </div>
+      <div class="choice-radio"><div class="choice-radio-inner"></div></div>
+    </div>
+    <div class="choice" onclick="selectWho('user',this)" id="c-user">
+      <div class="choice-icon-wrap">🙋</div>
+      <div class="choice-text">
+        <div class="choice-title">Yo mismo la usaré</div>
+        <div class="choice-desc">Configuro la app para comunicarme yo</div>
+      </div>
+      <div class="choice-radio"><div class="choice-radio-inner"></div></div>
+    </div>
+    <div class="choice" onclick="selectWho('together',this)" id="c-together">
+      <div class="choice-icon-wrap">🤝</div>
+      <div class="choice-text">
+        <div class="choice-title">Los dos juntos</div>
+        <div class="choice-desc">Estamos configurando entre los dos</div>
+      </div>
+      <div class="choice-radio"><div class="choice-radio-inner"></div></div>
+    </div>
+  </div>
+
+  <div class="spacer"></div>
+  <div class="btn-stack">
+    <button class="btn-primary" id="btn1" onclick="goTo(2)" disabled>
+      Continuar <span class="btn-arrow">→</span>
+    </button>
+    <button class="btn-ghost" onclick="goTo(0)">← Volver</button>
+  </div>
+</div>
+
+<!-- ══ SCREEN 2 · NOMBRE USUARIO ══ -->
+<div class="screen" id="s2">
+  <div class="logo">
+    <div class="logo-mark"><svg width="18" height="18" viewBox="0 0 60 60" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M6 14C6 10.69 8.69 8 12 8H48C51.31 8 54 10.69 54 14V38C54 41.31 51.31 44 48 44H34L24 55V44H12C8.69 44 6 41.31 6 38V14Z" fill="white" fill-opacity="0.2" stroke="white" stroke-opacity="0.6" stroke-width="2"/><rect x="14" y="22" width="5" height="14" rx="2.5" fill="white" opacity="0.9"/><rect x="23" y="16" width="5" height="20" rx="2.5" fill="white"/><rect x="32" y="19" width="5" height="17" rx="2.5" fill="white" opacity="0.95"/><rect x="41" y="23" width="5" height="13" rx="2.5" fill="white" opacity="0.85"/></svg></div>
+    <div class="logo-text">Parlia<span>.app</span></div>
+  </div>
+  <div class="step-indicator" id="steps2"></div>
+
+  <div class="screen-tag">✦ Paso 2 de 3</div>
+  <div class="screen-title" id="s2title">¿Cómo se llama<br><span class="highlight">el usuario</span>?</div>
+  <div class="screen-sub" id="s2sub">Este nombre aparecerá en toda la app y en los mensajes de la IA.</div>
+
+  <div class="field">
+    <label class="field-label" for="inp-user">Nombre</label>
+    <div class="field-wrap">
+      <span class="field-prefix">🙋</span>
+      <input class="field-input" id="inp-user" type="text"
+        placeholder="Ej: María, Carlos…"
+        autocomplete="given-name" autocorrect="off" autocapitalize="words"
+        oninput="onUserInput()">
+    </div>
+    <div class="field-hint">Solo el nombre de pila.</div>
+  </div>
+
+  <div class="spacer"></div>
+  <div class="btn-stack">
+    <button class="btn-primary" id="btn2" onclick="goTo(3)" disabled>
+      Continuar <span class="btn-arrow">→</span>
+    </button>
+    <button class="btn-ghost" onclick="goTo(1)">← Volver</button>
+  </div>
+</div>
+
+<!-- ══ SCREEN 3 · GÉNERO ══ -->
+<div class="screen" id="s3">
+  <div class="logo">
+    <div class="logo-mark"><svg width="18" height="18" viewBox="0 0 60 60" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M6 14C6 10.69 8.69 8 12 8H48C51.31 8 54 10.69 54 14V38C54 41.31 51.31 44 48 44H34L24 55V44H12C8.69 44 6 41.31 6 38V14Z" fill="white" fill-opacity="0.2" stroke="white" stroke-opacity="0.6" stroke-width="2"/><rect x="14" y="22" width="5" height="14" rx="2.5" fill="white" opacity="0.9"/><rect x="23" y="16" width="5" height="20" rx="2.5" fill="white"/><rect x="32" y="19" width="5" height="17" rx="2.5" fill="white" opacity="0.95"/><rect x="41" y="23" width="5" height="13" rx="2.5" fill="white" opacity="0.85"/></svg></div>
+    <div class="logo-text">Parlia<span>.app</span></div>
+  </div>
+  <div class="step-indicator" id="steps3"></div>
+
+  <div class="screen-tag">✦ Paso 3 de 4</div>
+  <div class="screen-title" id="s3title">¿Cómo se<br><span class="highlight">identifica</span>?</div>
+  <div class="screen-sub" id="s3sub">Para que la app use el saludo correcto.</div>
+
+  <div class="gender-grid">
+    <div class="gender-card" onclick="selectGender('f',this)">
+      <div class="gender-icon">👩</div>
+      <div class="gender-label">Mujer</div>
+    </div>
+    <div class="gender-card" onclick="selectGender('m',this)">
+      <div class="gender-icon">👨</div>
+      <div class="gender-label">Hombre</div>
+    </div>
+    <div class="gender-card" onclick="selectGender('n',this)">
+      <div class="gender-icon">🧑</div>
+      <div class="gender-label">Otro</div>
+    </div>
+  </div>
+
+  <div class="spacer"></div>
+  <div class="btn-stack">
+    <button class="btn-primary" id="btn3" onclick="goTo(4)" disabled>
+      Continuar <span class="btn-arrow">→</span>
+    </button>
+    <button class="btn-ghost" onclick="goTo(2)">← Volver</button>
+  </div>
+</div>
+
+<!-- ══ SCREEN 4 · NOMBRE CAREGIVER ══ -->
+<div class="screen" id="s4">
+  <div class="logo">
+    <div class="logo-mark"><svg width="18" height="18" viewBox="0 0 60 60" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M6 14C6 10.69 8.69 8 12 8H48C51.31 8 54 10.69 54 14V38C54 41.31 51.31 44 48 44H34L24 55V44H12C8.69 44 6 41.31 6 38V14Z" fill="white" fill-opacity="0.2" stroke="white" stroke-opacity="0.6" stroke-width="2"/><rect x="14" y="22" width="5" height="14" rx="2.5" fill="white" opacity="0.9"/><rect x="23" y="16" width="5" height="20" rx="2.5" fill="white"/><rect x="32" y="19" width="5" height="17" rx="2.5" fill="white" opacity="0.95"/><rect x="41" y="23" width="5" height="13" rx="2.5" fill="white" opacity="0.85"/></svg></div>
+    <div class="logo-text">Parlia<span>.app</span></div>
+  </div>
+  <div class="step-indicator" id="steps4"></div>
+
+  <div class="screen-tag">✦ Paso 4 de 4</div>
+  <div class="screen-title">¿Y el <span class="highlight">cuidador</span><br>principal?</div>
+  <div class="screen-sub" id="s4sub">La persona de referencia para comunicarse.</div>
+
+  <div class="field">
+    <label class="field-label" id="s4label">Nombre del cuidador</label>
+    <div class="field-wrap">
+      <span class="field-prefix">🤝</span>
+      <input class="field-input" id="inp-caregiver" type="text"
+        placeholder="Ej: Luca, Ana…"
+        autocomplete="given-name" autocorrect="off" autocapitalize="words"
+        oninput="onCaregiverInput()">
+    </div>
+    <div class="field-hint">El familiar o cuidador principal.</div>
+  </div>
+
+  <div class="spacer"></div>
+  <div class="btn-stack">
+    <button class="btn-primary" id="btn4" onclick="goTo(5)" disabled>
+      Ver resumen <span class="btn-arrow">→</span>
+    </button>
+    <button class="btn-ghost" onclick="goTo(3)">← Volver</button>
+  </div>
+</div>
+
+<!-- ══ SCREEN 5 · RESUMEN ══ -->
+<div class="screen" id="s5">
+  <div class="logo">
+    <div class="logo-mark"><svg width="18" height="18" viewBox="0 0 60 60" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M6 14C6 10.69 8.69 8 12 8H48C51.31 8 54 10.69 54 14V38C54 41.31 51.31 44 48 44H34L24 55V44H12C8.69 44 6 41.31 6 38V14Z" fill="white" fill-opacity="0.2" stroke="white" stroke-opacity="0.6" stroke-width="2"/><rect x="14" y="22" width="5" height="14" rx="2.5" fill="white" opacity="0.9"/><rect x="23" y="16" width="5" height="20" rx="2.5" fill="white"/><rect x="32" y="19" width="5" height="17" rx="2.5" fill="white" opacity="0.95"/><rect x="41" y="23" width="5" height="13" rx="2.5" fill="white" opacity="0.85"/></svg></div>
+    <div class="logo-text">Parlia<span>.app</span></div>
+  </div>
+
+  <div class="screen-tag">✦ Revisión</div>
+  <div class="screen-title">Todo<br><span class="highlight">listo.</span></div>
+  <div class="screen-sub">Revisa que todo sea correcto antes de empezar.</div>
+
+  <div class="summary-grid">
+    <div class="summary-item">
+      <div class="summary-icon blue">🙋</div>
+      <div>
+        <div class="summary-key">Usuario</div>
+        <div class="summary-val" id="sum-user">—</div>
+      </div>
+    </div>
+    <div class="summary-item">
+      <div class="summary-icon violet" id="sum-gender-icon">👤</div>
+      <div>
+        <div class="summary-key">Género</div>
+        <div class="summary-val" id="sum-gender">—</div>
+      </div>
+    </div>
+    <div class="summary-item">
+      <div class="summary-icon teal">🤝</div>
+      <div>
+        <div class="summary-key">Cuidador principal</div>
+        <div class="summary-val" id="sum-carer">—</div>
+      </div>
+    </div>
+    <div class="summary-item">
+      <div class="summary-icon" style="background:#fef9c3">⚙️</div>
+      <div>
+        <div class="summary-key">Configurado por</div>
+        <div class="summary-val" id="sum-who">—</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="spacer"></div>
+  <div class="btn-stack">
+    <button class="btn-primary" onclick="finish()">
+      ¡Empezar con Parlia! 🎉
+    </button>
+    <button class="btn-ghost" onclick="goTo(4)">← Cambiar algo</button>
+  </div>
+</div>
+
+<!-- ══ SCREEN 6 · ÉXITO ══ -->
+<div class="screen" id="s6">
+  <div class="spacer"></div>
+  <div class="success-wrap">
+    <div class="success-ring">✅</div>
+    <div class="success-title" id="s6welcome">¡Bienvenida,<br><span id="s6name" style="background:linear-gradient(135deg,#2563eb,#7c3aed);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text">usuario</span>!</div>
+    <div class="success-sub">Tu perfil está listo.<br>Ya puedes usar Parlia para comunicarte.</div>
+
+    <div class="profile-card">
+      <div class="profile-avatar" id="s6avatar">M</div>
+      <div>
+        <div class="profile-name" id="s6name2">—</div>
+        <div class="profile-role">Cuidador: <span id="s6carer">—</span></div>
+      </div>
+      <div class="profile-tag">Activo ✓</div>
+    </div>
+  </div>
+
+  <div class="spacer"></div>
+  <div class="btn-stack" style="animation: successFadeUp 0.5s ease 0.55s both">
+    <button class="btn-primary" onclick="openHome()" style="background:linear-gradient(135deg,#16a34a,#0d9488);box-shadow:0 4px 16px rgba(22,163,74,0.3)">
+      Abrir Parlia →
+    </button>
+    <button class="btn-ghost" onclick="reset()">↺ Reiniciar demo</button>
+  </div>
+</div>
+
+<script>
+  const profile = { who: null, userName: '', gender: null, caregiverName: '' };
+  let cur = 0;
+  let activePill = null;
+
+  const whoLabels = {
+    caregiver: 'Un familiar o cuidador',
+    user: 'La propia persona',
+    together: 'Los dos juntos'
+  };
+  const genderLabels = { f: 'Mujer', m: 'Hombre', n: 'No especificado' };
+  const genderIcons  = { f: '👩', m: '👨', n: '🧑' };
+  const welcomeText  = { f: '¡Bienvenida,', m: '¡Bienvenido,', n: '¡Bienvenid@,' };
+
+  // ── Feature pills ──
+  const featureData = {
+    ia: {
+      icon: '🧠', bg: '#eff6ff', color: '#2563eb',
+      title: 'IA adaptativa',
+      desc: 'La inteligencia artificial aprende el estilo de comunicación del usuario y genera sugerencias personalizadas en tiempo real.',
+      chips: ['Sugerencias contextuales', 'Se adapta al usuario', 'Respuestas inteligentes']
+    },
+    chat: {
+      icon: '💬', bg: '#f5f3ff', color: '#7c3aed',
+      title: 'Chat en tiempo real',
+      desc: 'El usuario y su cuidador pueden chatear directamente en la app. La IA genera chips de respuesta para facilitar la comunicación.',
+      chips: ['Mensajes instantáneos', 'Chips de respuesta IA', 'Notificaciones push']
+    },
+    aac: {
+      icon: '🗣️', bg: '#f0fdfa', color: '#0d9488',
+      title: 'AAC personalizado',
+      desc: 'Comunicador aumentativo con frases, categorías y síntesis de voz. Completamente adaptado al usuario.',
+      chips: ['Frases por categoría', 'Síntesis de voz', 'Favoritos rápidos']
+    },
+    rehab: {
+      icon: '🎯', bg: '#fef9c3', color: '#ca8a04',
+      title: 'Rehabilitación',
+      desc: 'Ejercicios de logopedia y estimulación neurológica generados por IA, adaptados al nivel del usuario.',
+      chips: ['Logopedia virtual', 'Juegos cognitivos', 'Progreso medible']
+    }
+  };
+
+  function togglePill(pill, key) {
+    const preview  = document.getElementById('featurePreview');
+    const inner    = document.getElementById('featurePreviewInner');
+    const isSame   = activePill === pill;
+
+    // Deseleziona tutte
+    document.querySelectorAll('.feature-pill').forEach(p => p.classList.remove('active'));
+    if (activePill && !isSame) activePill.classList.remove('active');
+
+    if (isSame) {
+      // Chiudi
+      preview.classList.remove('show');
+      activePill = null;
+      return;
+    }
+
+    // Apri nuova
+    activePill = pill;
+    pill.classList.add('active');
+    const d = featureData[key];
+    inner.innerHTML = `
+      <div class="fp-header">
+        <div class="fp-icon" style="background:${d.bg}">${d.icon}</div>
+        <div>
+          <div class="fp-title" style="color:${d.color}">${d.title}</div>
+        </div>
+      </div>
+      <div class="fp-desc">${d.desc}</div>
+      <div class="fp-demo">${d.chips.map(c => `<div class="fp-chip">${c}</div>`).join('')}</div>
+    `;
+    preview.classList.add('show');
+  }
+
+  // ── Step dots (ora 4 step) ──
+  function renderSteps(sid, active) {
+    const el = document.getElementById('steps' + sid);
+    if (!el) return;
+    el.innerHTML = [1,2,3,4].map((n, i) => {
+      const cls = i < active-1 ? 'step-dot done' : i === active-1 ? 'step-dot active' : 'step-dot';
+      const w   = i === active-1 ? '24px' : '12px';
+      return `<div class="${cls}" style="width:${w}"></div>`;
+    }).join('');
+  }
+
+  // ── Navigazione ──
+  // ── LINGUA ──
+  let selectedLang = localStorage.getItem('parlia_lang') || 'es';
+
+  function selectLang(lang) {
+    if (lang === 'ca') return; // non ancora implementato
+    selectedLang = lang;
+    localStorage.setItem('parlia_lang', lang);
+    document.getElementById('lang-es').style.background = lang === 'es' ? '#eff6ff' : 'transparent';
+    document.getElementById('lang-es').style.color = lang === 'es' ? '#2563eb' : 'var(--muted)';
+    document.getElementById('lang-es').style.borderColor = lang === 'es' ? '#2563eb' : 'var(--border)';
+  }
+
+  // Init lingua al caricamento
+  selectLang(selectedLang);
+
+  function skipToHome() {
+    // Imposta dati fittizi per il test così la home non si trova vuota
+    if (!localStorage.getItem('parlia_profile')) {
+      localStorage.setItem('parlia_profile', JSON.stringify({
+        userName: 'Test', gender: 'n', caregiverName: 'Cuidador', configuredBy: 'carer'
+      }));
+    }
+    window.location.href = 'home.html';
+  }
+
+  function goTo(n) {
+    const from = document.getElementById('s' + cur);
+    const to   = document.getElementById('s' + n);
+    if (!to) return;
+    from.classList.remove('active');
+    from.classList.add('out-left');
+    setTimeout(() => from.classList.remove('out-left'), 420);
+    to.classList.add('active');
+    cur = n;
+
+    const pct = n === 0 ? 0 : Math.min(Math.round((n / 5) * 100), 100);
+    document.getElementById('progressTrack').style.width = pct + '%';
+
+    if (n >= 1 && n <= 4) renderSteps(n, n);
+    if (n === 2) prepS2();
+    if (n === 3) prepS3();
+    if (n === 4) prepS4();
+    if (n === 5) prepS5();
+    if (n === 6) prepS6();
+
+    setTimeout(() => {
+      const inp = to.querySelector('.field-input');
+      if (inp) inp.focus();
+    }, 420);
+  }
+
+  // Screen 1
+  function selectWho(who, card) {
+    profile.who = who;
+    document.querySelectorAll('.choice').forEach(c => c.classList.remove('selected'));
+    card.classList.add('selected');
+    document.getElementById('btn1').disabled = false;
+  }
+
+  // Screen 2
+  function prepS2() {
+    const title = document.getElementById('s2title');
+    const sub   = document.getElementById('s2sub');
+    if (profile.who === 'user') {
+      title.innerHTML = '¿Cómo <span class="highlight">te llamas</span>?';
+      sub.textContent = 'Este es el nombre que usará la IA para hablar contigo.';
+    } else {
+      title.innerHTML = '¿Cómo se llama<br><span class="highlight">el usuario</span>?';
+      sub.textContent = 'La persona que usará Parlia para comunicarse.';
+    }
+    document.getElementById('inp-user').value = profile.userName;
+    onUserInput();
+  }
+  function onUserInput() {
+    const v = document.getElementById('inp-user').value.trim();
+    profile.userName = v;
+    document.getElementById('btn2').disabled = v.length < 2;
+  }
+
+  // Screen 3 — genere
+  function prepS3() {
+    const title = document.getElementById('s3title');
+    const sub   = document.getElementById('s3sub');
+    const name  = profile.userName || 'el usuario';
+    if (profile.who === 'user') {
+      title.innerHTML = '¿Cómo te<br><span class="highlight">identificas</span>?';
+      sub.textContent = 'Para que la app te salude correctamente.';
+    } else {
+      title.innerHTML = `¿Cómo se<br><span class="highlight">identifica</span> ${name}?`;
+      sub.textContent = 'Para que la app use el saludo correcto.';
+    }
+    // Restore selezione
+    document.querySelectorAll('.gender-card').forEach(c => c.classList.remove('selected'));
+    if (profile.gender) {
+      const map = { f: 0, m: 1, n: 2 };
+      const cards = document.querySelectorAll('.gender-card');
+      if (cards[map[profile.gender]]) cards[map[profile.gender]].classList.add('selected');
+      document.getElementById('btn3').disabled = false;
+    } else {
+      document.getElementById('btn3').disabled = true;
+    }
+  }
+  function selectGender(g, card) {
+    profile.gender = g;
+    document.querySelectorAll('.gender-card').forEach(c => c.classList.remove('selected'));
+    card.classList.add('selected');
+    document.getElementById('btn3').disabled = false;
+  }
+
+  // Screen 4 — caregiver
+  function prepS4() {
+    const sub   = document.getElementById('s4sub');
+    const label = document.getElementById('s4label');
+    const name  = profile.userName || 'el usuario';
+    if (profile.who === 'caregiver') {
+      sub.innerHTML   = `¿Cómo te llamas tú? Serás el cuidador de <b>${name}</b>.`;
+      label.textContent = 'Tu nombre';
+      document.getElementById('inp-caregiver').placeholder = 'Tu nombre';
+    } else {
+      sub.innerHTML   = `La persona con quien <b>${name}</b> se comunica más.`;
+      label.textContent = 'Nombre del cuidador';
+      document.getElementById('inp-caregiver').placeholder = 'Ej: Luca, Ana…';
+    }
+    document.getElementById('inp-caregiver').value = profile.caregiverName;
+    onCaregiverInput();
+  }
+  function onCaregiverInput() {
+    const v = document.getElementById('inp-caregiver').value.trim();
+    profile.caregiverName = v;
+    document.getElementById('btn4').disabled = v.length < 2;
+  }
+
+  // Screen 5 — riepilogo
+  function prepS5() {
+    document.getElementById('sum-user').textContent   = profile.userName;
+    document.getElementById('sum-gender').textContent = genderLabels[profile.gender] || '—';
+    document.getElementById('sum-gender-icon').textContent = genderIcons[profile.gender] || '👤';
+    document.getElementById('sum-carer').textContent  = profile.caregiverName;
+    document.getElementById('sum-who').textContent    = whoLabels[profile.who] || '—';
+  }
+
+  // Screen 6 — successo
+  function prepS6() {
+    const welcome = welcomeText[profile.gender] || '¡Bienvenid@,';
+    document.getElementById('s6welcome').childNodes[0].textContent = welcome + '\n';
+    document.getElementById('s6name').textContent  = profile.userName;
+    document.getElementById('s6name2').textContent = profile.userName;
+    document.getElementById('s6carer').textContent = profile.caregiverName;
+    const av = document.getElementById('s6avatar');
+    av.textContent = profile.userName.charAt(0).toUpperCase();
+    spawnConfetti();
+  }
+
+  function finish() {
+    localStorage.setItem('parlia_profile', JSON.stringify(profile));
+    goTo(6);
+  }
+
+  function openHome() {
+    localStorage.setItem('parlia_profile', JSON.stringify(profile));
+    window.location.href = 'home.html';
+  }
+
+  // Confetti
+  function spawnConfetti() {
+    const colors = ['#2563eb','#7c3aed','#0d9488','#f59e0b','#e11d48','#22c55e'];
+    for (let i = 0; i < 50; i++) {
+      const el = document.createElement('div');
+      el.className = 'confetti-piece';
+      el.style.cssText = `
+        left:${Math.random()*100}vw; top:-10px;
+        background:${colors[Math.floor(Math.random()*colors.length)]};
+        width:${6+Math.random()*6}px; height:${6+Math.random()*6}px;
+        border-radius:${Math.random()>0.5?'50%':'2px'};
+        animation-duration:${1.5+Math.random()*2}s;
+        animation-delay:${Math.random()*0.8}s; opacity:0;
+      `;
+      document.body.appendChild(el);
+      setTimeout(() => el.remove(), 4000);
+    }
+  }
+
+  // Reset
+  function reset() {
+    Object.assign(profile, { who:null, userName:'', gender:null, caregiverName:'' });
+    document.querySelectorAll('.choice').forEach(c => c.classList.remove('selected'));
+    document.querySelectorAll('.gender-card').forEach(c => c.classList.remove('selected'));
+    document.querySelectorAll('.feature-pill').forEach(c => c.classList.remove('active'));
+    document.getElementById('featurePreview').classList.remove('show');
+    activePill = null;
+    ['btn1','btn2','btn3','btn4'].forEach(id => {
+      const el = document.getElementById(id);
+      if (el) el.disabled = true;
+    });
+    document.getElementById('inp-user').value = '';
+    document.getElementById('inp-caregiver').value = '';
+    document.getElementById('progressTrack').style.width = '0%';
+    document.getElementById('s'+cur).classList.remove('active');
+    cur = 0;
+    document.getElementById('s0').classList.add('active');
+  }
+</script>
+</body>
+</html>

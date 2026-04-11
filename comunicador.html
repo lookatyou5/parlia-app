@@ -1,0 +1,595 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>Parlia — Comunicador</title>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { box-sizing:border-box; margin:0; padding:0; }
+:root {
+  --bg:#f5f6fa; --card:#fff; --ink:#0f0f10; --muted:#6b7280;
+  --border:#e5e7eb; --blue:#2563eb; --blue-light:#eff6ff;
+  --violet:#7c3aed; --violet-light:#f5f3ff; --indigo:#6366f1;
+  --teal:#0d9488; --green:#16a34a;
+  --radius:20px;
+  --shadow:0 2px 12px rgba(0,0,0,0.06),0 1px 3px rgba(0,0,0,0.04);
+  --shadow-lg:0 8px 32px rgba(37,99,235,0.14),0 2px 8px rgba(0,0,0,0.06);
+}
+html,body { font-family:'Plus Jakarta Sans',sans-serif; background:var(--bg); color:var(--ink); height:100%; overflow:hidden; -webkit-font-smoothing:antialiased; }
+
+/* ── MESH ── */
+.mesh { position:fixed; inset:0; z-index:0; pointer-events:none; overflow:hidden; }
+.blob { position:absolute; border-radius:50%; filter:blur(80px); opacity:0.45; }
+.blob1 { width:300px; height:300px; top:-80px; right:-60px; background:radial-gradient(circle,#bfdbfe,#ddd6fe); animation:blobF 10s ease-in-out infinite; }
+.blob2 { width:200px; height:200px; bottom:80px; left:-50px; background:radial-gradient(circle,#99f6e4,#a5f3fc); animation:blobF 13s ease-in-out infinite reverse; }
+@keyframes blobF { 0%,100%{transform:translate(0,0)} 50%{transform:translate(-10px,12px)} }
+
+/* ── LAYOUT ── */
+.app { position:relative; z-index:1; display:flex; flex-direction:column; height:100vh; }
+
+/* ── TOPBAR ── */
+.topbar {
+  display:flex; align-items:center; gap:10px; padding:12px 16px; flex-shrink:0;
+  background:rgba(245,246,250,0.92); backdrop-filter:blur(16px);
+  border-bottom:1px solid var(--border);
+}
+.back-btn {
+  width:34px; height:34px; border-radius:10px;
+  background:var(--card); border:1.5px solid var(--border);
+  display:flex; align-items:center; justify-content:center;
+  font-size:0.95rem; cursor:pointer; flex-shrink:0;
+  -webkit-tap-highlight-color:transparent; transition:all .15s;
+}
+.back-btn:active { background:var(--blue-light); border-color:var(--blue); }
+.topbar-title { font-family:'Bricolage Grotesque',sans-serif; font-size:1rem; font-weight:800; flex:1; }
+.topbar-badge { font-size:0.58rem; font-weight:800; background:var(--blue-light); color:var(--blue); border-radius:20px; padding:3px 9px; }
+
+/* ── HERO CARD ── */
+.hero {
+  margin:12px 14px 10px; border-radius:var(--radius); overflow:hidden;
+  position:relative; flex-shrink:0;
+  background:linear-gradient(135deg,#1e3a8a 0%,#2d5be3 55%,#4f46e5 100%);
+  box-shadow:var(--shadow-lg);
+  transition:box-shadow .3s, transform .25s;
+}
+.hero.active {
+  background:linear-gradient(135deg,#1e40af 0%,#2563eb 50%,#4338ca 100%);
+  box-shadow:0 0 0 3px rgba(99,102,241,0.4), 0 8px 32px rgba(37,99,235,0.5);
+  transform:scale(1.012);
+}
+.hero-grid {
+  position:absolute; inset:0; pointer-events:none;
+  background-image:linear-gradient(rgba(255,255,255,0.04) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,0.04) 1px,transparent 1px);
+  background-size:24px 24px; animation:gridMove 20s linear infinite;
+}
+@keyframes gridMove { 0%{background-position:0 0} 100%{background-position:24px 24px} }
+.hero-scan {
+  position:absolute; left:0; right:0; height:1px; pointer-events:none;
+  background:linear-gradient(90deg,transparent,rgba(255,255,255,0.5),transparent);
+  animation:scanMove 4s ease-in-out infinite; box-shadow:0 0 8px rgba(255,255,255,0.3);
+}
+@keyframes scanMove { 0%{top:0;opacity:0} 8%{opacity:1} 92%{opacity:.5} 100%{top:100%;opacity:0} }
+.hero-deco { position:absolute; top:-30px; right:-30px; width:110px; height:110px; border-radius:50%; background:rgba(255,255,255,0.05); pointer-events:none; }
+
+.hero-inner { position:relative; z-index:2; padding:14px 16px; display:flex; align-items:center; gap:12px; }
+
+/* Barre audio animate */
+.hero-bars { display:flex; align-items:center; gap:3px; height:28px; flex-shrink:0; }
+.hero-bar { width:3px; border-radius:2px; background:linear-gradient(180deg,rgba(255,255,255,.9),rgba(255,255,255,.4)); }
+.hero-bar:nth-child(1){height:10px; animation:barA 1.2s ease-in-out infinite 0s}
+.hero-bar:nth-child(2){height:20px; animation:barA 1.2s ease-in-out infinite .12s}
+.hero-bar:nth-child(3){height:28px; animation:barA 1.2s ease-in-out infinite .24s}
+.hero-bar:nth-child(4){height:18px; animation:barA 1.2s ease-in-out infinite .36s}
+.hero-bar:nth-child(5){height:10px; animation:barA 1.2s ease-in-out infinite .48s}
+@keyframes barA { 0%,100%{transform:scaleY(.3);opacity:.4} 50%{transform:scaleY(1);opacity:1} }
+
+.hero-text { flex:1; }
+.hero-label { font-size:0.62rem; font-weight:700; color:rgba(255,255,255,.55); text-transform:uppercase; letter-spacing:.08em; margin-bottom:2px; }
+.hero-frase {
+  font-family:'Bricolage Grotesque',sans-serif; font-size:1rem; font-weight:800;
+  color:white; line-height:1.35; min-height:24px;
+}
+.hero-frase.empty { opacity:0.4; font-family:'Plus Jakarta Sans',sans-serif; font-weight:500; font-size:0.88rem; }
+
+.hero-speak {
+  width:44px; height:44px; border-radius:14px; flex-shrink:0;
+  background:rgba(255,255,255,0.15); border:1.5px solid rgba(255,255,255,0.25);
+  display:flex; align-items:center; justify-content:center;
+  font-size:1.2rem; cursor:pointer; transition:all .18s;
+  -webkit-tap-highlight-color:transparent;
+}
+.hero-speak:active { transform:scale(0.92); background:rgba(255,255,255,0.25); }
+.hero-speak.speaking { background:rgba(255,255,255,0.25); animation:speakPulse 0.6s ease-in-out infinite; }
+@keyframes speakPulse { 0%,100%{transform:scale(1)} 50%{transform:scale(1.08)} }
+
+/* ── CATEGORIE TABS ── */
+.cats { display:flex; gap:8px; padding:0 14px 10px; overflow-x:auto; flex-shrink:0; scrollbar-width:none; }
+.cats::-webkit-scrollbar { display:none; }
+.cat {
+  display:flex; align-items:center; gap:7px; flex-shrink:0;
+  padding:11px 18px; border-radius:22px; cursor:pointer;
+  font-size:0.85rem; font-weight:700; color:var(--muted);
+  background:var(--card); border:1.5px solid var(--border);
+  transition:all .22s cubic-bezier(.34,1.56,.64,1);
+  -webkit-tap-highlight-color:transparent;
+  white-space:nowrap; position:relative; overflow:hidden;
+}
+.cat.active {
+  color:white; border-color:transparent;
+  box-shadow:0 4px 14px rgba(37,99,235,0.35);
+  transform:scale(1.05);
+}
+.cat:active { transform:scale(0.96); }
+.cat-emoji { font-size:1.1rem; line-height:1; }
+
+/* Ripple effect */
+.ripple {
+  position:absolute; border-radius:50%;
+  background:rgba(255,255,255,0.35);
+  transform:scale(0); animation:rippleAnim .5s ease-out forwards;
+  pointer-events:none;
+}
+@keyframes rippleAnim { to{transform:scale(4);opacity:0} }
+
+/* ── SUBCATEGORIE ── */
+.subcats { display:flex; gap:7px; padding:0 14px 10px; overflow-x:auto; flex-shrink:0; scrollbar-width:none; }
+.subcats::-webkit-scrollbar { display:none; }
+.subcat {
+  flex-shrink:0; padding:8px 16px; border-radius:22px; cursor:pointer;
+  font-size:0.8rem; font-weight:700;
+  border:1.5px solid transparent;
+  transition:all .25s ease;
+  -webkit-tap-highlight-color:transparent; white-space:nowrap;
+  animation:slideDown .3s cubic-bezier(.22,1,.36,1) both;
+  opacity:0.45;
+}
+.subcat:nth-child(1){animation-delay:.03s}
+.subcat:nth-child(2){animation-delay:.07s}
+.subcat:nth-child(3){animation-delay:.11s}
+.subcat:nth-child(4){animation-delay:.15s}
+.subcat.active { opacity:1; transform:scale(1.05); }
+.subcat:active { transform:scale(0.95); }
+@keyframes slideDown {
+  from { opacity:0; transform:translateY(-12px) scale(0.92); }
+  to   { opacity:1; transform:translateY(0); }
+}
+
+/* ── FRASI SCROLL ── */
+.frasi-outer { flex:1; overflow:hidden; position:relative; }
+.frasi-scroll { height:100%; overflow-y:auto; padding:4px 14px 24px; scrollbar-width:none; }
+.frasi-scroll::-webkit-scrollbar { display:none; }
+
+/* Sezione AI */
+.ai-sec-label {
+  display:flex; align-items:center; gap:6px;
+  font-size:0.57rem; font-weight:800; text-transform:uppercase;
+  letter-spacing:.1em; color:var(--muted); margin-bottom:8px;
+}
+.ai-sec-label::after { content:''; flex:1; height:1px; background:var(--border); }
+.ai-tag { font-size:0.55rem; font-weight:800; background:linear-gradient(135deg,#eff6ff,#f5f3ff); color:var(--indigo); border:1px solid #ddd6fe; border-radius:20px; padding:2px 7px; }
+
+.ai-list { display:flex; flex-direction:column; gap:7px; margin-bottom:14px; }
+.ai-btn {
+  background:linear-gradient(135deg,#f0f4ff,#f5f3ff);
+  border:1.5px solid #ddd6fe; border-radius:14px;
+  padding:12px 14px; cursor:pointer; transition:all .18s;
+  -webkit-tap-highlight-color:transparent;
+  display:flex; align-items:center; gap:10px;
+  animation:fadeUp .3s ease both;
+}
+.ai-btn:active, .ai-btn.tapped { background:linear-gradient(135deg,#dcfce7,#d1fae5) !important; border-color:#16a34a !important; }
+.ai-btn-icon { font-size:1.1rem; flex-shrink:0; width:28px; text-align:center; }
+.ai-btn-text { font-size:0.86rem; font-weight:600; color:var(--ink); flex:1; line-height:1.35; }
+.ai-btn-play { width:28px; height:28px; border-radius:8px; background:var(--indigo); display:flex; align-items:center; justify-content:center; flex-shrink:0; font-size:0.75rem; }
+.ai-loading { display:flex; align-items:center; gap:8px; padding:12px 4px; }
+.ld { display:flex; gap:4px; }
+.ld span { width:5px; height:5px; border-radius:50%; background:var(--indigo); animation:ldot 1s ease-in-out infinite; }
+.ld span:nth-child(2){animation-delay:.15s} .ld span:nth-child(3){animation-delay:.3s}
+@keyframes ldot { 0%,100%{opacity:.3;transform:scale(.7)} 50%{opacity:1;transform:scale(1)} }
+
+/* Sezione fisse */
+.frasi-label {
+  display:flex; align-items:center; gap:6px;
+  font-size:0.57rem; font-weight:800; text-transform:uppercase;
+  letter-spacing:.1em; color:var(--muted); margin-bottom:8px;
+}
+.frasi-label::after { content:''; flex:1; height:1px; background:var(--border); }
+
+.frasi-grid { display:grid; grid-template-columns:1fr 1fr; gap:8px; }
+.frase-btn {
+  background:var(--card); border:1.5px solid var(--border);
+  border-radius:14px; padding:13px 12px;
+  cursor:pointer; transition:all .15s; box-shadow:var(--shadow);
+  -webkit-tap-highlight-color:transparent;
+  display:flex; flex-direction:column; align-items:flex-start; gap:6px;
+  animation:fadeUp .3s ease both;
+}
+.frase-btn:active, .frase-btn.tapped {
+  background:linear-gradient(135deg,#dcfce7,#d1fae5) !important;
+  border-color:#16a34a !important; box-shadow:0 2px 12px rgba(22,163,74,0.2) !important;
+}
+.frase-btn.selected {
+  background:linear-gradient(135deg,#eff6ff,#eef2ff) !important;
+  border-color:#3b82f6 !important;
+  border-width:2.5px !important;
+  box-shadow:0 0 0 4px rgba(59,130,246,0.12), 0 2px 12px rgba(59,130,246,0.15) !important;
+}
+.frase-btn.selected .frase-btn-text {
+  color:#1d4ed8 !important;
+}
+.ai-btn.selected {
+  background:linear-gradient(135deg,#eff6ff,#eef2ff) !important;
+  border-color:#3b82f6 !important;
+  border-width:2.5px !important;
+  box-shadow:0 0 0 4px rgba(59,130,246,0.12), 0 2px 12px rgba(59,130,246,0.15) !important;
+  color:#1d4ed8 !important;
+}
+.frase-btn-emoji {
+  width:36px; height:36px; border-radius:10px;
+  display:flex; align-items:center; justify-content:center;
+  font-size:1.3rem; flex-shrink:0;
+}
+.frase-btn-text { font-size:0.82rem; font-weight:700; color:var(--ink); line-height:1.3; }
+
+/* Premium */
+.frase-premium {
+  background:linear-gradient(135deg,#fafafa,#f5f3ff);
+  border:1.5px dashed #ddd6fe; border-radius:14px;
+  padding:13px 12px; display:flex; flex-direction:column;
+  align-items:center; justify-content:center; gap:4px;
+  text-align:center; min-height:78px;
+}
+.premium-ico { font-size:1.2rem; }
+.premium-txt { font-size:0.7rem; font-weight:700; color:var(--violet); }
+.premium-badge { font-size:0.55rem; font-weight:800; background:var(--violet-light); color:var(--violet); border-radius:20px; padding:2px 8px; }
+
+@keyframes fadeUp { from{opacity:0;transform:translateY(8px)} to{opacity:1;transform:none} }
+
+/* Toast */
+#toast { position:fixed; bottom:20px; left:50%; transform:translateX(-50%) translateY(16px); background:#0f0f10; color:white; padding:9px 16px; border-radius:20px; font-size:0.78rem; font-weight:700; opacity:0; transition:all .3s; pointer-events:none; white-space:nowrap; z-index:300; }
+</style>
+</head>
+<body>
+<div class="mesh"><div class="blob blob1"></div><div class="blob blob2"></div></div>
+
+<div class="app">
+  <!-- TOPBAR -->
+  <div class="topbar">
+    <div class="back-btn" onclick="history.back()">←</div>
+    <div class="topbar-title">Comunicador</div>
+    <div class="topbar-badge">AAC</div>
+  </div>
+
+  <!-- HERO -->
+  <div class="hero">
+    <div class="hero-grid"></div>
+    <div class="hero-scan"></div>
+    <div class="hero-deco"></div>
+    <div class="hero-inner">
+      <div class="hero-bars">
+        <div class="hero-bar"></div><div class="hero-bar"></div>
+        <div class="hero-bar"></div><div class="hero-bar"></div>
+        <div class="hero-bar"></div>
+      </div>
+      <div class="hero-text">
+        <div class="hero-label">Última frase</div>
+        <div class="hero-frase empty" id="heroFrase">Toca un botón para hablar…</div>
+      </div>
+      <div class="hero-speak" id="heroSpeak" onclick="replayLast()">🔊</div>
+    </div>
+  </div>
+
+  <!-- CATEGORIE -->
+  <div class="cats" id="catsEl"></div>
+
+  <!-- SUBCATEGORIE -->
+  <div class="subcats" id="subcatsEl"></div>
+
+  <!-- FRASI -->
+  <div class="frasi-outer">
+    <div class="frasi-scroll" id="frasiScroll"></div>
+  </div>
+</div>
+
+<div id="toast"></div>
+
+<script>
+const CATS = [
+  {
+    id:'necesidades', label:'Necesidades', emoji:'🙋', bg:'linear-gradient(135deg,#1e3a8a,#2563eb)',
+    subcats:[
+      { id:'basicas', label:'Básicas', frasi:[
+        {e:'💧',t:'Tengo sed'},{e:'🍽️',t:'Tengo hambre'},{e:'🚽',t:'Necesito el baño'},
+        {e:'😴',t:'Estoy cansada'},{e:'🥶',t:'Tengo frío'},{e:'🥵',t:'Tengo calor'},
+        {e:'😣',t:'Me duele algo'},{e:'🙏',t:'Necesito ayuda'}
+      ]},
+      { id:'dolor', label:'Dolor', frasi:[
+        {e:'🤕',t:'Me duele la cabeza'},{e:'🤢',t:'Me duele el estómago'},
+        {e:'😣',t:'Me duele la espalda'},{e:'🔥',t:'Tengo mucho dolor'},
+        {e:'💊',t:'Necesito medicación'},{e:'🚑',t:'Llama al médico'}
+      ]},
+      { id:'descanso', label:'Descanso', frasi:[
+        {e:'😴',t:'Quiero descansar'},{e:'🛏️',t:'Quiero dormir'},
+        {e:'🌙',t:'Estoy muy cansada'},{e:'💡',t:'Apaga la luz'},
+        {e:'🎵',t:'Pon música suave'},{e:'🤫',t:'Necesito silencio'}
+      ]},
+    ]
+  },
+  {
+    id:'emociones', label:'Emociones', emoji:'😊', bg:'linear-gradient(135deg,#0d9488,#06b6d4)',
+    subcats:[
+      { id:'positivas', label:'Positivas', frasi:[
+        {e:'😊',t:'Estoy bien'},{e:'😄',t:'Me siento feliz'},
+        {e:'✅',t:'Ha ido bien'},{e:'❤️',t:'Gracias por estar aquí'},
+        {e:'💪',t:'Me siento fuerte'},{e:'😌',t:'Estoy tranquila'}
+      ]},
+      { id:'dificiles', label:'Difíciles', frasi:[
+        {e:'😔',t:'Estoy triste'},{e:'😟',t:'Me siento sola'},
+        {e:'😤',t:'Estoy frustrada'},{e:'😰',t:'Estoy nerviosa'},
+        {e:'😨',t:'Me da miedo'},{e:'🤗',t:'Necesito un abrazo'}
+      ]},
+      { id:'rehab', label:'Rehabilitación', frasi:[
+        {e:'💪',t:'Me siento motivada'},{e:'🏆',t:'Lo he conseguido'},
+        {e:'😤',t:'Ha sido muy duro'},{e:'🌱',t:'Quiero seguir mejorando'},
+        {e:'😮‍💨',t:'Necesito un descanso'},{e:'🎯',t:'Estoy lista para empezar'}
+      ]},
+    ]
+  },
+  {
+    id:'social', label:'Social', emoji:'💬', bg:'linear-gradient(135deg,#7c3aed,#a855f7)',
+    subcats:[
+      { id:'saludos', label:'Saludos', frasi:[
+        {e:'👋',t:'Hola'},{e:'☀️',t:'Buenos días'},
+        {e:'🌆',t:'Buenas tardes'},{e:'🌙',t:'Buenas noches'},
+        {e:'👉',t:'¿Cómo estás?'},{e:'🤝',t:'Hasta luego'}
+      ]},
+      { id:'peticiones', label:'Peticiones', frasi:[
+        {e:'🙏',t:'Por favor'},{e:'💙',t:'Gracias'},
+        {e:'🔄',t:'¿Puedes repetirlo?'},{e:'🐢',t:'Habla más despacio'},
+        {e:'✅',t:'Sí'},{e:'❌',t:'No'}
+      ]},
+      { id:'familia', label:'Familia', frasi:[
+        {e:'📞',t:'Quiero llamar a mi familia'},{e:'❓',t:'¿Ha llamado alguien?'},
+        {e:'💛',t:'Echo de menos a mi familia'},{e:'🗓️',t:'¿Cuándo viene a verme?'},
+        {e:'❤️',t:'Dile que te quiero'}
+      ]},
+    ]
+  },
+  {
+    id:'actividades', label:'Actividades', emoji:'🎯', bg:'linear-gradient(135deg,#ea580c,#f59e0b)',
+    subcats:[
+      { id:'rehab2', label:'Rehabilitación', frasi:[
+        {e:'🏋️',t:'Quiero hacer fisioterapia'},{e:'📅',t:'¿Cuándo es mi sesión?'},
+        {e:'✅',t:'Estoy lista para empezar'},{e:'😮‍💨',t:'Necesito un descanso'},
+        {e:'👏',t:'Ha ido bien la sesión'},{e:'😓',t:'Me ha costado mucho'}
+      ]},
+      { id:'ocio', label:'Ocio', frasi:[
+        {e:'🎵',t:'Quiero escuchar música'},{e:'📺',t:'¿Ponemos la tele?'},
+        {e:'📖',t:'Quiero leer'},{e:'🚶',t:'Quiero salir a pasear'},
+        {e:'🎮',t:'¿Jugamos a algo?'},{e:'📱',t:'Quiero usar el teléfono'}
+      ]},
+      { id:'comida', label:'Comida', frasi:[
+        {e:'🍽️',t:'Tengo hambre'},{e:'💧',t:'Quiero agua'},
+        {e:'😋',t:'Está muy bueno'},{e:'🤢',t:'No me gusta'},
+        {e:'❓',t:'¿Qué hay de comer?'},{e:'🙏',t:'Quiero más por favor'}
+      ]},
+    ]
+  },
+];
+
+const profile = JSON.parse(localStorage.getItem('parlia_profile') || '{}');
+let curCat = CATS[0];
+let curSub = CATS[0].subcats[0];
+let lastText = '';
+
+// ── TTS ──
+let _speaking = false;
+
+function speak(text) {
+  if (!text || !window.speechSynthesis) return;
+  const clean = text.replace(/[^\wáéíóúüñÁÉÍÓÚÜÑ\s¿?¡!.,]/g, '').trim();
+  if (!clean) return;
+  lastText = text;
+  updateHero(text);
+  const btn = document.getElementById('heroSpeak');
+  btn.classList.add('speaking');
+
+  const doSpeak = () => {
+    _speaking = true;
+    const utt = new SpeechSynthesisUtterance(clean);
+    utt.lang = 'es-ES';
+    utt.rate = 0.9;
+    utt.volume = 1;
+    utt.onend = () => { _speaking = false; btn.classList.remove('speaking'); };
+    utt.onerror = () => { _speaking = false; btn.classList.remove('speaking'); };
+    window.speechSynthesis.speak(utt);
+  };
+
+  if (_speaking) {
+    window.speechSynthesis.cancel();
+    _speaking = false;
+    setTimeout(doSpeak, 200);
+  } else {
+    doSpeak();
+  }
+}
+
+function replayLast() {
+  if (lastText) speak(lastText);
+}
+
+function updateHero(text) {
+  const el = document.getElementById('heroFrase');
+  el.textContent = text;
+  el.classList.remove('empty');
+  // Evidenzia la hero card
+  document.querySelector('.hero').classList.add('active');
+  // Aggiorna label
+  document.querySelector('.hero-label').textContent = '▶ Reproduciendo';
+  clearTimeout(window._heroLabelTimer);
+  window._heroLabelTimer = setTimeout(() => {
+    document.querySelector('.hero-label').textContent = 'Última frase';
+  }, 3000);
+}
+
+// ── RENDER ──
+function renderCats() {
+  document.getElementById('catsEl').innerHTML = CATS.map(c => `
+    <div class="cat ${c.id===curCat.id?'active':''}"
+      style="${c.id===curCat.id?`background:${c.bg}`:''};"
+      onclick="selCat('${c.id}', event)">
+      <span class="cat-emoji">${c.emoji}</span>${c.label}
+    </div>`).join('');
+}
+
+function selCat(id, e) {
+  curCat = CATS.find(c=>c.id===id);
+  curSub = curCat.subcats[0];
+  if (e) {
+    const el = e.currentTarget;
+    const r = document.createElement('span');
+    r.className = 'ripple';
+    const size = Math.max(el.offsetWidth, el.offsetHeight);
+    const rect = el.getBoundingClientRect();
+    r.style.cssText = `width:${size}px;height:${size}px;left:${e.clientX-rect.left-size/2}px;top:${e.clientY-rect.top-size/2}px`;
+    el.appendChild(r);
+    setTimeout(() => r.remove(), 500);
+  }
+  renderCats(); renderSubcats(); renderFrasi();
+  updateCatStyles();
+}
+
+function selSub(id) {
+  curSub = curCat.subcats.find(s=>s.id===id);
+  renderSubcats(); renderFrasi();
+}
+
+function renderSubcats() {
+  const el = document.getElementById('subcatsEl');
+  el.innerHTML = '';
+  // Colori dalla categoria attiva
+  const colors = getCatColors(curCat.id);
+  requestAnimationFrame(() => {
+    el.innerHTML = curCat.subcats.map(s => {
+      const isActive = s.id === curSub.id;
+      const style = isActive
+        ? `background:${colors.bg};color:${colors.text};border-color:${colors.border};box-shadow:0 3px 10px ${colors.shadow}`
+        : `background:${colors.bgFaint};color:${colors.color};border-color:${colors.border}55`;
+      return `<div class="subcat ${isActive?'active':''}" style="${style}" onclick="selSub('${s.id}')">${s.label}</div>`;
+    }).join('');
+  });
+}
+
+// Aggiorna anche categoria attiva con sbiadimento altre
+function updateCatStyles() {
+  document.querySelectorAll('.cat').forEach(el => {
+    const id = el.getAttribute('onclick').match(/'(\w+)'/)[1];
+    const isActive = id === curCat.id;
+    el.style.opacity = isActive ? '1' : '0.45';
+    el.style.transform = isActive ? 'scale(1.05)' : 'scale(1)';
+  });
+}
+
+function getCatColors(id) {
+  const map = {
+    necesidades: { bg:'#dbeafe', bgFaint:'#eff6ff', text:'#1d4ed8', color:'#2563eb', border:'#93c5fd', shadow:'rgba(37,99,235,0.15)' },
+    emociones:   { bg:'#ccfbf1', bgFaint:'#f0fdfa', text:'#0f766e', color:'#0d9488', border:'#5eead4', shadow:'rgba(13,148,136,0.15)' },
+    social:      { bg:'#ede9fe', bgFaint:'#f5f3ff', text:'#6d28d9', color:'#7c3aed', border:'#c4b5fd', shadow:'rgba(124,58,237,0.15)' },
+    actividades: { bg:'#ffedd5', bgFaint:'#fff7ed', text:'#c2410c', color:'#ea580c', border:'#fdba74', shadow:'rgba(234,88,12,0.15)' },
+  };
+  return map[id] || map.necesidades;
+}
+
+function selSub(id) {
+  curSub = curCat.subcats.find(s=>s.id===id);
+  renderSubcats(); renderFrasi();
+}
+
+function renderFrasi() {
+  _lastSelectedBtn = null; // reset selezione al cambio categoria
+  const scroll = document.getElementById('frasiScroll');
+  const frasi = curSub.frasi;
+  const bg = curCat.bg;
+
+  scroll.innerHTML = `
+    <div class="ai-sec-label">✨ Sugerencias IA <span class="ai-tag">AI</span></div>
+    <div class="ai-list" id="aiList">
+      <div class="ai-loading"><div class="ld"><span></span><span></span><span></span></div><span style="font-size:.75rem;color:var(--muted);font-weight:600;margin-left:4px">Generando…</span></div>
+    </div>
+    <div class="frasi-label">Frases rápidas</div>
+    <div class="frasi-grid">
+      ${frasi.map((f,i)=>`
+        <div class="frase-btn" style="animation-delay:${i*.04}s" id="fb_${i}" onclick="tapFrase(this,'${f.t.replace(/'/g,"\\'")}')">
+          <div class="frase-btn-emoji" style="background:${bg.replace('linear-gradient(135deg,','').split(',')[0].replace(')','')}18">${f.e}</div>
+          <div class="frase-btn-text">${f.t}</div>
+        </div>`).join('')}
+      <div class="frase-premium">
+        <div class="premium-ico">🔒</div>
+        <div class="premium-txt">Añadir frases</div>
+        <div class="premium-badge">Próximamente</div>
+      </div>
+    </div>`;
+
+  loadAI();
+}
+
+let _lastSelectedBtn = null;
+function tapFrase(el, text) {
+  // Rimuovi .selected dal bottone precedente
+  if (_lastSelectedBtn && _lastSelectedBtn !== el) {
+    _lastSelectedBtn.classList.remove('selected');
+  }
+  // Feedback verde momentaneo
+  el.classList.add('tapped');
+  setTimeout(() => el.classList.remove('tapped'), 700);
+  // Evidenziazione blu persistente
+  el.classList.add('selected');
+  _lastSelectedBtn = el;
+  speak(text);
+}
+
+// ── AI ──
+async function loadAI() {
+  const el = document.getElementById('aiList');
+  if (!el) return;
+  try {
+    const res = await fetch('https://voci-ai-proxy.luca-peltrini.workers.dev/v1/messages', {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({
+        model:'claude-haiku-4-5-20251001', max_tokens:150,
+        system:'Eres asistente AAC. Genera frases breves para persona con dificultades del habla en rehabilitación.',
+        messages:[{role:'user',content:
+          `Genera exactamente 3 frases para categoría "${curCat.label}" subcategoría "${curSub.label}". ${profile.userName?`Usuario: ${profile.userName}.`:''} Hora: ${new Date().getHours()}h. Responde SOLO con JSON array ["frase1","frase2","frase3"]. Frases cortas (máx 7 palabras), primera persona, naturales.`
+        }]
+      })
+    });
+    const data = await res.json();
+    const raw = (data.content?.[0]?.text||'[]').replace(/```json|```/g,'').trim();
+    const frasi = JSON.parse(raw);
+    if (!Array.isArray(frasi)||frasi.length===0) throw 0;
+    el.innerHTML = frasi.map((f,i)=>`
+      <div class="ai-btn" style="animation-delay:${i*.08}s" id="ai_${i}" onclick="tapFrase(this,'${f.replace(/'/g,"\\'")}')">
+        <div class="ai-btn-icon">✨</div>
+        <div class="ai-btn-text">${f}</div>
+        <div class="ai-btn-play">▶</div>
+      </div>`).join('');
+  } catch(e) {
+    el.innerHTML = `<div style="font-size:.72rem;color:var(--muted);padding:4px 2px">Sin sugerencias disponibles</div>`;
+  }
+}
+
+// ── TOAST ──
+function showToast(msg) {
+  const t=document.getElementById('toast');
+  t.textContent=msg; t.style.opacity='1'; t.style.transform='translateX(-50%) translateY(0)';
+  clearTimeout(window._tt);
+  window._tt=setTimeout(()=>{t.style.opacity='0';t.style.transform='translateX(-50%) translateY(16px)';},2000);
+}
+
+// ── INIT ──
+renderCats(); renderSubcats(); renderFrasi();
+setTimeout(updateCatStyles, 50);
+</script>
+</body>
+</html>

@@ -1,0 +1,431 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<title>Parlia — Roadmap</title>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --bg: #f5f6fa;
+  --card: #ffffff;
+  --card2: #f0f2f7;
+  --border: #e5e7eb;
+  --ink: #0f0f10;
+  --muted: #6b7280;
+  --blue: #2563eb;
+  --blue-light: #eff6ff;
+  --radius: 18px;
+  --shadow: 0 2px 12px rgba(0,0,0,.06), 0 1px 3px rgba(0,0,0,.04);
+}
+
+html, body {
+  min-height: 100%; background: var(--bg);
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  color: var(--ink); -webkit-font-smoothing: antialiased;
+  overflow-x: hidden;
+}
+
+/* Blobs sfondo come home */
+.mesh { position: fixed; inset: 0; z-index: 0; pointer-events: none; overflow: hidden; }
+.blob { position: absolute; border-radius: 50%; filter: blur(80px); opacity: 0.4; }
+.blob1 { width:320px;height:320px;top:-80px;right:-60px;background:radial-gradient(circle,#bfdbfe,#ddd6fe);animation:blobF 10s ease-in-out infinite; }
+.blob2 { width:220px;height:220px;bottom:80px;left:-50px;background:radial-gradient(circle,#99f6e4,#a5f3fc);animation:blobF 14s ease-in-out infinite reverse; }
+@keyframes blobF { 0%,100%{transform:translate(0,0)} 33%{transform:translate(-12px,10px)} 66%{transform:translate(8px,-14px)} }
+
+/* ── TOPBAR ── */
+.topbar {
+  position: sticky; top: 0; z-index: 40;
+  background: rgba(245,246,250,.92); backdrop-filter: blur(20px);
+  border-bottom: 1px solid var(--border);
+  padding: 0 16px; height: 56px;
+  display: flex; align-items: center; gap: 10px;
+}
+.logo-mark {
+  width: 30px; height: 30px; border-radius: 10px;
+  background: linear-gradient(135deg,#2563eb,#6366f1);
+  display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+}
+.topbar-title {
+  font-family: 'Bricolage Grotesque', sans-serif;
+  font-size: 0.95rem; font-weight: 800; flex: 1; color: var(--ink);
+}
+.topbar-title span { color: var(--blue); }
+.back-btn {
+  font-size: 0.75rem; font-weight: 800; color: var(--blue);
+  background: var(--blue-light); border-radius: 20px; padding: 5px 12px;
+  cursor: pointer; -webkit-tap-highlight-color: transparent;
+  text-decoration: none; display: flex; align-items: center; gap: 4px;
+}
+.back-btn:active { opacity: .7; }
+.wip-badge {
+  font-size: 0.55rem; font-weight: 800; text-transform: uppercase; letter-spacing: .08em;
+  background: #fef9c3; color: #92400e; border: 1px solid #fde68a;
+  border-radius: 20px; padding: 3px 9px; flex-shrink: 0;
+}
+
+/* ── HERO HEADER ── */
+.hero-header {
+  position: relative; z-index: 1;
+  padding: 20px 18px 16px;
+  background: linear-gradient(135deg,#1e3a8a 0%,#2d5be3 55%,#4f46e5 100%);
+  overflow: hidden;
+}
+.hero-grid {
+  position: absolute; inset: 0; pointer-events: none;
+  background-image: linear-gradient(rgba(255,255,255,.04) 1px,transparent 1px),
+    linear-gradient(90deg,rgba(255,255,255,.04) 1px,transparent 1px);
+  background-size: 24px 24px;
+}
+.hero-inner { position: relative; z-index: 2; }
+.hero-label { font-size: 0.6rem; font-weight: 800; color: rgba(255,255,255,.5); text-transform: uppercase; letter-spacing: .1em; margin-bottom: 4px; }
+.hero-title { font-family:'Bricolage Grotesque',sans-serif; font-size:1.5rem; font-weight:800; color:white; line-height:1.1; margin-bottom:4px; }
+.hero-sub { font-size:0.73rem; color:rgba(255,255,255,.55); margin-bottom:14px; }
+.stats-bar { display:flex; gap:7px; overflow-x:auto; scrollbar-width:none; }
+.stats-bar::-webkit-scrollbar { display:none; }
+.stat-pill {
+  flex-shrink:0; display:flex; align-items:center; gap:5px;
+  background:rgba(255,255,255,.12); border:1px solid rgba(255,255,255,.2);
+  border-radius:20px; padding:5px 11px;
+  font-size:0.68rem; font-weight:700; color:white;
+}
+.stat-dot { width:6px;height:6px;border-radius:50%;flex-shrink:0; }
+
+/* ── FILTRI ── */
+.filter-wrap {
+  display:flex; gap:6px; padding:14px 16px 4px;
+  overflow-x:auto; scrollbar-width:none; position:relative; z-index:1;
+}
+.filter-wrap::-webkit-scrollbar { display:none; }
+.filter-chip {
+  flex-shrink:0; padding:6px 14px; border-radius:20px;
+  border:1.5px solid var(--border); background:var(--card);
+  font-size:0.72rem; font-weight:700; color:var(--muted);
+  cursor:pointer; transition:all .15s; -webkit-tap-highlight-color:transparent;
+  box-shadow: var(--shadow);
+}
+.filter-chip.active { background:var(--blue); border-color:var(--blue); color:white; box-shadow:0 4px 12px rgba(37,99,235,.25); }
+.filter-chip:active { transform:scale(.96); }
+
+/* ── BODY ── */
+.body { padding:12px 16px 100px; display:flex; flex-direction:column; gap:9px; position:relative; z-index:1; }
+
+/* Categoria label */
+.cat-label {
+  font-size:0.58rem; font-weight:800; text-transform:uppercase; letter-spacing:.1em;
+  color:var(--muted); padding:6px 2px 2px;
+  display:flex; align-items:center; gap:8px;
+}
+.cat-label::after { content:''; flex:1; height:1px; background:var(--border); }
+
+/* ── ITEM CARD ── */
+.item {
+  background:var(--card); border:1.5px solid var(--border);
+  border-radius:var(--radius); padding:14px 15px;
+  cursor:pointer; transition:all .18s; position:relative;
+  -webkit-tap-highlight-color:transparent;
+  box-shadow:var(--shadow);
+  animation:fadeUp .3s ease both;
+}
+.item:active { transform:scale(0.98); box-shadow:none; }
+.item.todo   { border-left:3px solid #2563eb; }
+.item.doing  { border-left:3px solid #f59e0b; background:linear-gradient(135deg,#fffbeb,#fff); }
+.item.done   { border-left:3px solid #16a34a; opacity:.6; }
+.item.paused { border-left:3px solid #9ca3af; opacity:.55; }
+
+.item-top { display:flex; align-items:flex-start; gap:10px; }
+.item-icon { font-size:1.25rem; flex-shrink:0; line-height:1.2; margin-top:1px; }
+.item-body { flex:1; min-width:0; }
+.item-title { font-size:0.88rem; font-weight:800; color:var(--ink); line-height:1.3; margin-bottom:3px; }
+.item.done .item-title { text-decoration:line-through; color:var(--muted); }
+.item-desc { font-size:0.71rem; color:var(--muted); line-height:1.45; font-weight:500; }
+.item-status {
+  flex-shrink:0; font-size:0.56rem; font-weight:800;
+  text-transform:uppercase; letter-spacing:.06em;
+  border-radius:20px; padding:3px 9px; cursor:pointer;
+  transition:all .15s; -webkit-tap-highlight-color:transparent; white-space:nowrap;
+}
+.item-status:active { transform:scale(.92); }
+.item-status.todo   { background:var(--blue-light); color:var(--blue); border:1px solid #bfdbfe; }
+.item-status.doing  { background:#fef9c3; color:#92400e; border:1px solid #fde68a; }
+.item-status.done   { background:#f0fdf4; color:#15803d; border:1px solid #bbf7d0; }
+.item-status.paused { background:#f3f4f6; color:#6b7280; border:1px solid #e5e7eb; }
+
+.item-tags { display:flex; gap:5px; margin-top:8px; flex-wrap:wrap; }
+.item-tag {
+  font-size:0.56rem; font-weight:700; border-radius:20px;
+  padding:2px 8px; background:var(--card2); color:var(--muted);
+  border:1px solid var(--border);
+}
+
+/* Priority dot */
+.priority-dot { position:absolute; top:14px; right:14px; width:6px; height:6px; border-radius:50%; }
+.priority-dot.high   { background:#ef4444; box-shadow:0 0 6px rgba(239,68,68,.4); }
+.priority-dot.medium { background:#f59e0b; }
+.priority-dot.low    { background:#d1d5db; }
+
+/* Add button */
+.add-btn {
+  position:fixed; bottom:28px; right:20px; z-index:50;
+  width:52px; height:52px; border-radius:50%;
+  background:linear-gradient(135deg,#2563eb,#6366f1);
+  display:flex; align-items:center; justify-content:center;
+  font-size:1.5rem; cursor:pointer;
+  box-shadow:0 8px 24px rgba(37,99,235,.35);
+  transition:all .2s; -webkit-tap-highlight-color:transparent;
+}
+.add-btn:active { transform:scale(.92); }
+
+/* Modal */
+.modal-overlay {
+  position:fixed; inset:0; z-index:200;
+  background:rgba(0,0,0,.45); backdrop-filter:blur(8px);
+  display:flex; align-items:flex-end;
+  opacity:0; pointer-events:none; transition:opacity .25s;
+}
+.modal-overlay.open { opacity:1; pointer-events:all; }
+.modal {
+  background:white; border-radius:24px 24px 0 0;
+  width:100%; padding:20px 20px 36px;
+  transform:translateY(100%); transition:transform .35s cubic-bezier(.4,0,.2,1);
+  box-shadow:0 -8px 32px rgba(0,0,0,.1);
+}
+.modal-overlay.open .modal { transform:translateY(0); }
+.modal-handle { width:36px; height:4px; border-radius:2px; background:var(--border); margin:0 auto 16px; }
+.modal-title { font-family:'Bricolage Grotesque',sans-serif; font-size:1.1rem; font-weight:800; color:var(--ink); margin-bottom:14px; }
+.modal-input {
+  width:100%; background:var(--card2); border:1.5px solid var(--border);
+  border-radius:12px; padding:11px 14px; color:var(--ink);
+  font-family:'Plus Jakarta Sans',sans-serif; font-size:0.88rem; font-weight:600;
+  outline:none; margin-bottom:10px; resize:none;
+}
+.modal-input::placeholder { color:var(--muted); }
+.modal-input:focus { border-color:var(--blue); }
+.modal-sec-label { font-size:0.62rem; font-weight:800; color:var(--muted); text-transform:uppercase; letter-spacing:.08em; margin-bottom:7px; }
+.modal-row { display:flex; gap:7px; margin-bottom:10px; flex-wrap:wrap; }
+.modal-chip {
+  flex-shrink:0; padding:6px 13px; border-radius:20px;
+  border:1.5px solid var(--border); background:var(--card2);
+  font-size:0.7rem; font-weight:700; color:var(--muted);
+  cursor:pointer; transition:all .15s; -webkit-tap-highlight-color:transparent;
+}
+.modal-chip.active { background:var(--blue); border-color:var(--blue); color:white; }
+.modal-chip:active { transform:scale(.96); }
+.modal-save {
+  width:100%; background:linear-gradient(135deg,#2563eb,#6366f1);
+  border:none; border-radius:14px; padding:14px;
+  color:white; font-family:'Plus Jakarta Sans',sans-serif;
+  font-size:0.88rem; font-weight:800; cursor:pointer;
+  transition:all .15s; -webkit-tap-highlight-color:transparent; margin-top:6px;
+}
+.modal-save:active { transform:scale(.98); opacity:.9; }
+
+.empty-state { text-align:center; padding:40px 20px; color:var(--muted); }
+.empty-state div:first-child { font-size:2rem; margin-bottom:10px; }
+.empty-state div:last-child { font-size:0.8rem; font-weight:600; }
+
+@keyframes fadeUp { from{opacity:0;transform:translateY(10px)} to{opacity:1;transform:none} }
+</style>
+</head>
+<body>
+
+<div class="mesh"><div class="blob blob1"></div><div class="blob blob2"></div></div>
+
+<!-- TOPBAR -->
+<div class="topbar">
+  <div class="logo-mark">
+    <svg width="18" height="18" viewBox="0 0 60 60" fill="none"><path d="M6 14C6 10.69 8.69 8 12 8H48C51.31 8 54 10.69 54 14V38C54 41.31 51.31 44 48 44H34L24 55V44H12C8.69 44 6 41.31 6 38V14Z" fill="white" fill-opacity=".2" stroke="white" stroke-opacity=".6" stroke-width="2"/><rect x="14" y="22" width="5" height="14" rx="2.5" fill="white" opacity=".9"/><rect x="23" y="16" width="5" height="20" rx="2.5" fill="white"/><rect x="32" y="19" width="5" height="17" rx="2.5" fill="white" opacity=".95"/><rect x="41" y="23" width="5" height="13" rx="2.5" fill="white" opacity=".85"/></svg>
+  </div>
+  <div class="topbar-title">Parlia<span>.app</span></div>
+  <div class="wip-badge">🛠️ WIP</div>
+  <a class="back-btn" href="home.html">← Home</a>
+</div>
+
+<!-- HERO -->
+<div class="hero-header">
+  <div class="hero-grid"></div>
+  <div class="hero-inner">
+    <div class="hero-label">Solo para Luca</div>
+    <div class="hero-title">Roadmap 🗺️</div>
+    <div class="hero-sub">Ideas, mejoras y funciones pendientes</div>
+    <div class="stats-bar" id="statsBar"></div>
+  </div>
+</div>
+
+<!-- FILTROS -->
+<div class="filter-wrap" id="filterWrap">
+  <div class="filter-chip active" onclick="setFilter('all')" id="fAll">Todas</div>
+  <div class="filter-chip" onclick="setFilter('todo')" id="fTodo">📋 Por hacer</div>
+  <div class="filter-chip" onclick="setFilter('doing')" id="fDoing">🔨 En curso</div>
+  <div class="filter-chip" onclick="setFilter('done')" id="fDone">✅ Completadas</div>
+  <div class="filter-chip" onclick="setFilter('paused')" id="fPaused">⏸ En pausa</div>
+</div>
+
+<!-- ITEMS -->
+<div class="body" id="itemsBody"></div>
+
+<!-- ADD BUTTON -->
+<div class="add-btn" onclick="openModal()">+</div>
+
+<!-- MODAL -->
+<div class="modal-overlay" id="modalOverlay" onclick="closeModalOutside(event)">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <div class="modal-title">Nueva idea 💡</div>
+    <input class="modal-input" id="newTitle" placeholder="Título de la idea…" maxlength="80">
+    <textarea class="modal-input" id="newDesc" placeholder="Descripción (opcional)…" rows="3" maxlength="300"></textarea>
+    <div class="modal-sec-label">Categoría</div>
+    <div class="modal-row" id="catChips"></div>
+    <div class="modal-sec-label" style="margin-top:4px">Prioridad</div>
+    <div class="modal-row">
+      <div class="modal-chip" id="pHigh" onclick="selPriority('high')">🔴 Alta</div>
+      <div class="modal-chip" id="pMedium" onclick="selPriority('medium')">🟡 Media</div>
+      <div class="modal-chip active" id="pLow" onclick="selPriority('low')">⚪ Baja</div>
+    </div>
+    <button class="modal-save" onclick="saveItem()">Guardar idea →</button>
+  </div>
+</div>
+
+<script>
+const STORAGE_KEY = 'parlia_roadmap_v2';
+const CATS = [
+  {id:'perfil',     label:'Perfil',         emoji:'👤'},
+  {id:'aac',        label:'AAC',            emoji:'🗣️'},
+  {id:'ai',         label:'IA',             emoji:'🤖'},
+  {id:'rehab',      label:'Rehab',          emoji:'🧠'},
+  {id:'ux',         label:'UX/UI',          emoji:'🎨'},
+  {id:'tecnico',    label:'Técnico',        emoji:'⚙️'},
+  {id:'integracion',label:'Integraciones',  emoji:'🔌'},
+  {id:'otro',       label:'Otro',           emoji:'💡'},
+];
+
+const STATUS_LABELS = {
+  todo:'📋 Por hacer', doing:'🔨 En curso', done:'✅ Hecho', paused:'⏸ Pausa'
+};
+const STATUS_CYCLE = ['todo','doing','done','paused'];
+
+const DEFAULT_ITEMS = [
+  { id:'1', title:'Profilo contestuale ricco', desc:'Aggiungere luoghi frequentati, persone chiave, routine settimanali, hobby e cibi preferiti al profilo. Base per tutto il sistema adattivo.', cat:'perfil', priority:'high', status:'doing', tags:['profilo','AI','core'] },
+  { id:'2', title:'AAC contestuale per ora e luogo', desc:'Le frasi suggerite cambiano in base all\'ora, giorno e GPS. Mercoledì vicino al pádel → frasi per il pádel. Mattina in ospedale → frasi mediche.', cat:'aac', priority:'high', status:'todo', tags:['GPS','AI','AAC'] },
+  { id:'3', title:'Memoria conversazionale AI', desc:'L\'AI ricorda sessioni precedenti. "L\'altra volta hai detto che la fisio è stata dura — oggi come va?" Richiede storico su Firebase.', cat:'ai', priority:'high', status:'todo', tags:['Firebase','AI','memory'] },
+  { id:'4', title:'Apprendimento frasi personali', desc:'Le frasi usate più spesso vengono imparate e mostrate in cima automaticamente. Nessuna configurazione manuale.', cat:'aac', priority:'medium', status:'todo', tags:['machine learning','AAC'] },
+  { id:'5', title:'Integrazione Google Calendar', desc:'Le sessioni dell\'agenda non sono hardcoded ma vengono dal calendario reale. Aggiunge una sessione al calendar → appare nell\'app con frasi contestuali.', cat:'integracion', priority:'medium', status:'todo', tags:['Google','Calendar','agenda'] },
+  { id:'6', title:'Caregiver dashboard', desc:'Vista separata per il caregiver: frasi usate di recente, aggiunta frasi personalizzate al profilo, notifiche per frasi di urgenza.', cat:'ux', priority:'medium', status:'todo', tags:['caregiver','dashboard','notifiche'] },
+  { id:'7', title:'Modalità switch/scanning', desc:'Per chi non può toccare lo schermo: l\'app scansiona automaticamente i bottoni e l\'utente preme un singolo tasto esterno per selezionare.', cat:'aac', priority:'medium', status:'todo', tags:['accessibilità','switch','scanning'] },
+  { id:'8', title:'Riconoscimento vocale input', desc:'Per utenti con voce parziale: input vocale che trascrive e poi TTS risponde. Web Speech API già supporta.', cat:'aac', priority:'low', status:'todo', tags:['voce','Speech API'] },
+  { id:'9', title:'Backend Firebase profilo esteso', desc:'Salvare tutto il profilo arricchito (luoghi, persone, routine) su Firebase invece che solo localStorage. Sincronizzazione cross-device.', cat:'tecnico', priority:'high', status:'todo', tags:['Firebase','backend','sync'] },
+  { id:'10', title:'Swipe home con 4 pagine', desc:'Struttura a swipe laterale con Inicio / AAC / Rehab / Yo. Bottom nav e dot indicatori.', cat:'ux', priority:'high', status:'done', tags:['swipe','navigazione','home'] },
+  { id:'11', title:'Comunicador AAC con subcategorie e AI', desc:'6 categorie con subcategorie e suggerimenti AI per ogni sottocategoria.', cat:'aac', priority:'high', status:'done', tags:['AAC','categorie','AI'] },
+  { id:'12', title:'Widget meteo con scene animate', desc:'Open-Meteo senza API key, descrizioni in spagnolo, scene realistiche con sole SVG, luna, pioggia, neve, temporale, stelle.', cat:'ux', priority:'low', status:'done', tags:['meteo','animazioni','Open-Meteo'] },
+  { id:'13', title:'Pull-to-refresh dalla home', desc:'Gesto verso il basso sulla prima pagina per ricaricare l\'app dopo un nuovo deploy.', cat:'ux', priority:'low', status:'done', tags:['UX','refresh'] },
+  { id:'14', title:'Obiettivo del giorno AI', desc:'Card gialla con obiettivo di riabilitazione generato da Claude Haiku in base al profilo, in cache giornaliera.', cat:'ai', priority:'medium', status:'done', tags:['AI','goal','Haiku'] },
+  { id:'15', title:'Geolocalizzazione contestuale', desc:'Usare il GPS non solo per il meteo ma per capire dove si trova l\'utente e adattare i suggerimenti AAC al contesto fisico.', cat:'integracion', priority:'high', status:'todo', tags:['GPS','contesto','AAC'] },
+  { id:'16', title:'Notifiche push caregiver', desc:'Il caregiver riceve una notifica push quando l\'utente usa una frase di urgenza o ha bisogno di aiuto.', cat:'integracion', priority:'high', status:'todo', tags:['notifiche','FCM','urgenza'] },
+  { id:'17', title:'Onboarding con raccolta profilo completo', desc:'L\'onboarding chiede non solo nome/caregiver ma anche luoghi frequentati, persone chiave, routine settimanali.', cat:'perfil', priority:'high', status:'todo', tags:['onboarding','profilo','UX'] },
+  { id:'18', title:'Frasi salvate e cronologia', desc:'L\'utente può salvare frasi favorite, vedere quelle usate di recente, e la cronologia delle ultime sessioni AAC.', cat:'aac', priority:'medium', status:'todo', tags:['preferiti','cronologia','AAC'] },
+  { id:'19', title:'Modalità notte AI e agenda', desc:'Tra 23:00 e 6:00 l\'AI mostra una card luna "in pausa" e l\'agenda si mette in standby.', cat:'ux', priority:'low', status:'done', tags:['notte','UX','orario'] },
+  { id:'20', title:'Promemoria personali agenda', desc:'L\'utente può aggiungere promemoria personali all\'agenda, salvati in localStorage, visibili anche nel weekend.', cat:'ux', priority:'medium', status:'done', tags:['agenda','promemoria','localStorage'] },
+];
+
+let items = [];
+let curFilter = 'all';
+let newCat = 'altro';
+let newPriority = 'low';
+
+function load() {
+  const saved = localStorage.getItem(STORAGE_KEY);
+  items = saved ? JSON.parse(saved) : DEFAULT_ITEMS.map(i => ({...i}));
+  if (!saved) save();
+}
+function save() { localStorage.setItem(STORAGE_KEY, JSON.stringify(items)); }
+
+function render() {
+  const body = document.getElementById('itemsBody');
+  const filtered = curFilter === 'all' ? items : items.filter(i => i.status === curFilter);
+  if (filtered.length === 0) {
+    body.innerHTML = `<div class="empty-state"><div>🔍</div><div>No hay ideas en esta categoría</div></div>`;
+    renderStats(); return;
+  }
+  const byCat = {};
+  filtered.forEach(item => { if (!byCat[item.cat]) byCat[item.cat]=[]; byCat[item.cat].push(item); });
+  let html = '';
+  for (const catId in byCat) {
+    const cat = CATS.find(c => c.id === catId) || {emoji:'💡', label: catId};
+    html += `<div class="cat-label">${cat.emoji} ${cat.label}</div>`;
+    byCat[catId].forEach(item => {
+      const tags = (item.tags||[]).map(t => `<div class="item-tag">${t}</div>`).join('');
+      html += `<div class="item ${item.status}" onclick="cycleStatus('${item.id}')">
+        <div class="priority-dot ${item.priority}"></div>
+        <div class="item-top">
+          <div class="item-icon">${cat.emoji}</div>
+          <div class="item-body">
+            <div class="item-title">${item.title}</div>
+            ${item.desc?`<div class="item-desc">${item.desc}</div>`:''}
+            ${tags?`<div class="item-tags">${tags}</div>`:''}
+          </div>
+          <div class="item-status ${item.status}" onclick="cycleStatus('${item.id}');event.stopPropagation()">${STATUS_LABELS[item.status]}</div>
+        </div>
+      </div>`;
+    });
+  }
+  body.innerHTML = html;
+  renderStats();
+}
+
+function renderStats() {
+  const c = {todo:0,doing:0,done:0,paused:0};
+  items.forEach(i => c[i.status]++);
+  document.getElementById('statsBar').innerHTML = `
+    <div class="stat-pill"><div class="stat-dot" style="background:#93c5fd"></div>${c.todo} por hacer</div>
+    <div class="stat-pill"><div class="stat-dot" style="background:#fde68a"></div>${c.doing} en curso</div>
+    <div class="stat-pill"><div class="stat-dot" style="background:#86efac"></div>${c.done} hechas</div>
+    <div class="stat-pill"><div class="stat-dot" style="background:rgba(255,255,255,.4)"></div>${c.paused} en pausa</div>`;
+}
+
+function cycleStatus(id) {
+  const item = items.find(i => i.id === id);
+  if (!item) return;
+  item.status = STATUS_CYCLE[(STATUS_CYCLE.indexOf(item.status)+1) % STATUS_CYCLE.length];
+  save(); render();
+}
+
+function setFilter(f) {
+  curFilter = f;
+  document.querySelectorAll('.filter-chip').forEach(el => el.classList.remove('active'));
+  document.getElementById('f'+f.charAt(0).toUpperCase()+f.slice(1)).classList.add('active');
+  render();
+}
+
+function openModal() {
+  buildCatChips();
+  document.getElementById('newTitle').value = '';
+  document.getElementById('newDesc').value = '';
+  document.getElementById('modalOverlay').classList.add('open');
+  setTimeout(() => document.getElementById('newTitle').focus(), 400);
+}
+function closeModal() { document.getElementById('modalOverlay').classList.remove('open'); }
+function closeModalOutside(e) { if (e.target===document.getElementById('modalOverlay')) closeModal(); }
+
+function buildCatChips() {
+  document.getElementById('catChips').innerHTML = CATS.map(c =>
+    `<div class="modal-chip${c.id===newCat?' active':''}" onclick="selCat('${c.id}')">${c.emoji} ${c.label}</div>`
+  ).join('');
+}
+function selCat(id) { newCat=id; buildCatChips(); }
+function selPriority(p) {
+  newPriority = p;
+  ['high','medium','low'].forEach(x => document.getElementById('p'+x.charAt(0).toUpperCase()+x.slice(1)).classList.toggle('active',x===p));
+}
+function saveItem() {
+  const title = document.getElementById('newTitle').value.trim();
+  if (!title) { document.getElementById('newTitle').focus(); return; }
+  items.unshift({id:Date.now().toString(), title, desc:document.getElementById('newDesc').value.trim(), cat:newCat, priority:newPriority, status:'todo', tags:[]});
+  save(); closeModal(); setFilter('all'); render();
+}
+
+load(); render();
+</script>
+</body>
+</html>
