@@ -1060,17 +1060,13 @@ function _closeSettingsOutside(e) {
 let curPage = 0;
 const track = document.getElementById('track');
 
-let pageStack = [0];
 function goTo(idx) {
-  if (idx !== curPage) {
-    pageStack.push(idx);
-    curPage = idx;
-    track.style.transition = 'transform .38s cubic-bezier(.4,0,.2,1)';
-    track.style.transform = `translateX(-${idx * 25}%)`;
-    document.querySelectorAll('.nav-item').forEach((el,i) => el.classList.toggle('active', i===idx));
-    document.querySelectorAll('.nav-dot').forEach((d,i) => d.classList.toggle('active', i===idx));
-    hideHint();
-  }
+  curPage = idx;
+  track.style.transition = 'transform .38s cubic-bezier(.4,0,.2,1)';
+  track.style.transform = `translateX(-${idx * 25}%)`;
+  document.querySelectorAll('.nav-item').forEach((el,i) => el.classList.toggle('active', i===idx));
+  document.querySelectorAll('.nav-dot').forEach((d,i) => d.classList.toggle('active', i===idx));
+  hideHint();
 }
 
 let tX=0, tY=0, dragging=false, scrolling=false, blocked=false;
@@ -1985,16 +1981,23 @@ function init() {
 }
 init();
 
-// History management: back button navigation (works like swipe)
-window.history.pushState({inApp: true}, '', window.location.href);
+// History management: back button = history.back() (like swipe)
+window.history.pushState({inApp: true, page: 0}, '', window.location.href);
+
+// Override goTo to add history states
+const originalGoTo = goTo;
+goTo = function(idx) {
+  if (idx !== curPage) {
+    window.history.pushState({inApp: true, page: idx}, '', window.location.href);
+  }
+  originalGoTo(idx);
+};
+
 window.addEventListener('popstate', (e) => {
-  if (pageStack.length > 1) {
-    pageStack.pop();
-    const prevIdx = pageStack[pageStack.length - 1];
-    curPage = -1;
-    goTo(prevIdx);
-  } else if (curPage === 0) {
+  if (!e.state || !e.state.inApp) {
     window.location.href = '/index.html';
+  } else {
+    originalGoTo(e.state.page);
   }
 });
 </script>
