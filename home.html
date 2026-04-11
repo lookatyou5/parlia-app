@@ -1060,9 +1060,10 @@ function _closeSettingsOutside(e) {
 let curPage = 0;
 const track = document.getElementById('track');
 
+let prevPage = 0;
 function goTo(idx) {
+  if (idx !== curPage) prevPage = curPage;
   curPage = idx;
-  window.history.replaceState({page: idx, inApp: true}, '', window.location.href);
   track.style.transition = 'transform .38s cubic-bezier(.4,0,.2,1)';
   track.style.transform = `translateX(-${idx * 25}%)`;
   document.querySelectorAll('.nav-item').forEach((el,i) => el.classList.toggle('active', i===idx));
@@ -1985,8 +1986,8 @@ init();
 // History management: keep user in app on back button
 window.history.pushState({inApp: true}, '', window.location.href);
 window.addEventListener('popstate', (e) => {
-  if (e.state && e.state.inApp && e.state.page !== undefined) {
-    goTo(e.state.page);
+  if (e.state && e.state.inApp) {
+    goTo(prevPage);
   } else {
     window.location.href = '/index.html';
   }
