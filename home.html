@@ -1106,6 +1106,7 @@ wrap.addEventListener('touchend', e => {
   track.style.transition = 'transform .38s cubic-bezier(.4,0,.2,1)';
   if (dx < -50 && curPage < 3) goTo(curPage+1);
   else if (dx > 50 && curPage > 0) goTo(curPage-1);
+  else if (dx > 50 && curPage === 0) window.location.href = '/index.html';
   else goTo(curPage);
   dragging = false; blocked = false;
 }, {passive:true});
