@@ -2131,10 +2131,16 @@ function showTutorial() {
   _wtRender();
   document.getElementById('wtOverlay').classList.add('open');
 }
+function _wtCleanupPad() {
+  document.querySelectorAll('.page').forEach(p => {
+    if (p._wtOrigPad !== undefined) { p.style.paddingBottom = p._wtOrigPad; p._wtOrigPad = undefined; }
+  });
+}
 function closeTutorial() {
   document.getElementById('wtOverlay').classList.remove('open');
   if (_wtHighlightEl) { _wtHighlightEl.classList.remove('wt-highlighted'); _wtHighlightEl = null; }
   document.getElementById('wtSwipeHand').style.display = 'none';
+  _wtCleanupPad();
   localStorage.setItem('parlia_tutorial_done', '1');
 }
 function wtNext() {
@@ -2146,8 +2152,13 @@ function _wtRender() {
   const s = WT_STEPS[_wtStep];
   const total = WT_STEPS.length;
 
-  // Remove previous highlight
-  if (_wtHighlightEl) { _wtHighlightEl.classList.remove('wt-highlighted'); _wtHighlightEl = null; }
+  // Remove previous highlight and restore padding
+  if (_wtHighlightEl) {
+    _wtHighlightEl.classList.remove('wt-highlighted');
+    const prevPage = _wtHighlightEl.closest('.page');
+    if (prevPage && prevPage._wtOrigPad !== undefined) { prevPage.style.paddingBottom = prevPage._wtOrigPad; prevPage._wtOrigPad = undefined; }
+    _wtHighlightEl = null;
+  }
   document.getElementById('wtSwipeHand').style.display = 'none';
 
   // Navigate to page
@@ -2190,31 +2201,25 @@ function _wtRender() {
       const el = document.querySelector(s.highlight);
       if (el) {
         const pageEl = el.closest('.page');
-        const elRect = el.getBoundingClientRect();
-        const pageRect = pageEl ? pageEl.getBoundingClientRect() : {top:0};
-        const pad = 12;
-
         if (pageEl) {
-          // Posizione dell'elemento nel contenuto scorrevole
-          const elTopInContent = elRect.top - pageRect.top + pageEl.scrollTop;
-          const targetScroll = Math.max(0, elTopInContent - 30);
-          pageEl.scrollTop = targetScroll;
-
-          // Calcolo matematico della posizione finale nello viewport (non dipende dal timing dello scroll)
-          const finalTop = elTopInContent - targetScroll + pageRect.top;
-          spotlight.style.top    = (finalTop - pad) + 'px';
-          spotlight.style.left   = (elRect.left - pad) + 'px';
-          spotlight.style.width  = (elRect.width  + pad * 2) + 'px';
-          spotlight.style.height = (elRect.height + pad * 2) + 'px';
-        } else {
-          spotlight.style.top    = (elRect.top  - pad) + 'px';
-          spotlight.style.left   = (elRect.left - pad) + 'px';
-          spotlight.style.width  = (elRect.width  + pad * 2) + 'px';
-          spotlight.style.height = (elRect.height + pad * 2) + 'px';
+          // Padding temporaneo → crea spazio per scrollare l'elemento in cima
+          pageEl._wtOrigPad = pageEl.style.paddingBottom;
+          pageEl.style.paddingBottom = '400px';
+          // Calcola posizione nel contenuto e scrolla
+          const elTopInContent = el.getBoundingClientRect().top - pageEl.getBoundingClientRect().top + pageEl.scrollTop;
+          pageEl.scrollTop = Math.max(0, elTopInContent - 30);
         }
-
-        el.classList.add('wt-highlighted');
-        _wtHighlightEl = el;
+        // rAF: legge la posizione reale DOPO che il browser ha aggiornato il layout
+        requestAnimationFrame(() => {
+          const r = el.getBoundingClientRect();
+          const pad = 12;
+          spotlight.style.top    = (r.top  - pad) + 'px';
+          spotlight.style.left   = (r.left - pad) + 'px';
+          spotlight.style.width  = (r.width  + pad * 2) + 'px';
+          spotlight.style.height = (r.height + pad * 2) + 'px';
+          el.classList.add('wt-highlighted');
+          _wtHighlightEl = el;
+        });
       } else {
         spotlight.style.display = 'none';
         dark.classList.remove('off');
