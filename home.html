@@ -2192,12 +2192,9 @@ function _wtRender() {
         // Scroll l'elemento nella zona visibile SOPRA il pannello tutorial
         const pageEl = el.closest('.page');
         if (pageEl) {
-          const wtCardH = document.querySelector('.wt-card').offsetHeight || 220;
-          const availH = pageEl.clientHeight - wtCardH - 24;
-          // Posizione elemento nel contenuto scorrevole (indipendente dall'offsetParent)
+          // Scorri in modo che l'elemento sia vicino alla cima, sempre visibile sopra il pannello tutorial
           const elTopInContent = el.getBoundingClientRect().top - pageEl.getBoundingClientRect().top + pageEl.scrollTop;
-          const targetScroll = elTopInContent - (availH / 2) + (el.offsetHeight / 2);
-          pageEl.scrollTop = Math.max(0, targetScroll);
+          pageEl.scrollTop = Math.max(0, elTopInContent - 30);
         }
         // Doppio rAF: aspetta che scroll e layout siano completati
         requestAnimationFrame(() => {
