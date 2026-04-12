@@ -91,7 +91,7 @@ Parlia è una PWA (app web progressiva) per comunicazione aumentativa (AAC) dest
 - Comando deploy: `git push` (nient'altro necessario!)
 - Dominio: app.parlia.app (CNAME configurato)
 
-## Ultima sessione (12 aprile 2026)
+## Sessione 12 aprile 2026 (mattina)
 - Aggiunto tutorial interattivo con spotlight su elementi UI reali
 - Tab "Yo" rinominata "Perfil", click → va a profile.html
 - Copyright spostato dentro la navbar (bottom: 3px, absolute)
@@ -99,6 +99,25 @@ Parlia è una PWA (app web progressiva) per comunicazione aumentativa (AAC) dest
 - Profile.html: aggiunte sezioni profilo arricchite (hobby, interessi, famiglia, info personali)
 - Deploy via GitHub → Cloudflare Pages (auto-deploy su push a main)
 - Branch di lavoro: main (le modifiche vengono mergeate su main e deployate)
+
+## Ultima sessione (12 aprile 2026 — pomeriggio)
+- Riordinati widget in home page0: AI Hero → Agenda → Obiettivo del giorno → Profile card → Tutorial banner
+- Fix spotlight tutorial per il passo "Profilo":
+  - Logica finale: aggiunge 200px paddingBottom temporaneo alla pagina per avere spazio di scroll
+  - Calcola targetScroll per posizionare l'elemento APPENA SOPRA il pannello tutorial (20px margine)
+  - Il pannello tutorial rimane SEMPRE in basso (rimosso wt-top logic)
+  - rAF dopo lo scroll per misurare getBoundingClientRect() accurato
+  - Cleanup del paddingBottom quando si cambia step o si chiude il tutorial
+- Fix spotlight AI hero: funziona anche se page0 è scrollata (formula targetScroll gestisce scroll negativo → clamp a 0)
+- Tutti i fix commitati e pushati su main → auto-deploy Cloudflare
+
+## Note tecniche spotlight tutorial
+- `.wt-ov`: position fixed; inset 0; z-index 400
+- `.wt-dark`: background rgba off quando c'è spotlight
+- `.wt-spotlight`: box-shadow 9999px crea il buio attorno; body trasparente mostra l'elemento sotto
+- Scroll formula: `elTopInContent = r.top - pageTop + pageEl.scrollTop`, `targetScroll = elTopInContent - (desiredElemTop - pageTop)`
+- desiredElemTop = `window.innerHeight - wtCardH - el.offsetHeight - 20`
+- Padding 200px temporaneo su pageEl rimosso da `_wtCleanup()` chiamato in `closeTutorial()` e in `_wtRender()` prima di ogni step
 
 ## Istruzioni per Claude Code
 - Prima di qualsiasi modifica, fai sempre un commit git con messaggio "backup pre-modifica"
