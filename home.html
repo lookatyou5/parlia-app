@@ -1179,6 +1179,7 @@ let curPage = 0;
 const track = document.getElementById('track');
 
 function goTo(idx) {
+  if (idx === 3) { window.location.href = 'profile.html'; return; }
   curPage = idx;
   track.style.transition = 'transform .38s cubic-bezier(.4,0,.2,1)';
   track.style.transform = `translateX(-${idx * 25}%)`;
