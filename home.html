@@ -883,8 +883,8 @@ html, body {
       <div class="tutorial-banner" onclick="showTutorial()">
         <div class="tutorial-banner-icon">🎓</div>
         <div>
-          <div class="tutorial-banner-title">Tutorial app</div>
-          <div class="tutorial-banner-sub">Scopri come usare tutte le funzioni</div>
+          <div class="tutorial-banner-title">Tutorial de la app</div>
+          <div class="tutorial-banner-sub">Descubre cómo usar todas las funciones</div>
         </div>
         <div class="tutorial-banner-arrow">›</div>
       </div>
@@ -2078,33 +2078,33 @@ function closeMeteo(e) { if(e.target===document.getElementById('meteoOverlay')) 
 const WT_STEPS = [
   {
     page: 0, highlight: null, swipe: false,
-    emoji: '👋', title: 'Benvenuto in Parlia!',
-    desc: 'Ti mostro come funziona l\'app in pochi secondi. Puoi saltare in qualsiasi momento.'
+    emoji: '👋', title: '¡Bienvenido a Parlia!',
+    desc: 'Te muestro cómo funciona la app en pocos segundos. Puedes saltar en cualquier momento.'
   },
   {
     page: 0, highlight: '#aiHeroWrap', swipe: false,
-    emoji: '🤖', title: 'Assistente AI',
-    desc: 'Qui l\'AI ti saluta ogni giorno, risponde alle domande e genera frasi personalizzate per te.'
+    emoji: '🤖', title: 'Asistente IA',
+    desc: 'Aquí la IA te saluda cada día, responde tus preguntas y genera frases personalizadas para ti.'
   },
   {
     page: 0, highlight: null, swipe: true,
-    emoji: '↔️', title: 'Scorri per navigare',
-    desc: 'Fai swipe a sinistra o destra per passare tra le sezioni. Guarda!'
+    emoji: '↔️', title: 'Desliza para navegar',
+    desc: 'Desliza a la izquierda o derecha para cambiar entre secciones. ¡Mira!'
   },
   {
     page: 1, highlight: '#catScroll', swipe: false,
-    emoji: '🗣️', title: 'Frasi rapide AAC',
-    desc: 'Qui trovi le categorie di frasi. Tocca una categoria, poi una frase per sentirla pronunciare.'
+    emoji: '🗣️', title: 'Frases rápidas AAC',
+    desc: 'Aquí encuentras las categorías de frases. Toca una categoría y luego una frase para escucharla.'
   },
   {
-    page: 3, highlight: '.yo-rows', swipe: false,
-    emoji: '👤', title: 'Personalizza il profilo',
-    desc: 'Aggiungi hobby, interessi e info personali. L\'AI le usa per conoscerti e risponderti meglio.'
+    page: 0, highlight: '.profile-card', swipe: false,
+    emoji: '👤', title: 'Completa tu perfil',
+    desc: 'Añade tus datos, aficiones e intereses. La IA los usa para conocerte mejor y responder con más precisión.'
   },
   {
     page: 0, highlight: null, swipe: false,
-    emoji: '🚀', title: 'Sei pronto!',
-    desc: 'Ora conosci le funzioni principali di Parlia. Esplora, comunica e personalizza!'
+    emoji: '🚀', title: '¡Listo para empezar!',
+    desc: 'Ya conoces las funciones principales de Parlia. ¡Explora, comunica y personaliza tu experiencia!'
   }
 ];
 let _wtStep = 0;
@@ -2148,7 +2148,7 @@ function _wtRender() {
   document.getElementById('wtEmoji').textContent = s.emoji;
   document.getElementById('wtTitle').textContent = s.title;
   document.getElementById('wtDesc').textContent = s.desc;
-  document.getElementById('wtBtn').textContent = _wtStep === total - 1 ? 'Inizia! 🚀' : 'Avanti →';
+  document.getElementById('wtBtn').textContent = _wtStep === total - 1 ? '¡Empezar! 🚀' : 'Siguiente →';
   document.getElementById('wtBtn').disabled = false;
 
   const spotlight = document.getElementById('wtSpotlight');
@@ -2252,7 +2252,7 @@ window.addEventListener('popstate', (e) => {
   <div class="wt-swipe-hand" id="wtSwipeHand">👆</div>
   <div class="wt-card">
     <div class="wt-handle"></div>
-    <span class="wt-skip-btn" onclick="closeTutorial()">Salta</span>
+    <span class="wt-skip-btn" onclick="closeTutorial()">Saltar</span>
     <div class="wt-dots" id="wtDots"></div>
     <span class="wt-emoji" id="wtEmoji"></span>
     <div class="wt-title" id="wtTitle"></div>
