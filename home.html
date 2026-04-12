@@ -2174,14 +2174,25 @@ function _wtRender() {
     setTimeout(() => {
       const el = document.querySelector(s.highlight);
       if (el) {
-        const r = el.getBoundingClientRect();
-        const pad = 10;
-        spotlight.style.top = (r.top - pad) + 'px';
-        spotlight.style.left = (r.left - pad) + 'px';
-        spotlight.style.width = (r.width + pad * 2) + 'px';
-        spotlight.style.height = (r.height + pad * 2) + 'px';
-        el.classList.add('wt-highlighted');
-        _wtHighlightEl = el;
+        // Scroll l'elemento nella zona visibile SOPRA il pannello tutorial
+        const pageEl = el.closest('.page');
+        if (pageEl) {
+          const wtCardH = document.querySelector('.wt-card').offsetHeight || 320;
+          const availH = pageEl.clientHeight - wtCardH - 24;
+          const targetScroll = el.offsetTop - (availH / 2) + (el.offsetHeight / 2);
+          pageEl.scrollTop = Math.max(0, targetScroll);
+        }
+        // Misura dopo il re-layout
+        requestAnimationFrame(() => {
+          const r = el.getBoundingClientRect();
+          const pad = 12;
+          spotlight.style.top  = (r.top  - pad) + 'px';
+          spotlight.style.left = (r.left - pad) + 'px';
+          spotlight.style.width  = (r.width  + pad * 2) + 'px';
+          spotlight.style.height = (r.height + pad * 2) + 'px';
+          el.classList.add('wt-highlighted');
+          _wtHighlightEl = el;
+        });
       } else {
         spotlight.style.display = 'none';
         dark.classList.remove('off');
