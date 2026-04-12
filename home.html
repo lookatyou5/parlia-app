@@ -865,7 +865,7 @@ html, body {
       </div>
 
       <!-- Profilo -->
-      <div class="profile-card" onclick="window.location.href='profile.html'">
+      <div class="profile-card" onclick="goTo(3)">
         <div class="profile-top">
           <div class="profile-icon">👤</div>
           <div style="flex:1">
@@ -987,52 +987,11 @@ html, body {
 
     </div><!-- /page2 -->
 
-    <!-- ── PAGE 4: YO ── -->
-    <div class="page" id="page3">
-
-      <div class="yo-header">
-        <div class="yo-avatar" id="yoAvatar">M</div>
-        <div class="yo-name-lbl" id="yoName">María</div>
-        <div class="yo-sub-lbl">Institut Guttmann · Barcelona</div>
-      </div>
-
-      <div class="progress-wrap">
-        <div class="progress-header">
-          <span>Perfil completado</span>
-          <span id="yoProgressPct" style="color:var(--blue)">50%</span>
-        </div>
-        <div class="progress-bar-bg">
-          <div class="progress-bar" id="yoProgressBar" style="width:50%"></div>
-        </div>
-      </div>
-
-      <div class="yo-rows">
-        <div class="yo-row" onclick="window.location.href='profile.html'">
-          <div class="yo-row-icon">👤</div>
-          <div class="yo-row-label">Datos personales</div>
-          <div class="yo-row-value" id="yoPersonal">María</div>
-          <div class="yo-row-arrow">›</div>
-        </div>
-        <div class="yo-row" onclick="window.location.href='profile.html'">
-          <div class="yo-row-icon">🏥</div>
-          <div class="yo-row-label">Condición</div>
-          <div class="yo-row-value" id="yoCondicion">Sin definir</div>
-          <div class="yo-row-arrow">›</div>
-        </div>
-        <div class="yo-row" onclick="window.location.href='profile.html'">
-          <div class="yo-row-icon">🤝</div>
-          <div class="yo-row-label">Cuidador principal</div>
-          <div class="yo-row-value" id="yoCuidador">—</div>
-          <div class="yo-row-arrow">›</div>
-        </div>
-        <div class="yo-row" onclick="window.location.href='profile.html'">
-          <div class="yo-row-icon">⚙️</div>
-          <div class="yo-row-label">Funciones activas</div>
-          <div class="yo-row-value">AAC · Rehab</div>
-          <div class="yo-row-arrow">›</div>
-        </div>
-      </div>
-
+    <!-- ── PAGE 4: PERFIL ── -->
+    <div class="page" id="page3" style="padding:0;overflow:hidden;">
+      <iframe src="profile.html" id="profileFrame"
+        style="width:100%;height:100%;border:none;display:block;"
+        scrolling="yes"></iframe>
     </div><!-- /page3 -->
 
   </div><!-- /track -->
@@ -1052,7 +1011,7 @@ html, body {
     <div class="nav-icon">🧠</div>
     <div class="nav-lbl">Rehab</div>
   </div>
-  <div class="nav-item" id="nav3" onclick="window.location.href='profile.html'">
+  <div class="nav-item" id="nav3" onclick="goTo(3)">
     <div class="nav-icon">👤</div>
     <div class="nav-lbl">Perfil</div>
   </div>
@@ -1179,7 +1138,6 @@ let curPage = 0;
 const track = document.getElementById('track');
 
 function goTo(idx) {
-  if (idx === 3) { window.location.href = 'profile.html'; return; }
   curPage = idx;
   track.style.transition = 'transform .38s cubic-bezier(.4,0,.2,1)';
   track.style.transform = `translateX(-${idx * 25}%)`;
