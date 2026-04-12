@@ -111,7 +111,10 @@ html, body {
   backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
   border-top: 1px solid var(--border);
   display: flex; align-items: flex-start; padding: 8px 4px 0;
+  flex-direction: column;
 }
+.nav-items { display: flex; align-items: flex-start; width: 100%; }
+.nav-copyright { width: 100%; text-align: center; font-size: 0.58rem; color: #bbb; padding: 2px 0 4px; font-weight: 600; letter-spacing: .02em; }
 .nav-item {
   flex: 1; display: flex; flex-direction: column; align-items: center; gap: 3px;
   cursor: pointer; padding: 5px 4px; border-radius: 14px;
@@ -686,9 +689,25 @@ html, body {
 .settings-item-icon { font-size: 1rem; width: 22px; text-align: center; flex-shrink: 0; }
 .settings-divider { height: 1px; background: var(--border); margin: 4px 0; }
 
-/* ── TUTORIAL FAB ── */
+/* ── TUTORIAL BANNER (card nella home) ── */
+.tutorial-banner {
+  margin: 0 0 16px;
+  background: linear-gradient(135deg, #7c3aed 0%, #6366f1 100%);
+  border-radius: 18px; padding: 16px 18px;
+  display: flex; align-items: center; gap: 14px;
+  cursor: pointer; -webkit-tap-highlight-color: transparent;
+  box-shadow: 0 4px 20px rgba(124,58,237,0.35), 0 1px 4px rgba(0,0,0,0.08);
+  transition: transform .16s, opacity .16s;
+}
+.tutorial-banner:active { transform: scale(.97); opacity: .92; }
+.tutorial-banner-icon { font-size: 2rem; flex-shrink: 0; line-height: 1; }
+.tutorial-banner-title { font-size: 0.95rem; font-weight: 800; color: white; }
+.tutorial-banner-sub { font-size: 0.75rem; font-weight: 500; color: rgba(255,255,255,.75); margin-top: 2px; }
+.tutorial-banner-arrow { margin-left: auto; font-size: 1.1rem; color: rgba(255,255,255,.8); flex-shrink: 0; }
+
+/* ── TUTORIAL FAB (nascosto, rimane come fallback) ── */
 .tutorial-fab {
-  position: fixed; bottom: calc(var(--nav-h) + 40px); right: 16px; z-index: 500;
+  display: none;
   display: flex; align-items: center; gap: 6px;
   background: linear-gradient(135deg, #7c3aed, #6366f1);
   color: white; border: none; border-radius: 24px;
@@ -835,6 +854,16 @@ html, body {
         <div class="profile-bar-bg">
           <div class="profile-bar" id="profileBar" style="width:50%"></div>
         </div>
+      </div>
+
+      <!-- Tutorial banner -->
+      <div class="tutorial-banner" onclick="openTutorial()">
+        <div class="tutorial-banner-icon">🎓</div>
+        <div>
+          <div class="tutorial-banner-title">Tutorial app</div>
+          <div class="tutorial-banner-sub">Scopri come usare tutte le funzioni</div>
+        </div>
+        <div class="tutorial-banner-arrow">›</div>
       </div>
 
       <!-- Obiettivo -->
@@ -988,22 +1017,25 @@ html, body {
 
 <!-- NAV -->
 <div class="nav">
-  <div class="nav-item active" id="nav0" onclick="goTo(0)">
-    <div class="nav-icon">🏠</div>
-    <div class="nav-lbl">Inicio</div>
+  <div class="nav-items">
+    <div class="nav-item active" id="nav0" onclick="goTo(0)">
+      <div class="nav-icon">🏠</div>
+      <div class="nav-lbl">Inicio</div>
+    </div>
+    <div class="nav-item" id="nav1" onclick="goTo(1)">
+      <div class="nav-icon">🗣️</div>
+      <div class="nav-lbl">AAC</div>
+    </div>
+    <div class="nav-item" id="nav2" onclick="goTo(2)">
+      <div class="nav-icon">🧠</div>
+      <div class="nav-lbl">Rehab</div>
+    </div>
+    <div class="nav-item" id="nav3" onclick="goTo(3)">
+      <div class="nav-icon">👤</div>
+      <div class="nav-lbl">Yo</div>
+    </div>
   </div>
-  <div class="nav-item" id="nav1" onclick="goTo(1)">
-    <div class="nav-icon">🗣️</div>
-    <div class="nav-lbl">AAC</div>
-  </div>
-  <div class="nav-item" id="nav2" onclick="goTo(2)">
-    <div class="nav-icon">🧠</div>
-    <div class="nav-lbl">Rehab</div>
-  </div>
-  <div class="nav-item" id="nav3" onclick="goTo(3)">
-    <div class="nav-icon">👤</div>
-    <div class="nav-lbl">Yo</div>
-  </div>
+  <div class="nav-copyright">© 2026 Parlia.app</div>
 </div>
 
 <!-- DOT INDICATORI -->
@@ -2071,12 +2103,7 @@ window.addEventListener('popstate', (e) => {
 });
 </script>
 
-<!-- Copyright Footer -->
-<div style="position:fixed;bottom:72px;left:0;right:0;padding:8px;text-align:center;font-size:0.65rem;color:#999;background:rgba(245,246,250,0.9);border-top:1px solid #e5e7eb;pointer-events:none">
-  © 2026 Parlia.app
-</div>
-
-<!-- TUTORIAL FAB -->
+<!-- TUTORIAL FAB (nascosto) -->
 <button class="tutorial-fab" onclick="openTutorial()">
   <span class="tutorial-fab-icon">🎓</span>
   Tutorial
