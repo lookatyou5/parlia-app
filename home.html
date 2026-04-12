@@ -722,6 +722,11 @@ html, body {
   background: white; border-radius: 28px 28px 0 0;
   padding: 12px 20px 36px; z-index: 3;
 }
+.wt-card.wt-top {
+  bottom: auto; top: 0;
+  border-radius: 0 0 28px 28px;
+  padding: 48px 20px 20px;
+}
 .wt-handle { width: 32px; height: 4px; border-radius: 2px; background: #e5e7eb; margin: 0 auto 10px; }
 .wt-skip-btn {
   position: absolute; top: 12px; right: 16px;
@@ -2131,16 +2136,11 @@ function showTutorial() {
   _wtRender();
   document.getElementById('wtOverlay').classList.add('open');
 }
-function _wtCleanupPad() {
-  document.querySelectorAll('.page').forEach(p => {
-    if (p._wtOrigPad !== undefined) { p.style.paddingBottom = p._wtOrigPad; p._wtOrigPad = undefined; }
-  });
-}
 function closeTutorial() {
   document.getElementById('wtOverlay').classList.remove('open');
   if (_wtHighlightEl) { _wtHighlightEl.classList.remove('wt-highlighted'); _wtHighlightEl = null; }
   document.getElementById('wtSwipeHand').style.display = 'none';
-  _wtCleanupPad();
+  document.querySelector('.wt-card').classList.remove('wt-top');
   localStorage.setItem('parlia_tutorial_done', '1');
 }
 function wtNext() {
@@ -2152,13 +2152,9 @@ function _wtRender() {
   const s = WT_STEPS[_wtStep];
   const total = WT_STEPS.length;
 
-  // Remove previous highlight and restore padding
-  if (_wtHighlightEl) {
-    _wtHighlightEl.classList.remove('wt-highlighted');
-    const prevPage = _wtHighlightEl.closest('.page');
-    if (prevPage && prevPage._wtOrigPad !== undefined) { prevPage.style.paddingBottom = prevPage._wtOrigPad; prevPage._wtOrigPad = undefined; }
-    _wtHighlightEl = null;
-  }
+  // Remove previous highlight
+  if (_wtHighlightEl) { _wtHighlightEl.classList.remove('wt-highlighted'); _wtHighlightEl = null; }
+  document.querySelector('.wt-card').classList.remove('wt-top');
   document.getElementById('wtSwipeHand').style.display = 'none';
 
   // Navigate to page
@@ -2200,19 +2196,16 @@ function _wtRender() {
     setTimeout(() => {
       const el = document.querySelector(s.highlight);
       if (el) {
-        const pageEl = el.closest('.page');
-        if (pageEl) {
-          // Padding temporaneo → crea spazio per scrollare l'elemento in cima
-          pageEl._wtOrigPad = pageEl.style.paddingBottom;
-          pageEl.style.paddingBottom = '400px';
-          // Calcola posizione nel contenuto e scrolla
-          const elTopInContent = el.getBoundingClientRect().top - pageEl.getBoundingClientRect().top + pageEl.scrollTop;
-          pageEl.scrollTop = Math.max(0, elTopInContent - 30);
-        }
-        // rAF: legge la posizione reale DOPO che il browser ha aggiornato il layout
         requestAnimationFrame(() => {
           const r = el.getBoundingClientRect();
           const pad = 12;
+          // Se l'elemento è nella metà inferiore dello schermo, sposta il pannello in alto
+          const wtCard = document.querySelector('.wt-card');
+          if (r.top + r.height / 2 > window.innerHeight / 2) {
+            wtCard.classList.add('wt-top');
+          } else {
+            wtCard.classList.remove('wt-top');
+          }
           spotlight.style.top    = (r.top  - pad) + 'px';
           spotlight.style.left   = (r.left - pad) + 'px';
           spotlight.style.width  = (r.width  + pad * 2) + 'px';
