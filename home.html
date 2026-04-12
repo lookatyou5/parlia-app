@@ -111,10 +111,8 @@ html, body {
   backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
   border-top: 1px solid var(--border);
   display: flex; align-items: flex-start; padding: 8px 4px 0;
-  flex-direction: column;
 }
-.nav-items { display: flex; align-items: flex-start; width: 100%; }
-.nav-copyright { width: 100%; text-align: center; font-size: 0.58rem; color: #bbb; padding: 2px 0 4px; font-weight: 600; letter-spacing: .02em; }
+.nav-copyright { position: absolute; bottom: 3px; left: 0; right: 0; text-align: center; font-size: 0.56rem; color: #c4c4c4; font-weight: 600; letter-spacing: .02em; pointer-events: none; }
 .nav-item {
   flex: 1; display: flex; flex-direction: column; align-items: center; gap: 3px;
   cursor: pointer; padding: 5px 4px; border-radius: 14px;
@@ -721,54 +719,6 @@ html, body {
 .tutorial-fab:active { transform: scale(0.94); opacity: .9; }
 .tutorial-fab-icon { font-size: 1rem; line-height: 1; }
 
-/* ── TUTORIAL OVERLAY ── */
-.tutorial-overlay {
-  position: fixed; inset: 0; z-index: 300;
-  background: rgba(0,0,0,.55); backdrop-filter: blur(6px);
-  display: flex; align-items: flex-end;
-  opacity: 0; pointer-events: none; transition: opacity .25s;
-}
-.tutorial-overlay.open { opacity: 1; pointer-events: all; }
-.tutorial-sheet {
-  width: 100%; border-radius: 28px 28px 0 0;
-  background: white; padding: 0 0 40px;
-  transform: translateY(100%); transition: transform .38s cubic-bezier(.4,0,.2,1);
-  max-height: 86vh; overflow-y: auto;
-}
-.tutorial-overlay.open .tutorial-sheet { transform: translateY(0); }
-.tutorial-handle { width: 36px; height: 4px; border-radius: 2px; background: var(--border); margin: 14px auto 0; }
-.tutorial-header { padding: 18px 20px 12px; }
-.tutorial-title {
-  font-family: 'Bricolage Grotesque', sans-serif;
-  font-size: 1.3rem; font-weight: 800; color: var(--ink);
-  display: flex; align-items: center; gap: 8px;
-}
-.tutorial-sub { font-size: 0.8rem; font-weight: 500; color: var(--muted); margin-top: 4px; }
-.tutorial-steps { padding: 4px 20px 0; display: flex; flex-direction: column; gap: 10px; }
-.tut-card {
-  display: flex; align-items: flex-start; gap: 14px;
-  background: var(--bg); border: 1.5px solid var(--border);
-  border-radius: 16px; padding: 14px;
-}
-.tut-icon {
-  width: 42px; height: 42px; border-radius: 13px;
-  display: flex; align-items: center; justify-content: center;
-  font-size: 1.3rem; flex-shrink: 0;
-}
-.tut-body { flex: 1; min-width: 0; }
-.tut-name { font-size: 0.88rem; font-weight: 800; color: var(--ink); margin-bottom: 2px; }
-.tut-desc { font-size: 0.76rem; font-weight: 500; color: var(--muted); line-height: 1.5; }
-.tutorial-cta {
-  margin: 16px 20px 0;
-  background: linear-gradient(135deg, #7c3aed, #6366f1);
-  color: white; border: none; border-radius: 16px;
-  width: calc(100% - 40px); padding: 15px;
-  font-family: 'Plus Jakarta Sans', sans-serif;
-  font-size: 0.88rem; font-weight: 800;
-  cursor: pointer; transition: opacity .15s;
-  -webkit-tap-highlight-color: transparent;
-}
-.tutorial-cta:active { opacity: .88; transform: scale(.98); }
 </style>
 </head>
 <body>
@@ -857,7 +807,7 @@ html, body {
       </div>
 
       <!-- Tutorial banner -->
-      <div class="tutorial-banner" onclick="openTutorial()">
+      <div class="tutorial-banner" onclick="window.location.href='onboarding.html'">
         <div class="tutorial-banner-icon">🎓</div>
         <div>
           <div class="tutorial-banner-title">Tutorial app</div>
@@ -1017,23 +967,21 @@ html, body {
 
 <!-- NAV -->
 <div class="nav">
-  <div class="nav-items">
-    <div class="nav-item active" id="nav0" onclick="goTo(0)">
-      <div class="nav-icon">🏠</div>
-      <div class="nav-lbl">Inicio</div>
-    </div>
-    <div class="nav-item" id="nav1" onclick="goTo(1)">
-      <div class="nav-icon">🗣️</div>
-      <div class="nav-lbl">AAC</div>
-    </div>
-    <div class="nav-item" id="nav2" onclick="goTo(2)">
-      <div class="nav-icon">🧠</div>
-      <div class="nav-lbl">Rehab</div>
-    </div>
-    <div class="nav-item" id="nav3" onclick="goTo(3)">
-      <div class="nav-icon">👤</div>
-      <div class="nav-lbl">Yo</div>
-    </div>
+  <div class="nav-item active" id="nav0" onclick="goTo(0)">
+    <div class="nav-icon">🏠</div>
+    <div class="nav-lbl">Inicio</div>
+  </div>
+  <div class="nav-item" id="nav1" onclick="goTo(1)">
+    <div class="nav-icon">🗣️</div>
+    <div class="nav-lbl">AAC</div>
+  </div>
+  <div class="nav-item" id="nav2" onclick="goTo(2)">
+    <div class="nav-icon">🧠</div>
+    <div class="nav-lbl">Rehab</div>
+  </div>
+  <div class="nav-item" id="nav3" onclick="goTo(3)">
+    <div class="nav-icon">👤</div>
+    <div class="nav-lbl">Yo</div>
   </div>
   <div class="nav-copyright">© 2026 Parlia.app</div>
 </div>
@@ -2052,9 +2000,6 @@ async function loadMeteo() {
 function openMeteo() { document.getElementById('meteoOverlay').classList.add('open'); }
 function closeMeteo(e) { if(e.target===document.getElementById('meteoOverlay')) document.getElementById('meteoOverlay').classList.remove('open'); }
 
-// ── TUTORIAL ──
-function openTutorial() { document.getElementById('tutorialOverlay').classList.add('open'); }
-function closeTutorialOutside(e) { if(e.target===document.getElementById('tutorialOverlay')) document.getElementById('tutorialOverlay').classList.remove('open'); }
 
 // ── TOAST ──
 function toast(msg) {
@@ -2103,62 +2048,6 @@ window.addEventListener('popstate', (e) => {
 });
 </script>
 
-<!-- TUTORIAL FAB (nascosto) -->
-<button class="tutorial-fab" onclick="openTutorial()">
-  <span class="tutorial-fab-icon">🎓</span>
-  Tutorial
-</button>
-
-<!-- TUTORIAL POPUP -->
-<div class="tutorial-overlay" id="tutorialOverlay" onclick="closeTutorialOutside(event)">
-  <div class="tutorial-sheet">
-    <div class="tutorial-handle"></div>
-    <div class="tutorial-header">
-      <div class="tutorial-title">🎓 Come usare Parlia</div>
-      <div class="tutorial-sub">Guida rapida alle funzioni principali</div>
-    </div>
-    <div class="tutorial-steps">
-      <div class="tut-card">
-        <div class="tut-icon" style="background:#eff6ff">💬</div>
-        <div class="tut-body">
-          <div class="tut-name">Comunicador</div>
-          <div class="tut-desc">Tocca le categorie per trovare frasi rapide. Usa la barra in basso per navigare tra le sezioni.</div>
-        </div>
-      </div>
-      <div class="tut-card">
-        <div class="tut-icon" style="background:#f5f3ff">🤖</div>
-        <div class="tut-body">
-          <div class="tut-name">Assistente AI</div>
-          <div class="tut-desc">Scrivi o parla con l'AI per generare frasi personalizzate o chiedere aiuto in qualsiasi situazione.</div>
-        </div>
-      </div>
-      <div class="tut-card">
-        <div class="tut-icon" style="background:#f0fdfa">📅</div>
-        <div class="tut-body">
-          <div class="tut-name">Agenda</div>
-          <div class="tut-desc">Visualizza appuntamenti e promemoria del giorno. Tocca "+" per aggiungere un nuovo evento.</div>
-        </div>
-      </div>
-      <div class="tut-card">
-        <div class="tut-icon" style="background:#fff7ed">👤</div>
-        <div class="tut-body">
-          <div class="tut-name">Profilo</div>
-          <div class="tut-desc">Personalizza le informazioni su di te: hobby, famiglia, interessi. L'AI le usa per risponderti meglio.</div>
-        </div>
-      </div>
-      <div class="tut-card">
-        <div class="tut-icon" style="background:#fdf4ff">🌤️</div>
-        <div class="tut-body">
-          <div class="tut-name">Meteo</div>
-          <div class="tut-desc">Tocca la pillola meteo in alto a destra per vedere le condizioni attuali e la previsione dettagliata.</div>
-        </div>
-      </div>
-    </div>
-    <button class="tutorial-cta" onclick="window.location.href='onboarding.html'">
-      Rifai il tutorial completo →
-    </button>
-  </div>
-</div>
 
 </body>
 </html>
