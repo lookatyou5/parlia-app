@@ -24,7 +24,7 @@
   --radius: 20px;
   --shadow: 0 2px 12px rgba(0,0,0,0.06), 0 1px 3px rgba(0,0,0,0.04);
   --shadow-lg: 0 8px 32px rgba(37,99,235,0.12), 0 2px 8px rgba(0,0,0,0.06);
-  --nav-h: 72px;
+  --nav-h: 80px;
   --top-h: 56px;
 }
 
@@ -687,6 +687,61 @@ html, body {
 .settings-item-icon { font-size: 1rem; width: 22px; text-align: center; flex-shrink: 0; }
 .settings-divider { height: 1px; background: var(--border); margin: 4px 0; }
 
+/* ── WALKTHROUGH TUTORIAL ── */
+.wt-ov {
+  position: fixed; inset: 0; z-index: 400;
+  opacity: 0; pointer-events: none; transition: opacity .3s;
+}
+.wt-ov.open { opacity: 1; pointer-events: all; }
+.wt-backdrop { position: absolute; inset: 0; background: rgba(10,10,20,.72); }
+.wt-card {
+  position: absolute; bottom: 0; left: 0; right: 0;
+  background: white; border-radius: 28px 28px 0 0;
+  padding: 20px 24px 52px;
+}
+.wt-handle { width: 36px; height: 4px; border-radius: 2px; background: #e5e7eb; margin: 0 auto 18px; }
+.wt-skip-btn {
+  position: absolute; top: 20px; right: 20px;
+  font-size: 0.75rem; font-weight: 700; color: #9ca3af;
+  cursor: pointer; -webkit-tap-highlight-color: transparent; padding: 4px 8px;
+}
+.wt-dots { display: flex; gap: 6px; justify-content: center; margin-bottom: 20px; }
+.wt-dot { width: 6px; height: 6px; border-radius: 50%; background: #e5e7eb; transition: all .35s; }
+.wt-dot.active { background: var(--blue); width: 22px; border-radius: 4px; }
+.wt-dot.done { background: var(--teal); }
+.wt-emoji { font-size: 3rem; text-align: center; margin-bottom: 12px; line-height: 1; display: block; }
+.wt-title {
+  font-family: 'Bricolage Grotesque', sans-serif;
+  font-size: 1.3rem; font-weight: 800; color: var(--ink);
+  text-align: center; margin-bottom: 8px;
+}
+.wt-desc {
+  font-size: 0.85rem; font-weight: 500; color: var(--muted);
+  text-align: center; line-height: 1.65; margin-bottom: 22px;
+}
+.wt-pointer {
+  position: absolute; left: 50%; transform: translateX(-50%);
+  background: white; border-radius: 24px; padding: 9px 18px;
+  font-size: 0.8rem; font-weight: 800; color: var(--ink);
+  box-shadow: 0 4px 20px rgba(0,0,0,.25);
+  display: none; align-items: center; gap: 6px; white-space: nowrap;
+  animation: wtBounce .8s ease-in-out infinite alternate;
+}
+.wt-pointer.show { display: flex; }
+.wt-pointer.top { top: 72px; }
+.wt-pointer.mid { top: 40%; }
+.wt-pointer.near-nav { bottom: 310px; }
+@keyframes wtBounce { from{transform:translateX(-50%) translateY(0)} to{transform:translateX(-50%) translateY(-6px)} }
+.wt-btn {
+  width: 100%; padding: 16px;
+  background: linear-gradient(135deg, #2563eb, #6366f1);
+  color: white; border: none; border-radius: 16px;
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  font-size: 0.9rem; font-weight: 800;
+  cursor: pointer; -webkit-tap-highlight-color: transparent; transition: opacity .15s;
+}
+.wt-btn:active { opacity: .88; transform: scale(.98); }
+
 /* ── TUTORIAL BANNER (card nella home) ── */
 .tutorial-banner {
   margin: 0 0 16px;
@@ -807,7 +862,7 @@ html, body {
       </div>
 
       <!-- Tutorial banner -->
-      <div class="tutorial-banner" onclick="window.location.href='onboarding.html'">
+      <div class="tutorial-banner" onclick="showTutorial()">
         <div class="tutorial-banner-icon">🎓</div>
         <div>
           <div class="tutorial-banner-title">Tutorial app</div>
@@ -2001,6 +2056,83 @@ function openMeteo() { document.getElementById('meteoOverlay').classList.add('op
 function closeMeteo(e) { if(e.target===document.getElementById('meteoOverlay')) document.getElementById('meteoOverlay').classList.remove('open'); }
 
 
+// ── WALKTHROUGH TUTORIAL ──
+const WT_STEPS = [
+  {
+    emoji: '👋',
+    title: 'Benvenuto in Parlia!',
+    desc: 'Ti mostro come funziona l\'app in pochi secondi. Puoi saltare in qualsiasi momento.',
+    pointer: null
+  },
+  {
+    emoji: '🤖',
+    title: 'Il tuo assistente AI',
+    desc: 'Qui in alto c\'è l\'AI che ti saluta ogni giorno, risponde alle tue domande e genera frasi personalizzate.',
+    pointer: { cls: 'top', label: '⬆ Guarda in alto' }
+  },
+  {
+    emoji: '↔️',
+    title: 'Scorri per navigare',
+    desc: 'Fai swipe a sinistra o destra per passare tra le sezioni: Home, AAC, Rehab e Profilo.',
+    pointer: { cls: 'mid', label: '← Scorri la schermata →' }
+  },
+  {
+    emoji: '🗣️',
+    title: 'Frasi rapide AAC',
+    desc: 'Tocca il tab AAC in basso per trovare centinaia di frasi divise per categoria. Tocca una frase per sentirla.',
+    pointer: { cls: 'near-nav', label: '⬇ Tab AAC in basso' }
+  },
+  {
+    emoji: '👤',
+    title: 'Personalizza il profilo',
+    desc: 'Nel tab Yo aggiungi hobby, interessi e info personali. L\'AI le usa per conoscerti e risponderti meglio.',
+    pointer: { cls: 'near-nav', label: '⬇ Tab Yo in basso' }
+  },
+  {
+    emoji: '🚀',
+    title: 'Sei pronto!',
+    desc: 'Conosci le funzioni principali di Parlia. Esplora, comunica e personalizza la tua esperienza.',
+    pointer: null
+  }
+];
+let _wtStep = 0;
+
+function showTutorial() {
+  _wtStep = 0;
+  _wtRender();
+  document.getElementById('wtOverlay').classList.add('open');
+}
+function closeTutorial() {
+  document.getElementById('wtOverlay').classList.remove('open');
+  localStorage.setItem('parlia_tutorial_done', '1');
+}
+function wtNext() {
+  if (_wtStep >= WT_STEPS.length - 1) { closeTutorial(); return; }
+  _wtStep++;
+  _wtRender();
+}
+function _wtRender() {
+  const s = WT_STEPS[_wtStep];
+  const total = WT_STEPS.length;
+  let dots = '';
+  for (let i = 0; i < total; i++) {
+    const cls = i < _wtStep ? 'wt-dot done' : i === _wtStep ? 'wt-dot active' : 'wt-dot';
+    dots += `<div class="${cls}"></div>`;
+  }
+  document.getElementById('wtDots').innerHTML = dots;
+  document.getElementById('wtEmoji').textContent = s.emoji;
+  document.getElementById('wtTitle').textContent = s.title;
+  document.getElementById('wtDesc').textContent = s.desc;
+  document.getElementById('wtBtn').textContent = _wtStep === total - 1 ? 'Inizia! 🚀' : 'Avanti →';
+  const ptr = document.getElementById('wtPointer');
+  if (s.pointer) {
+    ptr.className = 'wt-pointer show ' + s.pointer.cls;
+    ptr.textContent = s.pointer.label;
+  } else {
+    ptr.className = 'wt-pointer';
+  }
+}
+
 // ── TOAST ──
 function toast(msg) {
   const t=document.getElementById('toast');
@@ -2023,6 +2155,10 @@ function init() {
     setTimeout(()=>{ _sendMsg(null); loadGoal(); loadAISuggestions(); }, 400);
   } else {
     setTimeout(()=>{ loadGoal(); loadAISuggestions(); }, 400);
+  }
+  if (localStorage.getItem('parlia_show_tutorial')) {
+    localStorage.removeItem('parlia_show_tutorial');
+    setTimeout(() => showTutorial(), 800);
   }
 }
 init();
@@ -2048,6 +2184,20 @@ window.addEventListener('popstate', (e) => {
 });
 </script>
 
+<!-- WALKTHROUGH TUTORIAL -->
+<div class="wt-ov" id="wtOverlay">
+  <div class="wt-backdrop"></div>
+  <div id="wtPointer" class="wt-pointer"></div>
+  <div class="wt-card">
+    <div class="wt-handle"></div>
+    <span class="wt-skip-btn" onclick="closeTutorial()">Salta</span>
+    <div class="wt-dots" id="wtDots"></div>
+    <span class="wt-emoji" id="wtEmoji"></span>
+    <div class="wt-title" id="wtTitle"></div>
+    <div class="wt-desc" id="wtDesc"></div>
+    <button class="wt-btn" id="wtBtn" onclick="wtNext()"></button>
+  </div>
+</div>
 
 </body>
 </html>
