@@ -693,11 +693,34 @@ html, body {
   opacity: 0; pointer-events: none; transition: opacity .3s;
 }
 .wt-ov.open { opacity: 1; pointer-events: all; }
-.wt-backdrop { position: absolute; inset: 0; background: rgba(10,10,20,.72); }
+.wt-dark {
+  position: absolute; inset: 0; background: rgba(10,10,20,.8);
+  transition: opacity .3s; pointer-events: none;
+}
+.wt-dark.off { opacity: 0; }
+.wt-spotlight {
+  position: absolute; display: none; border-radius: 20px;
+  box-shadow: 0 0 0 9999px rgba(10,10,20,.8);
+  transition: top .45s cubic-bezier(.4,0,.2,1), left .45s cubic-bezier(.4,0,.2,1),
+              width .45s cubic-bezier(.4,0,.2,1), height .45s cubic-bezier(.4,0,.2,1);
+  pointer-events: none; z-index: 0;
+}
+.wt-swipe-hand {
+  position: absolute; top: 42%; left: 50%;
+  font-size: 2.4rem; display: none; pointer-events: none; z-index: 2;
+  animation: wtHandSwipe 1.3s ease-in-out infinite;
+  filter: drop-shadow(0 4px 10px rgba(0,0,0,.5));
+}
+@keyframes wtHandSwipe {
+  0%   { transform: translate(-50%,-50%); opacity: 1; }
+  55%  { transform: translate(calc(-50% - 90px),-50%); opacity: .5; }
+  80%  { transform: translate(-50%,-50%); opacity: 0; }
+  100% { transform: translate(-50%,-50%); opacity: 0; }
+}
 .wt-card {
   position: absolute; bottom: 0; left: 0; right: 0;
   background: white; border-radius: 28px 28px 0 0;
-  padding: 20px 24px 52px;
+  padding: 20px 24px 52px; z-index: 3;
 }
 .wt-handle { width: 36px; height: 4px; border-radius: 2px; background: #e5e7eb; margin: 0 auto 18px; }
 .wt-skip-btn {
@@ -719,19 +742,6 @@ html, body {
   font-size: 0.85rem; font-weight: 500; color: var(--muted);
   text-align: center; line-height: 1.65; margin-bottom: 22px;
 }
-.wt-pointer {
-  position: absolute; left: 50%; transform: translateX(-50%);
-  background: white; border-radius: 24px; padding: 9px 18px;
-  font-size: 0.8rem; font-weight: 800; color: var(--ink);
-  box-shadow: 0 4px 20px rgba(0,0,0,.25);
-  display: none; align-items: center; gap: 6px; white-space: nowrap;
-  animation: wtBounce .8s ease-in-out infinite alternate;
-}
-.wt-pointer.show { display: flex; }
-.wt-pointer.top { top: 72px; }
-.wt-pointer.mid { top: 40%; }
-.wt-pointer.near-nav { bottom: 310px; }
-@keyframes wtBounce { from{transform:translateX(-50%) translateY(0)} to{transform:translateX(-50%) translateY(-6px)} }
 .wt-btn {
   width: 100%; padding: 16px;
   background: linear-gradient(135deg, #2563eb, #6366f1);
@@ -741,6 +751,14 @@ html, body {
   cursor: pointer; -webkit-tap-highlight-color: transparent; transition: opacity .15s;
 }
 .wt-btn:active { opacity: .88; transform: scale(.98); }
+.wt-highlighted {
+  position: relative; z-index: 1;
+  animation: wtGlow .9s ease-in-out infinite alternate;
+}
+@keyframes wtGlow {
+  from { box-shadow: 0 0 0 0 rgba(37,99,235,.5); }
+  to   { box-shadow: 0 0 0 10px rgba(37,99,235,0); }
+}
 
 /* ── TUTORIAL BANNER (card nella home) ── */
 .tutorial-banner {
@@ -2059,51 +2077,49 @@ function closeMeteo(e) { if(e.target===document.getElementById('meteoOverlay')) 
 // ── WALKTHROUGH TUTORIAL ──
 const WT_STEPS = [
   {
-    emoji: '👋',
-    title: 'Benvenuto in Parlia!',
-    desc: 'Ti mostro come funziona l\'app in pochi secondi. Puoi saltare in qualsiasi momento.',
-    pointer: null
+    page: 0, highlight: null, swipe: false,
+    emoji: '👋', title: 'Benvenuto in Parlia!',
+    desc: 'Ti mostro come funziona l\'app in pochi secondi. Puoi saltare in qualsiasi momento.'
   },
   {
-    emoji: '🤖',
-    title: 'Il tuo assistente AI',
-    desc: 'Qui in alto c\'è l\'AI che ti saluta ogni giorno, risponde alle tue domande e genera frasi personalizzate.',
-    pointer: { cls: 'top', label: '⬆ Guarda in alto' }
+    page: 0, highlight: '#aiHeroWrap', swipe: false,
+    emoji: '🤖', title: 'Assistente AI',
+    desc: 'Qui l\'AI ti saluta ogni giorno, risponde alle domande e genera frasi personalizzate per te.'
   },
   {
-    emoji: '↔️',
-    title: 'Scorri per navigare',
-    desc: 'Fai swipe a sinistra o destra per passare tra le sezioni: Home, AAC, Rehab e Profilo.',
-    pointer: { cls: 'mid', label: '← Scorri la schermata →' }
+    page: 0, highlight: null, swipe: true,
+    emoji: '↔️', title: 'Scorri per navigare',
+    desc: 'Fai swipe a sinistra o destra per passare tra le sezioni. Guarda!'
   },
   {
-    emoji: '🗣️',
-    title: 'Frasi rapide AAC',
-    desc: 'Tocca il tab AAC in basso per trovare centinaia di frasi divise per categoria. Tocca una frase per sentirla.',
-    pointer: { cls: 'near-nav', label: '⬇ Tab AAC in basso' }
+    page: 1, highlight: '#catScroll', swipe: false,
+    emoji: '🗣️', title: 'Frasi rapide AAC',
+    desc: 'Qui trovi le categorie di frasi. Tocca una categoria, poi una frase per sentirla pronunciare.'
   },
   {
-    emoji: '👤',
-    title: 'Personalizza il profilo',
-    desc: 'Nel tab Yo aggiungi hobby, interessi e info personali. L\'AI le usa per conoscerti e risponderti meglio.',
-    pointer: { cls: 'near-nav', label: '⬇ Tab Yo in basso' }
+    page: 3, highlight: '.yo-rows', swipe: false,
+    emoji: '👤', title: 'Personalizza il profilo',
+    desc: 'Aggiungi hobby, interessi e info personali. L\'AI le usa per conoscerti e risponderti meglio.'
   },
   {
-    emoji: '🚀',
-    title: 'Sei pronto!',
-    desc: 'Conosci le funzioni principali di Parlia. Esplora, comunica e personalizza la tua esperienza.',
-    pointer: null
+    page: 0, highlight: null, swipe: false,
+    emoji: '🚀', title: 'Sei pronto!',
+    desc: 'Ora conosci le funzioni principali di Parlia. Esplora, comunica e personalizza!'
   }
 ];
 let _wtStep = 0;
+let _wtHighlightEl = null;
 
 function showTutorial() {
   _wtStep = 0;
+  originalGoTo(0);
   _wtRender();
   document.getElementById('wtOverlay').classList.add('open');
 }
 function closeTutorial() {
   document.getElementById('wtOverlay').classList.remove('open');
+  if (_wtHighlightEl) { _wtHighlightEl.classList.remove('wt-highlighted'); _wtHighlightEl = null; }
+  document.getElementById('wtSwipeHand').style.display = 'none';
   localStorage.setItem('parlia_tutorial_done', '1');
 }
 function wtNext() {
@@ -2114,6 +2130,15 @@ function wtNext() {
 function _wtRender() {
   const s = WT_STEPS[_wtStep];
   const total = WT_STEPS.length;
+
+  // Remove previous highlight
+  if (_wtHighlightEl) { _wtHighlightEl.classList.remove('wt-highlighted'); _wtHighlightEl = null; }
+  document.getElementById('wtSwipeHand').style.display = 'none';
+
+  // Navigate to page
+  if (s.page !== null) originalGoTo(s.page);
+
+  // Dots
   let dots = '';
   for (let i = 0; i < total; i++) {
     const cls = i < _wtStep ? 'wt-dot done' : i === _wtStep ? 'wt-dot active' : 'wt-dot';
@@ -2124,12 +2149,48 @@ function _wtRender() {
   document.getElementById('wtTitle').textContent = s.title;
   document.getElementById('wtDesc').textContent = s.desc;
   document.getElementById('wtBtn').textContent = _wtStep === total - 1 ? 'Inizia! 🚀' : 'Avanti →';
-  const ptr = document.getElementById('wtPointer');
-  if (s.pointer) {
-    ptr.className = 'wt-pointer show ' + s.pointer.cls;
-    ptr.textContent = s.pointer.label;
+  document.getElementById('wtBtn').disabled = false;
+
+  const spotlight = document.getElementById('wtSpotlight');
+  const dark = document.getElementById('wtDark');
+
+  if (s.swipe) {
+    // Swipe animation: show dark + animated hand, then navigate to page 1
+    spotlight.style.display = 'none';
+    dark.classList.remove('off');
+    document.getElementById('wtSwipeHand').style.display = 'block';
+    document.getElementById('wtBtn').disabled = true;
+    setTimeout(() => {
+      originalGoTo(1);
+      setTimeout(() => {
+        originalGoTo(0);
+        document.getElementById('wtBtn').disabled = false;
+      }, 900);
+    }, 700);
+  } else if (s.highlight) {
+    // Spotlight on element
+    dark.classList.add('off');
+    spotlight.style.display = 'block';
+    setTimeout(() => {
+      const el = document.querySelector(s.highlight);
+      if (el) {
+        const r = el.getBoundingClientRect();
+        const pad = 10;
+        spotlight.style.top = (r.top - pad) + 'px';
+        spotlight.style.left = (r.left - pad) + 'px';
+        spotlight.style.width = (r.width + pad * 2) + 'px';
+        spotlight.style.height = (r.height + pad * 2) + 'px';
+        el.classList.add('wt-highlighted');
+        _wtHighlightEl = el;
+      } else {
+        spotlight.style.display = 'none';
+        dark.classList.remove('off');
+      }
+    }, 350);
   } else {
-    ptr.className = 'wt-pointer';
+    // Full dark
+    spotlight.style.display = 'none';
+    dark.classList.remove('off');
   }
 }
 
@@ -2186,8 +2247,9 @@ window.addEventListener('popstate', (e) => {
 
 <!-- WALKTHROUGH TUTORIAL -->
 <div class="wt-ov" id="wtOverlay">
-  <div class="wt-backdrop"></div>
-  <div id="wtPointer" class="wt-pointer"></div>
+  <div class="wt-dark" id="wtDark"></div>
+  <div class="wt-spotlight" id="wtSpotlight"></div>
+  <div class="wt-swipe-hand" id="wtSwipeHand">👆</div>
   <div class="wt-card">
     <div class="wt-handle"></div>
     <span class="wt-skip-btn" onclick="closeTutorial()">Salta</span>
