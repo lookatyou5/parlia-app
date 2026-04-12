@@ -27,7 +27,8 @@ Parlia è una PWA (app web progressiva) per comunicazione aumentativa (AAC) dest
 - UI in spagnolo
 
 ## Home (home.html)
-- 4 pagine a swipe: Inicio / AAC / Rehab / Yo
+- 4 pagine a swipe: Inicio / AAC / Rehab / **Perfil** (non più "Yo")
+- Tab "Perfil" in navbar → va direttamente a profile.html (non mostra page3 interna)
 - AI chat context-aware con TTS
 - Agenda con sessioni feriali + promemoria personali
 - Meteo Open-Meteo con scene animate (sole, pioggia, neve ecc.)
@@ -36,7 +37,18 @@ Parlia è una PWA (app web progressiva) per comunicazione aumentativa (AAC) dest
 - Pull-to-refresh
 - Meteo pill in topbar con popup
 - Settings ⚙️ con link a roadmap e profilo
-- Widget banner parlia.app in fondo alla home
+- Copyright © 2026 Parlia.app — dentro la navbar come ultima riga (position: absolute; bottom: 3px)
+- **Tutorial interattivo** (card viola "Tutorial de la app" nella home page0):
+  - Banner card in page0 → avvia walkthrough in-home
+  - Si auto-avvia dopo onboarding (flag localStorage `parlia_show_tutorial`)
+  - 6 step con spotlight (box-shadow cutout) su elementi UI reali:
+    1. Benvenuto (schermo scuro)
+    2. Spotlight su #aiHeroWrap (AI hero)
+    3. Animazione swipe 👆 + navigazione reale a page1 e ritorno
+    4. Naviga a page1 (AAC), spotlight su #catScroll
+    5. Resta in page0, spotlight su .profile-card
+    6. Fine (schermo scuro)
+  - Tutto in spagnolo: Saltar / Siguiente → / ¡Empezar! 🚀
 
 ## AAC (comunicador nella home + comunicador.html standalone)
 - 6 categorie: Necesidades, Emociones, Social, Actividades, Lugares, Urgencias
@@ -78,6 +90,15 @@ Parlia è una PWA (app web progressiva) per comunicazione aumentativa (AAC) dest
 - Auto-deploy: ogni `git push` deploya automaticamente
 - Comando deploy: `git push` (nient'altro necessario!)
 - Dominio: app.parlia.app (CNAME configurato)
+
+## Ultima sessione (12 aprile 2026)
+- Aggiunto tutorial interattivo con spotlight su elementi UI reali
+- Tab "Yo" rinominata "Perfil", click → va a profile.html
+- Copyright spostato dentro la navbar (bottom: 3px, absolute)
+- Nav-h aumentata da 72px a 80px per far vedere il copyright
+- Profile.html: aggiunte sezioni profilo arricchite (hobby, interessi, famiglia, info personali)
+- Deploy via GitHub → Cloudflare Pages (auto-deploy su push a main)
+- Branch di lavoro: main (le modifiche vengono mergeate su main e deployate)
 
 ## Istruzioni per Claude Code
 - Prima di qualsiasi modifica, fai sempre un commit git con messaggio "backup pre-modifica"
