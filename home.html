@@ -89,13 +89,12 @@ html, body {
   left: 0; right: 0; overflow: hidden; z-index: 1;
 }
 .pages-track {
-  display: flex; width: 400%; height: 100%;
+  display: flex; height: 100%;
   transition: transform .38s cubic-bezier(.4,0,.2,1);
-  transform: translateX(0%);
   will-change: transform;
 }
 .page {
-  width: 25%; height: 100%; flex-shrink: 0;
+  width: 100vw; min-width: 100vw; height: 100%; flex-shrink: 0;
   overflow-y: auto; overflow-x: hidden;
   -webkit-overflow-scrolling: touch;
   scrollbar-width: none;
@@ -1239,7 +1238,7 @@ const track = document.getElementById('track');
 function goTo(idx) {
   curPage = idx;
   track.style.transition = 'transform .38s cubic-bezier(.4,0,.2,1)';
-  track.style.transform = `translateX(-${idx * 25}%)`;
+  track.style.transform = `translateX(${-idx * 100}vw)`;
   document.querySelectorAll('.nav-item').forEach((el,i) => el.classList.toggle('active', i===idx));
   document.querySelectorAll('.nav-dot').forEach((d,i) => d.classList.toggle('active', i===idx));
   hideHint();
@@ -1277,9 +1276,9 @@ wrap.addEventListener('touchmove', e => {
   if (!scrolling && Math.abs(dy) > Math.abs(dx) + 5) { scrolling = true; }
   if (scrolling) return;
   e.preventDefault();
-  const offset = -(curPage*25) + (dx/window.innerWidth)*25;
+  const offsetPx = -(curPage * window.innerWidth) + dx;
   track.style.transition = 'none';
-  track.style.transform = `translateX(${offset}%)`;
+  track.style.transform = `translateX(${offsetPx}px)`;
 }, {passive:false});
 
 wrap.addEventListener('touchend', e => {
@@ -1296,7 +1295,7 @@ wrap.addEventListener('touchend', e => {
 // touchcancel: iOS cancels touch on system gesture/notification — reset track to avoid stuck position
 wrap.addEventListener('touchcancel', () => {
   track.style.transition = 'transform .38s cubic-bezier(.4,0,.2,1)';
-  track.style.transform = `translateX(-${curPage * 25}%)`;
+  track.style.transform = `translateX(${-curPage * 100}vw)`;
   dragging = false; blocked = false; scrolling = false;
 });
 
@@ -1305,7 +1304,7 @@ wrap.addEventListener('touchcancel', () => {
 document.addEventListener('visibilitychange', () => {
   if (!document.hidden) {
     track.style.transition = 'none';
-    track.style.transform = `translateX(-${curPage * 25}%)`;
+    track.style.transform = `translateX(${-curPage * 100}vw)`;
     dragging = false; blocked = false; scrolling = false;
   }
 });
