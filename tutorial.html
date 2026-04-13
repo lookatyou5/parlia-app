@@ -252,10 +252,10 @@ html,body { height:100%; overflow:hidden; font-family:'Plus Jakarta Sans',sans-s
         <div class="sessions-badge"><div class="sessions-dot"></div>🎉 Todas las sesiones completadas</div>
         <div class="bubble-ai">Buenas noches Laura, ¡excelente trabajo hoy! Completaste todas tus sesiones. ¿Cómo te sientes?</div>
         <div class="ai-chips">
-          <div class="ai-chip">Cansada</div>
-          <div class="ai-chip">Bien pero dolorida</div>
-          <div class="ai-chip">Muy motivada</div>
-          <div class="ai-chip">Quiero relajarme</div>
+          <div class="ai-chip" id="ai-chip-0">Cansada</div>
+          <div class="ai-chip" id="ai-chip-1">Bien pero dolorida</div>
+          <div class="ai-chip" id="ai-chip-2">Muy motivada</div>
+          <div class="ai-chip" id="ai-chip-3">Quiero relajarme</div>
         </div>
       </div>
     </div>
@@ -598,6 +598,24 @@ if('speechSynthesis' in window){ speechSynthesis.getVoices(); speechSynthesis.on
 
 // Rehab cards highlight animation
 let _animTimers=[];
+
+// AI chips highlight animation
+(function aiChipsGlow(){
+  const chips=[0,1,2,3].map(i=>document.getElementById('ai-chip-'+i));
+  const colors=['rgba(251,191,36,.5)','rgba(96,165,250,.5)','rgba(74,222,128,.5)','rgba(244,114,182,.5)'];
+  let i=0;
+  function highlight(){
+    chips.forEach(c=>{ c.style.background=''; c.style.borderColor=''; c.style.boxShadow=''; c.style.transform=''; });
+    const c=chips[i];
+    c.style.background=colors[i];
+    c.style.borderColor='rgba(255,255,255,.6)';
+    c.style.boxShadow='0 0 14px '+colors[i];
+    c.style.transform='scale(1.06)';
+    i=(i+1)%chips.length;
+  }
+  highlight();
+  _animTimers.push(setInterval(highlight,800));
+})();
 (function rehabGlow(){
   const cards=[
     {id:'rehab-logo',  color:'#7e22ce', shadow:'rgba(126,34,206,.3)', bg:'#fdf4ff'},
