@@ -1779,7 +1779,7 @@ function _speak(text) {
 
 // ── AI CONTEXT-AWARE ──
 const _H=new Date().getHours(), _M=new Date().getMinutes();
-const _IS_NIGHT = _H >= 23 || _H < 6;
+const _IS_NIGHT = false;
 
 function _timeStr(h) {
   if (h >= 6  && h < 12) return 'Buenos días';
