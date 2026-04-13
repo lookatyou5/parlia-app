@@ -620,6 +620,24 @@ if('speechSynthesis' in window){ speechSynthesis.getVoices(); speechSynthesis.on
   setInterval(highlight,1000);
 })();
 
+// AAC pictograms flash animation
+(function aacFlash(){
+  const picts=document.querySelectorAll('#w-aac .aac-pict');
+  const colors=['rgba(96,165,250,.5)','rgba(74,222,128,.45)','rgba(251,191,36,.45)','rgba(244,114,182,.45)','rgba(167,139,250,.45)','rgba(248,113,113,.45)'];
+  let i=0;
+  function flash(){
+    picts.forEach(p=>{ p.style.background=''; p.style.borderColor=''; p.style.boxShadow=''; p.style.transform=''; });
+    const p=picts[i];
+    p.style.background=colors[i];
+    p.style.borderColor='rgba(255,255,255,.5)';
+    p.style.boxShadow='0 0 16px '+colors[i];
+    p.style.transform='scale(1.08)';
+    i=(i+1)%picts.length;
+  }
+  flash();
+  setInterval(flash,500);
+})();
+
 // Perfil rows highlight animation
 (function perfilGlow(){
   const rows=[
