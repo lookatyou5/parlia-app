@@ -25,7 +25,7 @@ html,body { height:100%; overflow:hidden; font-family:'Plus Jakarta Sans',sans-s
 .logo-text { font-family:'Bricolage Grotesque',sans-serif; font-size:1rem; font-weight:800; flex:1; color:var(--ink); }
 .logo-text span { color:var(--blue); }
 .beta-badge { font-size:.52rem; font-weight:800; background:var(--blue-light); color:var(--blue); border-radius:20px; padding:2px 7px; }
-.scroll-area { position:fixed; top:var(--top-h); bottom:var(--nav-h); left:0; right:0; overflow-y:auto; overflow-x:hidden; -webkit-overflow-scrolling:touch; scrollbar-width:none; z-index:1; }
+.scroll-area { position:fixed; top:var(--top-h); bottom:0; left:0; right:0; overflow-y:auto; overflow-x:hidden; -webkit-overflow-scrolling:touch; scrollbar-width:none; z-index:1; }
 .scroll-area::-webkit-scrollbar { display:none; }
 .content { padding:14px 14px 24px; display:flex; flex-direction:column; gap:12px; }
 .nav { position:fixed; bottom:0; left:0; right:0; z-index:100; height:var(--nav-h); background:rgba(255,255,255,.96); backdrop-filter:blur(12px); border-top:1px solid var(--border); display:flex; align-items:flex-start; padding:8px 4px 0; }
@@ -409,14 +409,6 @@ html,body { height:100%; overflow:hidden; font-family:'Plus Jakarta Sans',sans-s
 </div>
 </div>
 
-<!-- NAVBAR -->
-<div class="nav">
-  <div class="nav-item active"><div class="nav-icon">🏠</div><div class="nav-lbl">Inicio</div></div>
-  <div class="nav-item"><div class="nav-icon">🗣️</div><div class="nav-lbl">AAC</div></div>
-  <div class="nav-item"><div class="nav-icon">🧠</div><div class="nav-lbl">Rehab</div></div>
-  <div class="nav-item"><div class="nav-icon">👤</div><div class="nav-lbl">Perfil</div></div>
-  <div class="nav-copyright">© 2026 Parlia.app</div>
-</div>
 
 <!-- TOUR CARD -->
 <div id="tour-card">
