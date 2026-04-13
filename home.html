@@ -470,16 +470,16 @@ html, body {
 .next-session-val { font-size: 0.85rem; font-weight: 700; color: var(--ink); }
 
 /* ── PAGE 4: YO ── */
-.yo-header { display: flex; flex-direction: column; align-items: center; padding: 8px 0 4px; gap: 8px; flex-shrink: 0; }
+.yo-header { display: flex; align-items: center; padding: 6px 0 4px; gap: 12px; flex-shrink: 0; }
 .yo-avatar {
-  width: 72px; height: 72px; border-radius: 50%;
+  width: 48px; height: 48px; border-radius: 50%;
   background: linear-gradient(135deg,#2563eb,#6366f1);
   display: flex; align-items: center; justify-content: center;
-  font-size: 1.8rem; font-weight: 800; color: white;
-  box-shadow: 0 4px 20px rgba(37,99,235,.3);
+  font-size: 1.2rem; font-weight: 800; color: white; flex-shrink: 0;
+  box-shadow: 0 3px 14px rgba(37,99,235,.3);
 }
-.yo-name-lbl { font-family: 'Bricolage Grotesque', sans-serif; font-size: 1.1rem; font-weight: 800; color: var(--ink); }
-.yo-sub-lbl { font-size: 0.73rem; font-weight: 600; color: var(--muted); }
+.yo-name-lbl { font-family: 'Bricolage Grotesque', sans-serif; font-size: 1rem; font-weight: 800; color: var(--ink); }
+.yo-sub-lbl { font-size: 0.68rem; font-weight: 600; color: var(--muted); }
 .progress-wrap { background: var(--card); border: 1.5px solid var(--border); border-radius: var(--radius); padding: 14px 16px; box-shadow: var(--shadow); flex-shrink: 0; }
 .progress-header { font-size: 0.72rem; font-weight: 800; color: var(--ink); display: flex; justify-content: space-between; margin-bottom: 8px; }
 .progress-bar-bg { background: var(--border); border-radius: 20px; height: 7px; overflow: hidden; }
@@ -1004,8 +1004,10 @@ html, body {
 
       <div class="yo-header">
         <div class="yo-avatar" id="yoAvatar">M</div>
-        <div class="yo-name-lbl" id="yoName">María</div>
-        <div class="yo-sub-lbl">Institut Guttmann · Barcelona</div>
+        <div>
+          <div class="yo-name-lbl" id="yoName">María</div>
+          <div class="yo-sub-lbl">Institut Guttmann · Barcelona</div>
+        </div>
       </div>
 
       <div class="progress-wrap">
