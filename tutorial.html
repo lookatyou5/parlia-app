@@ -370,6 +370,10 @@ html,body { height:100%; overflow:hidden; font-family:'Plus Jakarta Sans',sans-s
         <div style="font-size:.9rem;color:var(--muted);margin-left:4px">›</div>
       </div>
     </div>
+    <div class="hs-wrap">
+      <div class="hs-btn" onclick="openPopup('perfil-ia')"><div class="hs-badge">i</div><span class="hs-label">Personalización IA</span></div>
+      <div class="hs-btn" onclick="openPopup('perfil-funciones')"><div class="hs-badge">i</div><span class="hs-label">Activar funciones</span></div>
+    </div>
   </div>
 
   <!-- AREA PROVA AAC -->
@@ -513,11 +517,11 @@ function applyFocus(widgetId){
     const scrollAreaRect=scrollArea.getBoundingClientRect();
     const visibleH=scrollArea.clientHeight-tourCardH;
     const targetTop=targetRect.top-scrollAreaRect.top+scrollArea.scrollTop;
-    // If widget fits in visible area, center it; otherwise scroll to its top
     const fitsInView=target.offsetHeight<=visibleH;
+    // If widget fits, center it; otherwise align its bottom just above tour card
     const desiredScroll=fitsInView
       ? targetTop-Math.max(10,(visibleH-target.offsetHeight)/2)
-      : targetTop-10;
+      : targetTop+target.offsetHeight-visibleH+16;
     scrollArea.scrollTo({top:Math.max(0,desiredScroll),behavior:'smooth'});
   },80);
 }
