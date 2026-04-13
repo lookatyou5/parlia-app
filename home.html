@@ -723,127 +723,7 @@ html, body {
 .settings-item-icon { font-size: 1rem; width: 22px; text-align: center; flex-shrink: 0; }
 .settings-divider { height: 1px; background: var(--border); margin: 4px 0; }
 
-/* ── WALKTHROUGH TUTORIAL ── */
-.wt-ov {
-  position: fixed; inset: 0; z-index: 400;
-  opacity: 0; pointer-events: none; transition: opacity .3s;
-}
-.wt-ov.open { opacity: 1; pointer-events: all; }
-.wt-dark {
-  position: absolute; inset: 0; background: rgba(10,15,40,0.75);
-  transition: opacity .4s; pointer-events: none;
-}
-.wt-dark.off { opacity: 0; }
-.wt-spotlight {
-  position: absolute; border-radius: 24px;
-  display: none; opacity: 0;
-  box-shadow: 0 0 0 9999px rgba(10,15,40,0.75),
-              inset 0 0 20px rgba(0,0,0,.2);
-  transition: top .5s cubic-bezier(.4,0,.2,1), left .5s cubic-bezier(.4,0,.2,1),
-              width .5s cubic-bezier(.4,0,.2,1), height .5s cubic-bezier(.4,0,.2,1),
-              opacity .35s ease;
-  pointer-events: none; z-index: 0;
-}
-.wt-spotlight.wt-spotlight-on { opacity: 1; }
-.wt-swipe-hand {
-  position: absolute; top: 42%; left: 50%;
-  font-size: 2.4rem; display: none; pointer-events: none; z-index: 2;
-  animation: wtHandSwipe 1.3s ease-in-out infinite;
-  filter: drop-shadow(0 4px 10px rgba(0,0,0,.5));
-}
-@keyframes wtHandSwipe {
-  0%   { transform: translate(-50%,-50%); opacity: 1; }
-  55%  { transform: translate(calc(-50% - 90px),-50%); opacity: .5; }
-  80%  { transform: translate(-50%,-50%); opacity: 0; }
-  100% { transform: translate(-50%,-50%); opacity: 0; }
-}
-.wt-card {
-  position: absolute; bottom: 0; left: 0; right: 0;
-  background: white; border-radius: 28px 28px 0 0;
-  padding: 12px 20px 36px; z-index: 3;
-}
-.wt-card.wt-top {
-  bottom: auto; top: 0;
-  border-radius: 0 0 28px 28px;
-  padding: 48px 20px 20px;
-}
-.wt-handle { width: 32px; height: 4px; border-radius: 2px; background: #e5e7eb; margin: 0 auto 10px; }
-.wt-skip-btn {
-  position: absolute; top: 12px; right: 16px;
-  font-size: 0.75rem; font-weight: 700; color: #9ca3af;
-  cursor: pointer; -webkit-tap-highlight-color: transparent; padding: 4px 8px;
-}
-.wt-dots { display: flex; gap: 6px; justify-content: center; margin-bottom: 10px; }
-.wt-dot { width: 6px; height: 6px; border-radius: 50%; background: #e5e7eb; transition: all .35s; }
-.wt-dot.active { background: var(--blue); width: 22px; border-radius: 4px; }
-.wt-dot.done { background: var(--teal); }
-.wt-emoji { font-size: 2rem; text-align: center; margin-bottom: 6px; line-height: 1; display: block; }
-.wt-title {
-  font-family: 'Bricolage Grotesque', sans-serif;
-  font-size: 1.1rem; font-weight: 800; color: var(--ink);
-  text-align: center; margin-bottom: 5px;
-}
-.wt-desc {
-  font-size: 0.78rem; font-weight: 500; color: var(--muted);
-  text-align: center; line-height: 1.5; margin-bottom: 14px;
-}
-.wt-btn {
-  width: 100%; padding: 13px;
-  background: linear-gradient(135deg, #2563eb, #6366f1);
-  color: white; border: none; border-radius: 16px;
-  font-family: 'Plus Jakarta Sans', sans-serif;
-  font-size: 0.9rem; font-weight: 800;
-  cursor: pointer; -webkit-tap-highlight-color: transparent; transition: opacity .15s;
-}
-.wt-btn:active { opacity: .88; transform: scale(.98); }
-.wt-highlighted {
-  position: relative; z-index: 1;
-  animation: wtGlow .9s ease-in-out infinite alternate;
-}
-@keyframes wtGlow {
-  from { box-shadow: 0 0 0 0 rgba(37,99,235,.5); }
-  to   { box-shadow: 0 0 0 10px rgba(37,99,235,0); }
-}
-@keyframes wtCardStep {
-  from { opacity: 0; transform: translateY(15px); }
-  to   { opacity: 1; transform: translateY(0); }
-}
-.wt-card-inner { }
-.wt-card-inner.wt-step-anim {
-  animation: wtCardStep .35s cubic-bezier(.22,1,.36,1) both;
-}
 
-/* ── TUTORIAL BANNER (card nella home) ── */
-.tutorial-banner {
-  margin: 0 0 16px;
-  background: linear-gradient(135deg, #7c3aed 0%, #6366f1 100%);
-  border-radius: 18px; padding: 16px 18px;
-  display: flex; align-items: center; gap: 14px;
-  cursor: pointer; -webkit-tap-highlight-color: transparent;
-  box-shadow: 0 4px 20px rgba(124,58,237,0.35), 0 1px 4px rgba(0,0,0,0.08);
-  transition: transform .16s, opacity .16s;
-}
-.tutorial-banner:active { transform: scale(.97); opacity: .92; }
-.tutorial-banner-icon { font-size: 2rem; flex-shrink: 0; line-height: 1; }
-.tutorial-banner-title { font-size: 0.95rem; font-weight: 800; color: white; }
-.tutorial-banner-sub { font-size: 0.75rem; font-weight: 500; color: rgba(255,255,255,.75); margin-top: 2px; }
-.tutorial-banner-arrow { margin-left: auto; font-size: 1.1rem; color: rgba(255,255,255,.8); flex-shrink: 0; }
-
-/* ── TUTORIAL FAB (nascosto, rimane come fallback) ── */
-.tutorial-fab {
-  display: none;
-  display: flex; align-items: center; gap: 6px;
-  background: linear-gradient(135deg, #7c3aed, #6366f1);
-  color: white; border: none; border-radius: 24px;
-  padding: 10px 16px 10px 12px;
-  font-family: 'Plus Jakarta Sans', sans-serif;
-  font-size: 0.78rem; font-weight: 800;
-  box-shadow: 0 4px 18px rgba(124,58,237,0.4), 0 2px 6px rgba(0,0,0,0.1);
-  cursor: pointer; transition: all .18s;
-  -webkit-tap-highlight-color: transparent;
-}
-.tutorial-fab:active { transform: scale(0.94); opacity: .9; }
-.tutorial-fab-icon { font-size: 1rem; line-height: 1; }
 
 </style>
 </head>
@@ -885,6 +765,11 @@ html, body {
     <div class="settings-item-icon">🌍</div>
     <div>Idioma</div>
   </div>
+  <div class="settings-divider"></div>
+  <a class="settings-item" href="tutorial.html">
+    <div class="settings-item-icon">🎓</div>
+    <div>Tutorial de la app</div>
+  </a>
 </div>
 
 <!-- PULL TO REFRESH -->
@@ -939,16 +824,6 @@ html, body {
         <div class="profile-bar-bg">
           <div class="profile-bar" id="profileBar" style="width:50%"></div>
         </div>
-      </div>
-
-      <!-- Tutorial banner -->
-      <div class="tutorial-banner" onclick="showTutorial()">
-        <div class="tutorial-banner-icon">🎓</div>
-        <div>
-          <div class="tutorial-banner-title">Tutorial de la app</div>
-          <div class="tutorial-banner-sub">Descubre cómo usar todas las funciones</div>
-        </div>
-        <div class="tutorial-banner-arrow">›</div>
       </div>
 
     </div><!-- /page0 -->
@@ -2269,224 +2144,6 @@ function openMeteo() { document.getElementById('meteoOverlay').classList.add('op
 function closeMeteo(e) { if(e.target===document.getElementById('meteoOverlay')) document.getElementById('meteoOverlay').classList.remove('open'); }
 
 
-// ── WALKTHROUGH TUTORIAL ──
-const WT_STEPS = [
-  {
-    page: 0, highlight: null, swipe: false,
-    emoji: '👋', title: '¡Bienvenido a Parlia!',
-    desc: 'Te muestro cómo funciona la app en pocos segundos. Puedes saltar en cualquier momento.'
-  },
-  {
-    page: 0, highlight: '#aiHeroWrap', swipe: false,
-    emoji: '🤖', title: 'Asistente IA',
-    desc: 'Aquí la IA te saluda cada día, responde tus preguntas y genera frases personalizadas para ti.'
-  },
-  {
-    page: 0, highlight: null, swipe: true,
-    emoji: '↔️', title: 'Desliza para navegar',
-    desc: 'Desliza a la izquierda o derecha para cambiar entre secciones. ¡Mira!'
-  },
-  {
-    page: 1, highlight: '#catScroll', swipe: false,
-    emoji: '🗣️', title: 'Frases rápidas AAC',
-    desc: 'Aquí encuentras las categorías de frases. Toca una categoría y luego una frase para escucharla.'
-  },
-  {
-    page: 0, highlight: '.profile-card', swipe: false,
-    emoji: '👤', title: 'Completa tu perfil',
-    desc: 'Añade tus datos, aficiones e intereses. La IA los usa para conocerte mejor y responder con más precisión.'
-  },
-  {
-    page: 0, highlight: null, swipe: false,
-    emoji: '🚀', title: '¡Listo para empezar!',
-    desc: 'Ya conoces las funciones principales de Parlia. ¡Explora, comunica y personaliza tu experiencia!'
-  }
-];
-let _wtStep = 0;
-let _wtHighlightEl = null;
-let _wtPaddedPage  = null;   // page that has the temporary 200px paddingBottom
-let _wtNavTimers   = [];     // swipe-animation timeouts to cancel on step change/close
-
-function showTutorial() {
-  _wtStep = 0;
-  originalGoTo(0);
-  // Make spotlight renderable for the duration of the tutorial
-  document.getElementById('wtSpotlight').style.display = 'block';
-  _wtRender();
-  document.getElementById('wtOverlay').classList.add('open');
-}
-function _wtCleanup() {
-  // Cancel any pending swipe-demo navigation timers
-  _wtNavTimers.forEach(t => clearTimeout(t));
-  _wtNavTimers = [];
-
-  // Fade out spotlight (display:none is set only in closeTutorial)
-  document.getElementById('wtSpotlight').classList.remove('wt-spotlight-on');
-
-  // Restore padding using the dedicated tracker (works even if _wtHighlightEl is still null)
-  if (_wtPaddedPage) {
-    if (_wtPaddedPage._wtOrigPad !== undefined) {
-      _wtPaddedPage.style.paddingBottom = _wtPaddedPage._wtOrigPad;
-      _wtPaddedPage._wtOrigPad = undefined;
-    }
-    _wtPaddedPage.scrollTop = 0;   // reset vertical scroll so page looks correct after tutorial
-    _wtPaddedPage = null;
-  }
-  // Backup: also clean via _wtHighlightEl's page in case they differ
-  if (_wtHighlightEl) {
-    const p = _wtHighlightEl.closest('.page');
-    if (p && p._wtOrigPad !== undefined) { p.style.paddingBottom = p._wtOrigPad; p._wtOrigPad = undefined; }
-  }
-}
-function closeTutorial() {
-  _wtCleanup();
-  // Snap track to page0 INSTANTLY before the overlay fades out (transition: none).
-  // The swipe-demo step may have left the track at page1 (-100vw).
-  // originalGoTo(0) would transition over 380ms but the overlay only takes 300ms to fade —
-  // the user would see the track mid-animation. Snap avoids that.
-  curPage = 0;
-  track.style.transition = 'none';
-  track.style.transform = 'translateX(0px)';
-  document.querySelectorAll('.nav-item').forEach((el,i) => el.classList.toggle('active', i===0));
-  document.querySelectorAll('.nav-dot').forEach((d,i) => d.classList.toggle('active', i===0));
-  hideHint();
-  // Now start the overlay fade
-  document.getElementById('wtOverlay').classList.remove('open');
-  if (_wtHighlightEl) { _wtHighlightEl.classList.remove('wt-highlighted'); _wtHighlightEl = null; }
-  document.getElementById('wtSwipeHand').style.display = 'none';
-  // Hide spotlight after opacity transition so the large box-shadow is not always rendered
-  setTimeout(() => { document.getElementById('wtSpotlight').style.display = 'none'; }, 400);
-  localStorage.setItem('parlia_tutorial_done', '1');
-}
-function wtNext() {
-  if (_wtStep >= WT_STEPS.length - 1) { closeTutorial(); return; }
-  _wtStep++;
-  _wtRender();
-}
-function _wtRender() {
-  const s = WT_STEPS[_wtStep];
-  const total = WT_STEPS.length;
-
-  // Cleanup previous state (fade spotlight, restore padding)
-  _wtCleanup();
-  if (_wtHighlightEl) { _wtHighlightEl.classList.remove('wt-highlighted'); _wtHighlightEl = null; }
-  document.getElementById('wtSwipeHand').style.display = 'none';
-
-  // Card content fade-in + slide-up animation on each step
-  const inner = document.getElementById('wtCardInner');
-  inner.classList.remove('wt-step-anim');
-  void inner.offsetWidth; // force reflow to restart animation
-  inner.classList.add('wt-step-anim');
-
-  // Update content
-  let dots = '';
-  for (let i = 0; i < total; i++) {
-    const cls = i < _wtStep ? 'wt-dot done' : i === _wtStep ? 'wt-dot active' : 'wt-dot';
-    dots += `<div class="${cls}"></div>`;
-  }
-  document.getElementById('wtDots').innerHTML = dots;
-  document.getElementById('wtEmoji').textContent = s.emoji;
-  document.getElementById('wtTitle').textContent = s.title;
-  document.getElementById('wtDesc').textContent = s.desc;
-  document.getElementById('wtBtn').textContent = _wtStep === total - 1 ? '¡Empezar! 🚀' : 'Siguiente →';
-  document.getElementById('wtBtn').disabled = false;
-
-  const spotlight = document.getElementById('wtSpotlight');
-  const dark = document.getElementById('wtDark');
-
-  // Navigate to page, delay depends on whether a page change is needed
-  const prevPage = curPage;
-  if (s.page !== null) originalGoTo(s.page);
-  const navDelay = (s.page !== null && s.page !== prevPage) ? 320 : 60;
-
-  if (s.swipe) {
-    // Swipe animation: full dark + animated hand
-    spotlight.classList.remove('wt-spotlight-on');
-    dark.classList.remove('off');
-    document.getElementById('wtSwipeHand').style.display = 'block';
-    document.getElementById('wtBtn').disabled = true;
-    _wtNavTimers.push(setTimeout(() => {
-      originalGoTo(1);
-      _wtNavTimers.push(setTimeout(() => {
-        originalGoTo(0);
-        document.getElementById('wtBtn').disabled = false;
-      }, 900));
-    }, 700));
-
-  } else if (s.highlight) {
-    // Spotlight on element — start after navigation settles
-    dark.classList.add('off');
-    setTimeout(() => {
-      const el = document.querySelector(s.highlight);
-      if (!el) { spotlight.classList.remove('wt-spotlight-on'); dark.classList.remove('off'); return; }
-
-      el.classList.add('wt-highlighted');
-      _wtHighlightEl = el;
-
-      const pageEl = el.closest('.page');
-      const pad = 12;
-
-      if (pageEl) {
-        // Add temporary padding so there is enough room to scroll
-        pageEl._wtOrigPad = pageEl.style.paddingBottom;
-        pageEl.style.paddingBottom = '200px';
-        _wtPaddedPage = pageEl;   // track for reliable cleanup
-
-        const wtCardH = document.querySelector('.wt-card').offsetHeight || 234;
-        const pageTop = pageEl.getBoundingClientRect().top;
-        const elRect = el.getBoundingClientRect();
-        const elTopInContent = elRect.top - pageTop + pageEl.scrollTop;
-
-        // Center element in visible area above tutorial card
-        const visibleH = window.innerHeight - wtCardH;
-        const desiredElemTop = pageTop + (visibleH - el.offsetHeight) / 2;
-        const targetScroll = Math.max(0, elTopInContent - (desiredElemTop - pageTop));
-
-        // Predict where element will be after smooth scroll completes
-        const deltaScroll = targetScroll - pageEl.scrollTop;
-        const predictedTop = elRect.top - deltaScroll;
-
-        // Move spotlight to predicted position NOW (CSS transitions animate it smoothly)
-        spotlight.style.top    = (predictedTop - pad) + 'px';
-        spotlight.style.left   = (elRect.left   - pad) + 'px';
-        spotlight.style.width  = (elRect.width  + pad * 2) + 'px';
-        spotlight.style.height = (elRect.height + pad * 2) + 'px';
-        spotlight.classList.add('wt-spotlight-on');
-
-        // Start smooth scroll simultaneously with spotlight animation
-        pageEl.scrollTo({ top: targetScroll, behavior: 'smooth' });
-
-        // Fine-tune position after scroll settles (~600ms)
-        setTimeout(() => {
-          const r = el.getBoundingClientRect();
-          // Snap without transition for a clean final correction
-          spotlight.style.transition = 'opacity .35s ease';
-          spotlight.style.top    = (r.top    - pad) + 'px';
-          spotlight.style.left   = (r.left   - pad) + 'px';
-          spotlight.style.width  = (r.width  + pad * 2) + 'px';
-          spotlight.style.height = (r.height + pad * 2) + 'px';
-          // Restore full transitions after the correction lands
-          requestAnimationFrame(() => { spotlight.style.transition = ''; });
-        }, 620);
-
-      } else {
-        // No scrollable container — position immediately and show
-        const r = el.getBoundingClientRect();
-        spotlight.style.top    = (r.top    - pad) + 'px';
-        spotlight.style.left   = (r.left   - pad) + 'px';
-        spotlight.style.width  = (r.width  + pad * 2) + 'px';
-        spotlight.style.height = (r.height + pad * 2) + 'px';
-        spotlight.classList.add('wt-spotlight-on');
-      }
-    }, navDelay);
-
-  } else {
-    // No highlight — full dark overlay, no spotlight
-    spotlight.classList.remove('wt-spotlight-on');
-    dark.classList.remove('off');
-  }
-}
-
 // ── TOAST ──
 function toast(msg) {
   const t=document.getElementById('toast');
@@ -2497,6 +2154,10 @@ function toast(msg) {
 
 // ── INIT ──
 function init() {
+  if (!localStorage.getItem('parlia_tutorial_seen')) {
+    window.location.href = 'tutorial.html';
+    return;
+  }
   initProfile();
   initAIHero();
   buildAgenda();
@@ -2509,10 +2170,6 @@ function init() {
     setTimeout(()=>{ _sendMsg(null); loadGoal(); loadAISuggestions(); }, 400);
   } else {
     setTimeout(()=>{ loadGoal(); loadAISuggestions(); }, 400);
-  }
-  if (localStorage.getItem('parlia_show_tutorial')) {
-    localStorage.removeItem('parlia_show_tutorial');
-    setTimeout(() => showTutorial(), 800);
   }
 }
 init();
@@ -2553,23 +2210,6 @@ window.addEventListener('popstate', (e) => {
 });
 </script>
 
-<!-- WALKTHROUGH TUTORIAL -->
-<div class="wt-ov" id="wtOverlay">
-  <div class="wt-dark" id="wtDark"></div>
-  <div class="wt-spotlight" id="wtSpotlight"></div>
-  <div class="wt-swipe-hand" id="wtSwipeHand">👆</div>
-  <div class="wt-card">
-    <div class="wt-handle"></div>
-    <span class="wt-skip-btn" onclick="closeTutorial()">Saltar</span>
-    <div class="wt-card-inner" id="wtCardInner">
-      <div class="wt-dots" id="wtDots"></div>
-      <span class="wt-emoji" id="wtEmoji"></span>
-      <div class="wt-title" id="wtTitle"></div>
-      <div class="wt-desc" id="wtDesc"></div>
-      <button class="wt-btn" id="wtBtn" onclick="wtNext()"></button>
-    </div>
-  </div>
-</div>
 
 </body>
 </html>
