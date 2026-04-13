@@ -1,0 +1,541 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<title>Tutorial · Parlia</title>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+:root {
+  --bg:#f5f6fa; --card:#fff; --ink:#0f0f10; --muted:#6b7280; --border:#e5e7eb;
+  --blue:#2563eb; --blue-light:#eff6ff; --indigo:#6366f1;
+  --radius:20px; --shadow:0 2px 12px rgba(0,0,0,0.06),0 1px 3px rgba(0,0,0,0.04);
+  --shadow-lg:0 8px 32px rgba(37,99,235,0.12),0 2px 8px rgba(0,0,0,0.06);
+  --nav-h:80px; --top-h:56px;
+}
+html,body { height:100%; overflow:hidden; font-family:'Plus Jakarta Sans',sans-serif; background:var(--bg); color:var(--ink); -webkit-font-smoothing:antialiased; }
+.mesh { position:fixed; inset:0; z-index:0; pointer-events:none; overflow:hidden; }
+.blob { position:absolute; border-radius:50%; filter:blur(80px); opacity:.45; }
+.blob1 { width:360px; height:360px; top:-100px; right:-80px; background:radial-gradient(circle,#bfdbfe,#ddd6fe); animation:blobF 10s ease-in-out infinite; }
+.blob2 { width:260px; height:260px; bottom:60px; left:-60px; background:radial-gradient(circle,#99f6e4,#a5f3fc); animation:blobF 14s ease-in-out infinite reverse; }
+@keyframes blobF { 0%,100%{transform:translate(0,0)} 33%{transform:translate(-15px,12px)} 66%{transform:translate(8px,-18px)} }
+.topbar { position:fixed; top:0; left:0; right:0; z-index:100; height:var(--top-h); background:rgba(245,246,250,.92); backdrop-filter:blur(20px); border-bottom:1px solid var(--border); display:flex; align-items:center; padding:0 16px; gap:10px; }
+.logo-mark { width:30px; height:30px; border-radius:10px; background:linear-gradient(135deg,#2563eb,#6366f1); display:flex; align-items:center; justify-content:center; flex-shrink:0; }
+.logo-text { font-family:'Bricolage Grotesque',sans-serif; font-size:1rem; font-weight:800; flex:1; color:var(--ink); }
+.logo-text span { color:var(--blue); }
+.beta-badge { font-size:.52rem; font-weight:800; background:var(--blue-light); color:var(--blue); border-radius:20px; padding:2px 7px; }
+.scroll-area { position:fixed; top:var(--top-h); bottom:var(--nav-h); left:0; right:0; overflow-y:auto; overflow-x:hidden; -webkit-overflow-scrolling:touch; scrollbar-width:none; z-index:1; }
+.scroll-area::-webkit-scrollbar { display:none; }
+.content { padding:14px 14px 24px; display:flex; flex-direction:column; gap:12px; }
+.nav { position:fixed; bottom:0; left:0; right:0; z-index:100; height:var(--nav-h); background:rgba(255,255,255,.96); backdrop-filter:blur(12px); border-top:1px solid var(--border); display:flex; align-items:flex-start; padding:8px 4px 0; }
+.nav-copyright { position:absolute; bottom:3px; left:0; right:0; text-align:center; font-size:.56rem; color:#c4c4c4; font-weight:600; }
+.nav-item { flex:1; display:flex; flex-direction:column; align-items:center; gap:3px; cursor:pointer; padding:5px 4px; border-radius:14px; transition:all .18s; -webkit-tap-highlight-color:transparent; }
+.nav-icon { width:38px; height:38px; border-radius:12px; display:flex; align-items:center; justify-content:center; font-size:1.15rem; transition:all .2s; }
+.nav-item.active .nav-icon { background:linear-gradient(135deg,#2563eb,#6366f1); box-shadow:0 4px 12px rgba(37,99,235,.3); }
+.nav-lbl { font-size:.52rem; font-weight:700; color:var(--muted); letter-spacing:.03em; }
+.nav-item.active .nav-lbl { color:var(--blue); }
+
+/* AI HERO */
+.ai-hero { border-radius:var(--radius); overflow:hidden; position:relative; background:linear-gradient(135deg,#1e3a8a 0%,#2d5be3 55%,#4f46e5 100%); box-shadow:var(--shadow-lg); }
+.ai-hero-grid { position:absolute; inset:0; pointer-events:none; background-image:linear-gradient(rgba(255,255,255,.04) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.04) 1px,transparent 1px); background-size:24px 24px; }
+.ai-hero-inner { padding:16px; position:relative; z-index:2; }
+.ai-header { display:flex; align-items:center; gap:8px; margin-bottom:10px; }
+.ai-avatar-box { width:36px; height:36px; border-radius:12px; background:rgba(255,255,255,.15); border:1.5px solid rgba(255,255,255,.25); display:flex; align-items:center; justify-content:center; flex-shrink:0; }
+.ai-bars { display:flex; align-items:center; gap:2px; }
+.ai-bar { width:2px; border-radius:2px; background:white; }
+.ai-bar:nth-child(1){height:8px;animation:barA 1.2s ease-in-out infinite 0s}
+.ai-bar:nth-child(2){height:14px;animation:barA 1.2s ease-in-out infinite .12s}
+.ai-bar:nth-child(3){height:18px;animation:barA 1.2s ease-in-out infinite .24s}
+.ai-bar:nth-child(4){height:12px;animation:barA 1.2s ease-in-out infinite .36s}
+.ai-bar:nth-child(5){height:8px;animation:barA 1.2s ease-in-out infinite .48s}
+@keyframes barA { 0%,100%{transform:scaleY(.3);opacity:.4} 50%{transform:scaleY(1);opacity:1} }
+.ai-meta { flex:1; }
+.ai-name-lbl { font-size:.72rem; font-weight:800; color:white; }
+.ai-status { display:flex; align-items:center; gap:4px; }
+.ai-online { width:6px; height:6px; border-radius:50%; background:#4ade80; box-shadow:0 0 0 2px rgba(74,222,128,.2); }
+.ai-status-txt { font-size:.6rem; font-weight:600; color:rgba(255,255,255,.6); }
+.ai-tts-btn { width:30px; height:30px; border-radius:9px; flex-shrink:0; background:rgba(255,255,255,.1); border:1px solid rgba(255,255,255,.2); display:flex; align-items:center; justify-content:center; cursor:pointer; font-size:.9rem; }
+.sessions-badge { display:flex; align-items:center; gap:6px; background:rgba(255,255,255,.1); border:1px solid rgba(255,255,255,.18); border-radius:20px; padding:4px 10px; margin-bottom:10px; font-size:.63rem; font-weight:700; color:rgba(255,255,255,.85); }
+.sessions-dot { width:5px; height:5px; border-radius:50%; background:#4ade80; flex-shrink:0; }
+.bubble-ai { background:rgba(255,255,255,.08); border-radius:4px 16px 16px 16px; padding:10px 12px; font-size:.88rem; font-weight:500; color:rgba(255,255,255,.92); line-height:1.55; margin-bottom:10px; }
+.ai-chips { display:flex; flex-wrap:wrap; gap:7px; }
+.ai-chip { background:rgba(255,255,255,.1); border:1px solid rgba(255,255,255,.2); border-radius:20px; padding:7px 13px; font-size:.75rem; font-weight:700; color:white; cursor:pointer; transition:all .15s; -webkit-tap-highlight-color:transparent; }
+.ai-chip:active { background:rgba(255,255,255,.22); transform:scale(.96); }
+
+/* AGENDA */
+.agenda-wrap { background:var(--card); border:1.5px solid var(--border); border-radius:var(--radius); overflow:hidden; box-shadow:var(--shadow); }
+.agenda-hdr { display:flex; align-items:center; justify-content:space-between; padding:12px 14px 8px; }
+.agenda-hdr-title { font-size:.72rem; font-weight:800; color:var(--ink); display:flex; align-items:center; gap:6px; }
+.agenda-dot { width:7px; height:7px; border-radius:50%; background:#22c55e; box-shadow:0 0 0 3px rgba(34,197,94,.2); }
+.agenda-scroll { display:flex; gap:8px; padding:0 14px 14px; overflow-x:auto; scrollbar-width:none; }
+.agenda-scroll::-webkit-scrollbar { display:none; }
+.agenda-card { flex-shrink:0; background:var(--bg); border-radius:14px; border:1.5px solid var(--border); padding:10px 12px; min-width:115px; }
+.agenda-card.now { background:var(--blue-light); border-color:#bfdbfe; }
+.agenda-card.done { opacity:.5; }
+.ac-time { font-size:.65rem; font-weight:800; color:var(--muted); margin-bottom:4px; display:flex; align-items:center; gap:4px; }
+.ac-now-badge { background:var(--blue); color:white; font-size:.5rem; font-weight:800; border-radius:20px; padding:1px 5px; }
+.ac-label { font-size:.78rem; font-weight:800; color:var(--ink); line-height:1.25; }
+.ac-sub { font-size:.62rem; font-weight:600; color:var(--muted); margin-top:2px; }
+.ac-tag { display:inline-block; font-size:.55rem; font-weight:800; border-radius:20px; padding:2px 7px; margin-top:5px; letter-spacing:.03em; }
+
+/* HOTSPOTS */
+.hs-wrap { display:flex; flex-wrap:wrap; gap:10px; margin-top:10px; align-items:center; }
+.hs-btn {
+  display:inline-flex; align-items:center; gap:9px;
+  background:white; border:1.5px solid var(--border);
+  border-radius:100px; padding:8px 16px 8px 8px;
+  cursor:pointer; transition:all .18s; -webkit-tap-highlight-color:transparent;
+  box-shadow: 0 2px 8px rgba(0,0,0,.06);
+}
+.hs-btn:active { transform:scale(.95); background:var(--blue-light); border-color:#bfdbfe; }
+.hs-badge {
+  width:28px; height:28px; border-radius:50%;
+  background:linear-gradient(135deg,#2563eb,#6366f1);
+  display:flex; align-items:center; justify-content:center;
+  flex-shrink:0;
+  font-size:.82rem; font-weight:900; color:white; font-style:italic;
+  font-family:'Georgia',serif;
+  box-shadow:0 0 0 3px rgba(37,99,235,.2);
+  animation:hsPulse 2.2s ease-in-out infinite;
+}
+@keyframes hsPulse {
+  0%,100%{box-shadow:0 0 0 3px rgba(37,99,235,.18)}
+  50%{box-shadow:0 0 0 6px rgba(37,99,235,.07)}
+}
+.hs-label { font-size:.76rem; font-weight:700; color:var(--ink); }
+
+/* AAC PROVA */
+.aac-prova { background:linear-gradient(135deg,#1e1b4b,#1e3a8a); border-radius:var(--radius); padding:20px; position:relative; overflow:hidden; }
+.aac-prova::before { content:''; position:absolute; inset:0; background:radial-gradient(ellipse at 80% 20%,rgba(99,102,241,.3) 0%,transparent 60%); }
+.aac-prova-label { position:relative; font-size:.65rem; font-weight:800; letter-spacing:2px; text-transform:uppercase; color:#93c5fd; margin-bottom:6px; }
+.aac-prova-title { position:relative; font-family:'Bricolage Grotesque',sans-serif; font-size:1.1rem; font-weight:800; color:white; margin-bottom:4px; }
+.aac-prova-sub { position:relative; font-size:.78rem; color:rgba(255,255,255,.5); margin-bottom:16px; line-height:1.45; }
+.aac-grid { position:relative; display:grid; grid-template-columns:repeat(3,1fr); gap:8px; }
+.aac-pict { background:rgba(255,255,255,.1); border:1.5px solid rgba(255,255,255,.15); border-radius:16px; padding:14px 6px; text-align:center; cursor:pointer; transition:all .18s; -webkit-tap-highlight-color:transparent; }
+.aac-pict:active,.aac-pict.speaking { background:rgba(37,99,235,.4); border-color:#60a5fa; box-shadow:0 0 20px rgba(96,165,250,.3); transform:scale(.95); }
+.aac-pict-emoji { font-size:1.8rem; display:block; margin-bottom:5px; }
+.aac-pict-word { font-size:.68rem; font-weight:700; color:rgba(255,255,255,.8); line-height:1.3; }
+.speak-indicator { position:relative; display:flex; align-items:center; justify-content:center; gap:4px; margin-top:14px; height:20px; }
+.spk-bar { width:3px; border-radius:3px; background:#60a5fa; opacity:0; transition:opacity .2s; }
+.spk-bar.on { opacity:1; animation:spkWave .6s ease-in-out infinite alternate; }
+.spk-bar:nth-child(1){height:6px} .spk-bar:nth-child(2){height:12px;animation-delay:.1s} .spk-bar:nth-child(3){height:18px;animation-delay:.2s} .spk-bar:nth-child(4){height:12px;animation-delay:.3s} .spk-bar:nth-child(5){height:6px;animation-delay:.4s}
+@keyframes spkWave { from{transform:scaleY(.4)} to{transform:scaleY(1)} }
+.speak-lbl { position:relative; text-align:center; font-size:.7rem; color:rgba(255,255,255,.4); margin-top:6px; min-height:16px; transition:color .2s; }
+
+/* CTA */
+.cta-card { background:linear-gradient(135deg,#1e1b4b,#1e3a8a); border-radius:var(--radius); padding:24px 20px; text-align:center; position:relative; overflow:hidden; }
+.cta-card::before { content:''; position:absolute; inset:0; background:radial-gradient(ellipse at 80% 20%,rgba(99,102,241,.3) 0%,transparent 60%); }
+.cta-title { position:relative; font-family:'Bricolage Grotesque',sans-serif; font-size:1.3rem; font-weight:800; color:white; letter-spacing:-.5px; margin-bottom:6px; }
+.cta-sub { position:relative; font-size:.82rem; color:rgba(255,255,255,.5); margin-bottom:20px; line-height:1.5; }
+.cta-btn { position:relative; display:block; width:100%; padding:15px; border:none; border-radius:100px; background:linear-gradient(135deg,#2563eb,#6366f1); color:white; font-family:'Bricolage Grotesque',sans-serif; font-size:1rem; font-weight:800; cursor:pointer; box-shadow:0 6px 24px rgba(37,99,235,.4); transition:transform .15s; -webkit-tap-highlight-color:transparent; }
+.cta-btn:active { transform:scale(.97); }
+
+/* TOUR */
+#tour-card { position:fixed; bottom:0; left:0; right:0; z-index:600; padding:0 14px 24px; pointer-events:none; transform:translateY(20px); opacity:0; transition:opacity .3s,transform .3s; }
+#tour-card.visible { pointer-events:auto; transform:translateY(0); opacity:1; }
+.tour-inner { background:white; border-radius:24px; padding:20px 20px 16px; box-shadow:0 -4px 40px rgba(0,0,0,.18); max-width:480px; margin:0 auto; }
+.tour-badge { font-size:.65rem; font-weight:800; letter-spacing:1.5px; text-transform:uppercase; color:var(--blue); background:var(--blue-light); padding:3px 10px; border-radius:100px; display:inline-block; margin-bottom:10px; }
+.tour-title { font-family:'Bricolage Grotesque',sans-serif; font-size:1.1rem; font-weight:800; color:var(--ink); margin-bottom:5px; transition:opacity .18s; }
+.tour-desc { font-size:.84rem; color:var(--muted); line-height:1.6; margin-bottom:18px; transition:opacity .18s; }
+.tour-title.fade,.tour-desc.fade { opacity:0; }
+.tour-actions { display:flex; align-items:center; justify-content:space-between; gap:10px; }
+.tour-dots { display:flex; gap:5px; align-items:center; }
+.tour-dot { width:6px; height:6px; border-radius:50%; background:var(--border); transition:all .3s; }
+.tour-dot.active { background:var(--blue); width:18px; border-radius:3px; }
+.btn-skip { font-size:.82rem; font-weight:600; color:var(--muted); background:none; border:none; cursor:pointer; padding:8px 4px; -webkit-tap-highlight-color:transparent; }
+.btn-next { font-size:.88rem; font-weight:700; color:white; background:var(--blue); border:none; cursor:pointer; padding:11px 22px; border-radius:100px; box-shadow:0 4px 14px rgba(37,99,235,.35); transition:transform .14s,background .25s; -webkit-tap-highlight-color:transparent; }
+.btn-next:active { transform:scale(.95); }
+.btn-next.last { background:linear-gradient(135deg,#16a34a,#0d9488); }
+
+/* Focus ring sull'elemento evidenziato */
+/* Tour: widget non attivi diventano opachi */
+.tour-dimmed {
+  opacity: .12;
+  filter: blur(1px) brightness(.5);
+  pointer-events: none;
+  transition: opacity .4s ease, filter .4s ease;
+}
+/* Widget attivo: bordo luminoso, nessun cambio di opacità */
+.tour-focus {
+  outline: 3px solid #6366f1 !important;
+  outline-offset: 5px !important;
+  box-shadow: 0 0 0 10px rgba(99,102,241,.15), 0 8px 32px rgba(0,0,0,.15) !important;
+  transition: outline .3s, box-shadow .3s;
+}
+/* Anche intro header e btn tour si scuriscono durante il tour */
+.tour-active #tour-intro,
+.tour-active #tourStartBtn {
+  opacity: .12;
+  filter: blur(1px) brightness(.5);
+  pointer-events: none;
+  transition: opacity .4s ease, filter .4s ease;
+}
+
+/* POPUP */
+#popup-overlay { position:fixed; inset:0; z-index:800; background:rgba(10,10,20,.55); backdrop-filter:blur(6px); display:flex; align-items:flex-end; padding:0 14px 20px; opacity:0; pointer-events:none; transition:opacity .25s; }
+#popup-overlay.open { opacity:1; pointer-events:auto; }
+.popup-card { background:white; border-radius:24px; width:100%; max-width:480px; padding:24px 20px 20px; margin:0 auto; box-shadow:0 -4px 40px rgba(0,0,0,.18); transform:translateY(24px); transition:transform .3s cubic-bezier(.4,0,.2,1); }
+#popup-overlay.open .popup-card { transform:translateY(0); }
+.popup-emoji { font-size:2rem; margin-bottom:10px; display:block; }
+.popup-title { font-family:'Bricolage Grotesque',sans-serif; font-size:1.1rem; font-weight:800; color:var(--ink); margin-bottom:8px; }
+.popup-body { font-size:.86rem; color:var(--muted); line-height:1.65; margin-bottom:20px; }
+.popup-close { width:100%; padding:13px; background:var(--ink); color:white; border:none; border-radius:100px; font-family:'Plus Jakarta Sans',sans-serif; font-size:.9rem; font-weight:700; cursor:pointer; -webkit-tap-highlight-color:transparent; }
+</style>
+</head>
+<body>
+<div class="mesh"><div class="blob blob1"></div><div class="blob blob2"></div></div>
+
+<div class="topbar">
+  <div class="logo-mark">
+    <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+      <rect x="1" y="6" width="2" height="4" rx="1" fill="white"/>
+      <rect x="4" y="3" width="2" height="10" rx="1" fill="white" opacity=".8"/>
+      <rect x="7" y="1" width="2" height="14" rx="1" fill="white"/>
+      <rect x="10" y="3" width="2" height="10" rx="1" fill="white" opacity=".8"/>
+      <rect x="13" y="6" width="2" height="4" rx="1" fill="white" opacity=".6"/>
+    </svg>
+  </div>
+  <div class="logo-text">Parlia<span>.app</span> <span class="beta-badge">BETA</span></div>
+</div>
+
+<div class="scroll-area" id="scrollArea">
+<div class="content">
+
+  <!-- INTRO -->
+  <div id="tour-intro" style="padding:4px 2px 2px">
+    <div style="font-size:.65rem;font-weight:800;letter-spacing:2px;text-transform:uppercase;color:var(--blue);background:var(--blue-light);border-radius:100px;padding:3px 10px;display:inline-block;margin-bottom:8px">Guía de bienvenida</div>
+    <div style="font-family:'Bricolage Grotesque',sans-serif;font-size:1.35rem;font-weight:800;color:var(--ink);letter-spacing:-.5px;line-height:1.2;margin-bottom:4px">Descubre Parlia<br>en 2 minutos. ✨</div>
+    <div style="font-size:.82rem;color:var(--muted);line-height:1.5">Explora los widgets con los hotspots azules, o inicia el tour guiado.</div>
+  </div>
+
+  <!-- BTN TOUR -->
+  <button onclick="startTour()" id="tourStartBtn" style="width:100%;padding:14px;border:none;border-radius:100px;background:linear-gradient(135deg,#2563eb,#6366f1);color:white;font-family:'Bricolage Grotesque',sans-serif;font-size:.95rem;font-weight:800;cursor:pointer;box-shadow:0 6px 20px rgba(37,99,235,.35);display:flex;align-items:center;justify-content:center;gap:8px;-webkit-tap-highlight-color:transparent;transition:opacity .2s">
+    <span>▶</span> Iniciar tour guiado
+  </button>
+
+  <!-- WIDGET 1: PARLIA AI -->
+  <div id="w-ai">
+    <div class="ai-hero">
+      <div class="ai-hero-grid"></div>
+      <div class="ai-hero-inner">
+        <div class="ai-header">
+          <div class="ai-avatar-box">
+            <div class="ai-bars">
+              <div class="ai-bar"></div><div class="ai-bar"></div><div class="ai-bar"></div><div class="ai-bar"></div><div class="ai-bar"></div>
+            </div>
+          </div>
+          <div class="ai-meta">
+            <div class="ai-name-lbl">Parlia AI</div>
+            <div class="ai-status"><div class="ai-online"></div><span class="ai-status-txt">Escuchándote</span></div>
+          </div>
+          <div class="ai-tts-btn">🔇</div>
+        </div>
+        <div class="sessions-badge"><div class="sessions-dot"></div>🎉 Todas las sesiones completadas</div>
+        <div class="bubble-ai">Buenas noches Laura, ¡excelente trabajo hoy! Completaste todas tus sesiones. ¿Cómo te sientes?</div>
+        <div class="ai-chips">
+          <div class="ai-chip">Cansada</div>
+          <div class="ai-chip">Bien pero dolorida</div>
+          <div class="ai-chip">Muy motivada</div>
+          <div class="ai-chip">Quiero relajarme</div>
+        </div>
+      </div>
+    </div>
+    <div class="hs-wrap">
+      <div class="hs-btn" onclick="openPopup('ai-chat')"><div class="hs-badge">i</div><span class="hs-label">¿Qué es Parlia AI?</span></div>
+      <div class="hs-btn" onclick="openPopup('ai-chips')"><div class="hs-badge">i</div><span class="hs-label">Los chips de respuesta</span></div>
+    </div>
+  </div>
+
+  <!-- WIDGET 2: AGENDA -->
+  <div id="w-agenda">
+    <div class="agenda-wrap">
+      <div class="agenda-hdr">
+        <div class="agenda-hdr-title"><div class="agenda-dot"></div>Agenda de hoy</div>
+        <div style="font-size:.65rem;font-weight:700;color:var(--blue)">+ Recordatorio</div>
+      </div>
+      <div class="agenda-scroll">
+        <div class="agenda-card done">
+          <div class="ac-time">09:00</div>
+          <div class="ac-label" style="text-decoration:line-through;opacity:.6">Fisioterapia</div>
+          <div class="ac-sub">Gimnasio Guttmann</div>
+          <div class="ac-tag" style="background:#dcfce7;color:#16a34a">Rehab</div>
+        </div>
+        <div class="agenda-card done">
+          <div class="ac-time">11:00</div>
+          <div class="ac-label" style="text-decoration:line-through;opacity:.6">Terapia ocupacional</div>
+          <div class="ac-sub">Sala 3 · planta 2</div>
+          <div class="ac-tag" style="background:#f3e8ff;color:#7c3aed">Terapia</div>
+        </div>
+        <div class="agenda-card now">
+          <div class="ac-time">13:00 <div class="ac-now-badge">AHORA</div></div>
+          <div class="ac-label">Logopedia</div>
+          <div class="ac-sub">Dra. Martínez</div>
+          <div class="ac-tag" style="background:#dbeafe;color:#2563eb">Voz</div>
+        </div>
+        <div class="agenda-card">
+          <div class="ac-time">15:00</div>
+          <div class="ac-label">Almuerzo</div>
+          <div class="ac-sub">Comedor planta 1</div>
+          <div class="ac-tag" style="background:#fef9c3;color:#92400e">Descanso</div>
+        </div>
+      </div>
+    </div>
+    <div class="hs-wrap">
+      <div class="hs-btn" onclick="openPopup('agenda-cards')"><div class="hs-badge">i</div><span class="hs-label">Leer la agenda</span></div>
+      <div class="hs-btn" onclick="openPopup('agenda-add')"><div class="hs-badge">i</div><span class="hs-label">Añadir recordatorio</span></div>
+    </div>
+  </div>
+
+  <!-- WIDGET 3: REHAB -->
+  <div id="w-rehab">
+    <div style="background:var(--card);border:1.5px solid var(--border);border-radius:var(--radius);overflow:hidden;box-shadow:var(--shadow)">
+      <div style="padding:12px 14px 8px;display:flex;align-items:center;justify-content:space-between">
+        <div style="font-size:.72rem;font-weight:800;color:var(--ink);display:flex;align-items:center;gap:6px">
+          <span style="width:7px;height:7px;border-radius:50%;background:#a78bfa;box-shadow:0 0 0 3px rgba(167,139,250,.2);display:inline-block"></span>
+          Rehabilitación
+        </div>
+        <div style="font-size:.65rem;font-weight:700;color:#7c3aed">Ver todo →</div>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:8px;padding:0 14px 14px">
+        <div style="background:#f5f3ff;border:1.5px solid #ede9fe;border-radius:14px;padding:12px 14px;display:flex;align-items:center;gap:12px">
+          <span style="font-size:1.3rem">📝</span>
+          <div style="flex:1"><div style="font-size:.82rem;font-weight:800;color:var(--ink)">Palabras</div><div style="font-size:.7rem;color:var(--muted)">Completa la sílaba</div></div>
+          <div style="font-size:.6rem;font-weight:800;background:#dcfce7;color:#16a34a;padding:3px 9px;border-radius:100px">Fácil</div>
+        </div>
+        <div style="background:#f5f3ff;border:1.5px solid #ede9fe;border-radius:14px;padding:12px 14px;display:flex;align-items:center;gap:12px">
+          <span style="font-size:1.3rem">🃏</span>
+          <div style="flex:1"><div style="font-size:.82rem;font-weight:800;color:var(--ink)">Memoria</div><div style="font-size:.7rem;color:var(--muted)">Encuentra los pares</div></div>
+          <div style="font-size:.6rem;font-weight:800;background:#dbeafe;color:#2563eb;padding:3px 9px;border-radius:100px">Nuevo</div>
+        </div>
+        <div style="background:linear-gradient(135deg,#1e3a8a,#4f46e5);border-radius:14px;padding:12px 14px;display:flex;align-items:center;gap:10px">
+          <span style="font-size:1.1rem">🎙️</span>
+          <div style="flex:1"><div style="font-size:.82rem;font-weight:800;color:white">Logopedia</div><div style="font-size:.7rem;color:rgba(255,255,255,.55)">Sesión guiada con IA</div></div>
+          <div style="font-size:.75rem;font-weight:800;color:white;background:rgba(255,255,255,.2);padding:5px 12px;border-radius:100px">Iniciar →</div>
+        </div>
+      </div>
+    </div>
+    <div class="hs-wrap">
+      <div class="hs-btn" onclick="openPopup('rehab-juegos')"><div class="hs-badge">i</div><span class="hs-label">Los 4 ejercicios</span></div>
+      <div class="hs-btn" onclick="openPopup('rehab-logo')"><div class="hs-badge">i</div><span class="hs-label">Sesión de logopedia</span></div>
+    </div>
+  </div>
+
+  <!-- WIDGET 4: PERFIL -->
+  <div id="w-perfil">
+    <div style="background:var(--card);border:1.5px solid var(--border);border-radius:var(--radius);padding:14px;box-shadow:var(--shadow)">
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px">
+        <div style="width:44px;height:44px;border-radius:50%;background:linear-gradient(135deg,#2563eb,#6366f1);display:flex;align-items:center;justify-content:center;font-size:1.1rem;color:white;flex-shrink:0">👤</div>
+        <div style="flex:1">
+          <div style="font-size:.88rem;font-weight:800;color:var(--ink)">Laura</div>
+          <div style="font-size:.72rem;font-weight:600;color:var(--muted)">Perfil al 70%</div>
+        </div>
+        <div style="font-size:.65rem;font-weight:800;color:var(--blue);background:var(--blue-light);border-radius:100px;padding:4px 10px">Completar →</div>
+      </div>
+      <div style="background:var(--border);border-radius:20px;height:6px;overflow:hidden;margin-bottom:12px">
+        <div style="height:100%;width:70%;border-radius:20px;background:linear-gradient(90deg,var(--blue),var(--indigo))"></div>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:6px">
+        <div style="display:flex;align-items:center;gap:10px;background:var(--bg);border-radius:12px;padding:9px 12px">
+          <span>🏥</span><span style="font-size:.82rem;font-weight:600;color:var(--ink);flex:1">Condición</span><span style="font-size:.78rem;color:var(--muted)">Afasia</span><span style="color:#16a34a">✓</span>
+        </div>
+        <div style="display:flex;align-items:center;gap:10px;background:var(--bg);border-radius:12px;padding:9px 12px">
+          <span>🗣️</span><span style="font-size:.82rem;font-weight:600;color:var(--ink);flex:1">AAC activado</span><span style="font-size:.78rem;color:var(--muted)">Sí</span><span style="color:#16a34a">✓</span>
+        </div>
+        <div style="display:flex;align-items:center;gap:10px;background:var(--bg);border-radius:12px;padding:9px 12px">
+          <span>👨‍👩‍👧</span><span style="font-size:.82rem;font-weight:600;color:var(--ink);flex:1">Cuidador</span><span style="font-size:.78rem;color:var(--muted)">Luca</span><span style="color:#16a34a">✓</span>
+        </div>
+      </div>
+    </div>
+    <div class="hs-wrap">
+      <div class="hs-btn" onclick="openPopup('perfil-ia')"><div class="hs-badge">i</div><span class="hs-label">Personalización IA</span></div>
+      <div class="hs-btn" onclick="openPopup('perfil-funciones')"><div class="hs-badge">i</div><span class="hs-label">Activar funciones</span></div>
+    </div>
+  </div>
+
+  <!-- AREA PROVA AAC -->
+  <div id="w-aac" class="aac-prova">
+    <div class="aac-prova-label">🎤 Prueba el comunicador</div>
+    <div class="aac-prova-title">Tu voz, en un toque.</div>
+    <div class="aac-prova-sub">Toca un pictograma y Parlia lo dice en voz alta.</div>
+    <div class="aac-grid">
+      <div class="aac-pict" onclick="speak(this,'Buenos días')"><span class="aac-pict-emoji">🌅</span><span class="aac-pict-word">Buenos días</span></div>
+      <div class="aac-pict" onclick="speak(this,'Tengo sed')"><span class="aac-pict-emoji">🥤</span><span class="aac-pict-word">Tengo sed</span></div>
+      <div class="aac-pict" onclick="speak(this,'Gracias')"><span class="aac-pict-emoji">🙏</span><span class="aac-pict-word">Gracias</span></div>
+      <div class="aac-pict" onclick="speak(this,'Estoy bien')"><span class="aac-pict-emoji">😊</span><span class="aac-pict-word">Estoy bien</span></div>
+      <div class="aac-pict" onclick="speak(this,'Necesito ayuda')"><span class="aac-pict-emoji">🆘</span><span class="aac-pict-word">Necesito ayuda</span></div>
+      <div class="aac-pict" onclick="speak(this,'Te quiero')"><span class="aac-pict-emoji">❤️</span><span class="aac-pict-word">Te quiero</span></div>
+    </div>
+    <div class="speak-indicator">
+      <div class="spk-bar" id="sb1"></div><div class="spk-bar" id="sb2"></div>
+      <div class="spk-bar" id="sb3"></div><div class="spk-bar" id="sb4"></div><div class="spk-bar" id="sb5"></div>
+    </div>
+    <div class="speak-lbl" id="speakLbl">Toca un pictograma ↑</div>
+  </div>
+
+  <!-- CTA -->
+  <div class="cta-card" id="w-cta">
+    <div class="cta-title">¡Ya lo sabes todo! 🎉</div>
+    <div class="cta-sub">Puedes volver a esta guía desde el menú ⚙️ cuando quieras.</div>
+    <button class="cta-btn" onclick="goToApp()" id="ctaBtn">¡Listo! Ir a la App →</button>
+  </div>
+
+  <div style="height:8px"></div>
+</div>
+</div>
+
+<!-- NAVBAR -->
+<div class="nav">
+  <div class="nav-item active"><div class="nav-icon">🏠</div><div class="nav-lbl">Inicio</div></div>
+  <div class="nav-item"><div class="nav-icon">🗣️</div><div class="nav-lbl">AAC</div></div>
+  <div class="nav-item"><div class="nav-icon">🧠</div><div class="nav-lbl">Rehab</div></div>
+  <div class="nav-item"><div class="nav-icon">👤</div><div class="nav-lbl">Perfil</div></div>
+  <div class="nav-copyright">© 2026 Parlia.app</div>
+</div>
+
+<!-- TOUR CARD -->
+<div id="tour-card">
+  <div class="tour-inner">
+    <div class="tour-badge" id="tour-badge">Paso 1 de 2</div>
+    <div class="tour-title" id="tour-title"></div>
+    <div class="tour-desc"  id="tour-desc"></div>
+    <div class="tour-actions">
+      <button class="btn-skip" onclick="endTour()">Omitir</button>
+      <div class="tour-dots" id="tour-dots"></div>
+      <button class="btn-next" id="btn-next" onclick="nextTourStep()">Siguiente →</button>
+    </div>
+  </div>
+</div>
+
+<!-- POPUP -->
+<div id="popup-overlay" onclick="closePopupOutside(event)">
+  <div class="popup-card">
+    <span class="popup-emoji" id="popup-emoji">💡</span>
+    <div class="popup-title" id="popup-title"></div>
+    <div class="popup-body"  id="popup-body"></div>
+    <button class="popup-close" onclick="closePopup()">Entendido ✓</button>
+  </div>
+</div>
+
+<script>
+const POPUPS = {
+  'ai-chat':{ emoji:'🤖', title:'¿Qué es Parlia AI?', body:'Parlia AI es tu asistente personal. Cada día te saluda con un mensaje adaptado a la hora, tu estado de ánimo y tus actividades del día. Puedes responderle tocando los chips — sin escribir nada.' },
+  'ai-chips':{ emoji:'💬', title:'Los chips de respuesta', body:'Los chips son botones generados automáticamente por la IA según el contexto. Un solo toque y tu respuesta se envía. Parlia también los puede leer en voz alta si tienes el audio activado.' },
+  'agenda-cards':{ emoji:'📅', title:'Leer la agenda', body:'Las tarjetas muestran tus sesiones del día. Las completadas aparecen tachadas, la actual está resaltada en azul con el badge "AHORA". Desliza para ver todas las actividades.' },
+  'agenda-add':{ emoji:'⏰', title:'Añadir recordatorio', body:'Toca "+ Recordatorio" para añadir un aviso con la hora que quieras. Los recordatorios aparecen en la agenda con fondo amarillo y puedes eliminarlos tocando la X.' },
+  'rehab-juegos':{ emoji:'🎮', title:'Los 4 ejercicios cognitivos', body:'Parlia tiene 4 tipos de ejercicios: Palabras (completa sílabas), Memoria (encuentra pares), Atención (identifica el elemento diferente) y Lógica (sigue la secuencia). La dificultad se adapta automáticamente a tu progreso.' },
+  'rehab-logo':{ emoji:'🎙️', title:'Sesión de logopedia', body:'La sección Logopedia incluye ejercicios guiados por IA con reconocimiento de voz. El semáforo visual te indica si la pronunciación fue correcta (verde), aproximada (amarillo) o necesita repetición (rojo).' },
+  'perfil-ia':{ emoji:'🤖', title:'Personalización IA', body:'Cuanto más completes tu perfil (condición, movilidad, edad, preferencias), más personalizada será la experiencia. La IA adapta el tono de los mensajes, la dificultad de los ejercicios y las sugerencias del comunicador.' },
+  'perfil-funciones':{ emoji:'🔧', title:'Activar o desactivar funciones', body:'En tu perfil puedes activar o desactivar cada módulo: AAC, Chat familiar, Logopedia, Estimulación cognitiva, GPS y Widget de ánimo. Si no necesitas alguna función, ocúltala para simplificar la pantalla principal.' },
+};
+
+function openPopup(id) {
+  const d=POPUPS[id]; if(!d) return;
+  document.getElementById('popup-emoji').textContent=d.emoji;
+  document.getElementById('popup-title').textContent=d.title;
+  document.getElementById('popup-body').textContent=d.body;
+  document.getElementById('popup-overlay').classList.add('open');
+}
+function closePopup(){ document.getElementById('popup-overlay').classList.remove('open'); }
+function closePopupOutside(e){ if(e.target===document.getElementById('popup-overlay')) closePopup(); }
+
+// AAC
+let _cur=null;
+function speak(el,text){
+  speechSynthesis.cancel();
+  if(_cur) _cur.classList.remove('speaking');
+  _cur=el; el.classList.add('speaking');
+  const bars=[1,2,3,4,5].map(i=>document.getElementById('sb'+i));
+  bars.forEach(b=>b.classList.add('on'));
+  const lbl=document.getElementById('speakLbl');
+  lbl.textContent='🔊 '+text; lbl.style.color='#93c5fd';
+  const u=new SpeechSynthesisUtterance(text);
+  u.lang='es-ES'; u.rate=0.88; u.pitch=1.05;
+  const tryVoice=()=>{ const vs=speechSynthesis.getVoices(); const v=vs.find(v=>v.name.includes('Lucía')||v.name.includes('Lucia')||(v.lang==='es-ES'&&v.localService))||vs.find(v=>v.lang==='es-ES'); if(v) u.voice=v; };
+  if(speechSynthesis.getVoices().length) tryVoice(); else speechSynthesis.onvoiceschanged=tryVoice;
+  u.onend=u.onerror=()=>{ el.classList.remove('speaking'); bars.forEach(b=>b.classList.remove('on')); lbl.textContent='Toca un pictograma ↑'; lbl.style.color=''; _cur=null; };
+  speechSynthesis.speak(u);
+}
+
+// TOUR
+const TOUR=[
+  { widgetId:'w-ai',     badge:'Paso 1 de 4', title:'🤖 Parlia AI — tu asistente',  desc:'Este es el corazón de la app. Cada día Parlia AI te saluda con un mensaje personalizado y te propone chips de respuesta rápida. Un solo toque y te comunicas sin escribir nada.' },
+  { widgetId:'w-agenda', badge:'Paso 2 de 4', title:'📅 Tu agenda del día',          desc:'Aquí ves todas tus sesiones de rehabilitación. Las completadas están tachadas, la sesión actual resaltada en azul. Desliza para ver más actividades y toca "+ Recordatorio" para añadir un aviso.' },
+  { widgetId:'w-rehab',  badge:'Paso 3 de 4', title:'🧠 Rehabilitación y logopedia', desc:'Ejercicios cognitivos (palabras, memoria, atención, lógica) y sesiones de logopedia con reconocimiento de voz. La dificultad se adapta automáticamente a tu progreso.' },
+  { widgetId:'w-perfil', badge:'Paso 4 de 4', title:'👤 Tu perfil',                  desc:'Cuanto más completes tu perfil, más personalizada será la experiencia. Activa o desactiva funciones según tus necesidades y añade a tu cuidador principal.', last:true },
+];
+
+let tourStep=-1;
+const tCard=document.getElementById('tour-card');
+const tTitle=document.getElementById('tour-title');
+const tDesc=document.getElementById('tour-desc');
+const tBadge=document.getElementById('tour-badge');
+const tDots=document.getElementById('tour-dots');
+const btnNext=document.getElementById('btn-next');
+
+function buildDots(){
+  tDots.innerHTML='';
+  TOUR.forEach((_,i)=>{ const d=document.createElement('div'); d.className='tour-dot'+(i===tourStep?' active':''); tDots.appendChild(d); });
+}
+
+function applyFocus(widgetId){
+  document.querySelectorAll('.tour-focus').forEach(el=>el.classList.remove('tour-focus'));
+  document.querySelectorAll('.tour-dimmed').forEach(el=>el.classList.remove('tour-dimmed'));
+  const target=document.getElementById(widgetId);
+  if(!target) return;
+  target.classList.add('tour-focus');
+  ['w-ai','w-agenda','w-aac','w-rehab','w-perfil'].forEach(id=>{ if(id!==widgetId){ const el=document.getElementById(id); if(el) el.classList.add('tour-dimmed'); } });
+  // Scurisci anche intro, btn tour e CTA
+  ['tour-intro','tourStartBtn','w-cta'].forEach(id=>{ const el=document.getElementById(id); if(el) el.classList.add('tour-dimmed'); });
+  setTimeout(()=>{ target.scrollIntoView({behavior:'smooth',block:'center'}); },80);
+}
+
+function updateText(step,cb){
+  tTitle.classList.add('fade'); tDesc.classList.add('fade');
+  setTimeout(()=>{
+    tBadge.textContent=step.badge; tTitle.textContent=step.title; tDesc.textContent=step.desc;
+    btnNext.textContent=step.last?'¡Entendido! 🎉':'Siguiente →';
+    btnNext.classList.toggle('last',!!step.last);
+    tTitle.classList.remove('fade'); tDesc.classList.remove('fade');
+    buildDots(); if(cb) cb();
+  },180);
+}
+
+function startTour(){
+  tourStep=0;
+  const btn=document.getElementById('tourStartBtn');
+  btn.style.opacity='.4'; btn.style.pointerEvents='none';
+    applyFocus(TOUR[0].widgetId);
+  requestAnimationFrame(()=>{ tCard.classList.add('visible'); updateText(TOUR[0]); });
+}
+
+function nextTourStep(){
+  if(tourStep>=TOUR.length-1){ endTour(); return; }
+  tourStep++;
+  updateText(TOUR[tourStep]);
+  applyFocus(TOUR[tourStep].widgetId);
+}
+
+function endTour(){
+  tCard.classList.remove('visible');
+  document.querySelectorAll('.tour-focus').forEach(el=>el.classList.remove('tour-focus'));
+  document.querySelectorAll('.tour-dimmed').forEach(el=>el.classList.remove('tour-dimmed'));
+  tourStep=-1;
+  setTimeout(()=>document.getElementById('scrollArea').scrollTo({top:0,behavior:'smooth'}),300);
+  const btn=document.getElementById('tourStartBtn');
+  btn.style.opacity=''; btn.style.pointerEvents='';
+  setTimeout(()=>document.getElementById('scrollArea').scrollTo({top:0,behavior:'smooth'}),300);
+}
+
+function goToApp(){
+  localStorage.setItem('parlia_tutorial_seen','1');
+  const btn=document.getElementById('ctaBtn');
+  btn.textContent='✓ ¡Perfecto! Cargando…';
+  btn.style.background='linear-gradient(135deg,#16a34a,#0d9488)';
+  setTimeout(()=>{ window.location.href='home.html'; },800);
+}
+
+if('speechSynthesis' in window){ speechSynthesis.getVoices(); speechSynthesis.onvoiceschanged=()=>speechSynthesis.getVoices(); }
+</script>
+</body>
+</html>
