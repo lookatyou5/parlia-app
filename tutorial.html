@@ -561,10 +561,13 @@ function endTour(){
   document.querySelectorAll('.tour-focus').forEach(el=>el.classList.remove('tour-focus'));
   document.querySelectorAll('.tour-dimmed').forEach(el=>el.classList.remove('tour-dimmed'));
   tourStep=-1;
-  setTimeout(()=>document.getElementById('scrollArea').scrollTo({top:0,behavior:'smooth'}),300);
   const btn=document.getElementById('tourStartBtn');
   btn.style.opacity=''; btn.style.pointerEvents='';
-  setTimeout(()=>document.getElementById('scrollArea').scrollTo({top:0,behavior:'smooth'}),300);
+  // Scroll to AAC section so user can try it, then go to app via CTA
+  setTimeout(()=>{
+    const aac=document.getElementById('w-aac');
+    if(aac) aac.scrollIntoView({behavior:'smooth',block:'start'});
+  },300);
 }
 
 function goToApp(){
