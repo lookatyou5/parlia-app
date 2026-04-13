@@ -1896,7 +1896,8 @@ function _buildSystem(ctx) {
   if(_mem.mood_log.last_mood) memLines.push(`Último estado de ánimo: "${_mem.mood_log.last_mood}" (${_mem.mood_log.last_mood_date}).`);
   if(_mem.interaction_stats.opens>1) memLines.push(`Ha abierto la app ${_mem.interaction_stats.opens} veces.`);
   if(memLines.length) lines.push(`\nCONOCIMIENTO PERSONAL del usuario (úsalo de forma natural, no recites la lista):\n${memLines.join(' ')}`);
-  lines.push(`\nREGLAS ABSOLUTAS:\n1. NUNCA repitas lo que ya dijiste.\n2. Responde SIEMPRE al último mensaje.\n3. No repitas preguntas.\n4. Máx 18 palabras.\n5. Escribe en nueva línea: CHIPS: y 3-4 opciones separadas por |\n6. Chips = respuestas directas a TU mensaje. Nunca genéricos.\n7. Sin asteriscos ni markdown.`);
+  lines.push(`\nESTILO: Varía los temas. NO hables siempre de sesiones o rehabilitación. Usa su vida personal (hobbies, música, comida, notas), el tiempo, el momento del día, sentimientos, curiosidades, planes. Las sesiones son solo un contexto posible entre muchos.`);
+  lines.push(`\nREGLAS ABSOLUTAS:\n1. NUNCA repitas lo que ya dijiste.\n2. Responde SIEMPRE al último mensaje.\n3. No repitas preguntas.\n4. Máx 18 palabras.\n5. Escribe en nueva línea: CHIPS: y 3-4 opciones separadas por |\n6. Chips = respuestas directas a TU mensaje. Nunca genéricos.\n7. Sin asteriscos ni markdown.\n8. Evita hablar de sesiones más de 1 vez de cada 3 mensajes.`);
   return lines.join(' ');
 }
 async function _sendMsg(userText) {
@@ -1905,7 +1906,24 @@ async function _sendMsg(userText) {
   document.getElementById('aiChips').innerHTML='';
   document.getElementById('aiStatusText').textContent='Pensando…';
   if (userText) { _addBubble('user',userText); _history.push({role:'user',content:userText}); }
-  else _history.push({role:'user',content:`Salúdame según el momento del día y el contexto de mis sesiones.`});
+  else {
+    // Vary the greeting prompt to avoid repetition
+    const mp=_mem.user_profile;
+    const variants=[`Salúdame de forma cálida y breve.`];
+    if(mp.hobbies&&mp.hobbies.length){
+      const h=mp.hobbies[Math.floor(Math.random()*mp.hobbies.length)];
+      variants.push(`Salúdame y pregúntame algo sobre mi hobby: ${h}.`);
+    }
+    if(mp.musica) variants.push(`Salúdame y menciona música (sabes que me gusta ${mp.musica}).`);
+    if(mp.comida) variants.push(`Salúdame y comenta algo ligero sobre comida (me gusta ${mp.comida}).`);
+    if(mp.notas) variants.push(`Salúdame teniendo en cuenta mis notas personales, sin recitarlas.`);
+    variants.push(`Salúdame y pregúntame cómo me siento hoy.`);
+    variants.push(`Salúdame y cuéntame una curiosidad breve o un pensamiento positivo.`);
+    variants.push(`Salúdame y pregúntame qué planes tengo hoy.`);
+    if(_mem.mood_log.last_mood) variants.push(`Salúdame recordando que la última vez dije que me sentía "${_mem.mood_log.last_mood}".`);
+    const prompt=variants[Math.floor(Math.random()*variants.length)];
+    _history.push({role:'user',content:prompt});
+  }
   _addBubble('ai','',true); _showChipSkeleton();
   const ctx=_getCtx(); _showCtxBadge(ctx);
   let raw='';
