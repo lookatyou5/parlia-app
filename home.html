@@ -723,7 +723,56 @@ html, body {
 .settings-item-icon { font-size: 1rem; width: 22px; text-align: center; flex-shrink: 0; }
 .settings-divider { height: 1px; background: var(--border); margin: 4px 0; }
 
+/* SOS PILL */
+.sos-pill {
+  width: 36px; height: 36px; border-radius: 50%;
+  background: linear-gradient(135deg, #dc2626, #ef4444);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 1rem; cursor: pointer;
+  box-shadow: 0 2px 10px rgba(220,38,38,.35);
+  -webkit-tap-highlight-color: transparent;
+  transition: transform .15s;
+}
+.sos-pill:active { transform: scale(.92); }
 
+/* SOS OVERLAY */
+.sos-overlay {
+  position: fixed; inset: 0; z-index: 500;
+  background: rgba(10,10,20,.6); backdrop-filter: blur(6px);
+  display: flex; align-items: flex-end; padding: 0 14px 20px;
+  opacity: 0; pointer-events: none; transition: opacity .25s;
+}
+.sos-overlay.open { opacity: 1; pointer-events: auto; }
+.sos-card {
+  background: white; border-radius: 24px; width: 100%; max-width: 480px;
+  padding: 20px 16px 16px; margin: 0 auto;
+  box-shadow: 0 -4px 40px rgba(0,0,0,.18);
+  transform: translateY(24px); transition: transform .3s cubic-bezier(.4,0,.2,1);
+}
+.sos-overlay.open .sos-card { transform: translateY(0); }
+.sos-title {
+  font-family: 'Bricolage Grotesque', sans-serif;
+  font-size: 1.05rem; font-weight: 800; color: #dc2626;
+  margin-bottom: 14px; display: flex; align-items: center; gap: 8px;
+}
+.sos-btn {
+  display: flex; align-items: center; gap: 12px;
+  width: 100%; padding: 14px 16px; margin-bottom: 8px;
+  background: #fef2f2; border: 1.5px solid #fecaca;
+  border-radius: 16px; cursor: pointer;
+  -webkit-tap-highlight-color: transparent; transition: all .15s;
+}
+.sos-btn:active { background: #fee2e2; transform: scale(.98); }
+.sos-btn-emoji { font-size: 1.4rem; flex-shrink: 0; }
+.sos-btn-text { font-size: .88rem; font-weight: 700; color: var(--ink); }
+.sos-btn-sub { font-size: .7rem; font-weight: 600; color: var(--muted); margin-top: 2px; }
+.sos-close {
+  width: 100%; padding: 13px; margin-top: 6px;
+  background: var(--ink); color: white; border: none; border-radius: 100px;
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  font-size: .88rem; font-weight: 700; cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
 
 </style>
 </head>
@@ -742,7 +791,35 @@ html, body {
     <div class="pill-temp" id="pillTemp">—°</div>
   </div>
   <div class="settings-btn" onclick="toggleSettings()">⚙️</div>
-  <div class="avatar" id="topAvatar">M</div>
+  <div class="sos-pill" onclick="openSOS()">🆘</div>
+</div>
+
+<!-- SOS OVERLAY -->
+<div class="sos-overlay" id="sosOverlay" onclick="closeSOS(event)">
+  <div class="sos-card">
+    <div class="sos-title">🆘 Emergencia</div>
+    <div class="sos-btn" onclick="speakSOS('¡Necesito ayuda!')">
+      <div class="sos-btn-emoji">🚨</div>
+      <div><div class="sos-btn-text">¡Necesito ayuda!</div><div class="sos-btn-sub">Pide asistencia inmediata</div></div>
+    </div>
+    <div class="sos-btn" onclick="speakSOS('Me encuentro mal')">
+      <div class="sos-btn-emoji">🤒</div>
+      <div><div class="sos-btn-text">Me encuentro mal</div><div class="sos-btn-sub">Avisa que no te sientes bien</div></div>
+    </div>
+    <div class="sos-btn" onclick="speakSOS('Tengo mucho dolor')">
+      <div class="sos-btn-emoji">😣</div>
+      <div><div class="sos-btn-text">Tengo mucho dolor</div><div class="sos-btn-sub">Indica que sientes dolor</div></div>
+    </div>
+    <div class="sos-btn" onclick="speakSOS('Llama a mi cuidador')">
+      <div class="sos-btn-emoji">📞</div>
+      <div><div class="sos-btn-text">Llama a mi cuidador</div><div class="sos-btn-sub">Contacta a tu persona de confianza</div></div>
+    </div>
+    <div class="sos-btn" onclick="speakSOS('No puedo respirar bien')">
+      <div class="sos-btn-emoji">😰</div>
+      <div><div class="sos-btn-text">No puedo respirar bien</div><div class="sos-btn-sub">Señala dificultad respiratoria</div></div>
+    </div>
+    <button class="sos-close" onclick="document.getElementById('sosOverlay').classList.remove('open')">Cerrar</button>
+  </div>
 </div>
 
 <!-- SETTINGS MENU -->
@@ -1102,6 +1179,19 @@ const PROXY = 'https://voci-ai-proxy.luca-peltrini.workers.dev/v1/messages';
 const profile = JSON.parse(localStorage.getItem('parlia_profile') || '{"userName":"María","caregiverName":"Carlos","condicion":""}');
 
 // ── SETTINGS ──
+// SOS
+function openSOS(){ document.getElementById('sosOverlay').classList.add('open'); }
+function closeSOS(e){ if(e.target===document.getElementById('sosOverlay')) document.getElementById('sosOverlay').classList.remove('open'); }
+function speakSOS(text){
+  speechSynthesis.cancel();
+  const u=new SpeechSynthesisUtterance(text);
+  u.lang='es-ES'; u.rate=0.85; u.pitch=1.05; u.volume=1;
+  const vs=speechSynthesis.getVoices();
+  const v=vs.find(v=>v.name.includes('Lucía')||v.name.includes('Lucia')||(v.lang==='es-ES'&&v.localService))||vs.find(v=>v.lang==='es-ES');
+  if(v) u.voice=v;
+  speechSynthesis.speak(u);
+}
+
 function toggleSettings() {
   const m = document.getElementById('settingsMenu');
   m.classList.toggle('open');
