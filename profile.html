@@ -547,7 +547,7 @@
 </div>
 
 <!-- MI MEMORIA AI -->
-<div style="margin:20px 14px 0">
+<div id="memoria-ai" style="margin:20px 14px 0">
   <div style="font-family:'Bricolage Grotesque',sans-serif;font-size:1.05rem;font-weight:800;color:var(--ink);margin-bottom:4px;display:flex;align-items:center;gap:8px">🧠 Mi Memoria AI</div>
   <div style="font-size:.73rem;color:var(--muted);font-weight:500;margin-bottom:12px">Información que Parlia AI usa para conocerte mejor. Solo se guarda en tu teléfono.</div>
 
@@ -1003,6 +1003,14 @@
       }
     };
     reader.readAsText(file);
+  }
+
+  // Scroll to #memoria-ai if hash present
+  if(location.hash==='#memoria-ai'){
+    setTimeout(()=>{
+      const el=document.getElementById('memoria-ai');
+      if(el) el.scrollIntoView({behavior:'smooth',block:'start'});
+    },300);
   }
 </script>
 </body>
