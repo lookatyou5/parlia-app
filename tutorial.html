@@ -403,11 +403,12 @@ html,body { height:100%; overflow:hidden; font-family:'Plus Jakarta Sans',sans-s
     <div class="cta-title">¡Ya lo sabes todo! 🎉</div>
     <div class="cta-sub">Puedes volver a esta guía desde el menú ⚙️ cuando quieras.</div>
     <button class="cta-btn" onclick="goToApp()" id="ctaBtn">¡Listo! Ir a la App →</button>
-    <label style="display:flex;align-items:center;justify-content:center;gap:8px;margin-top:14px;cursor:pointer;-webkit-tap-highlight-color:transparent">
-      <input type="checkbox" id="hideTutorial" style="width:16px;height:16px;accent-color:#6366f1;cursor:pointer">
-      <span style="font-size:.78rem;font-weight:600;color:rgba(255,255,255,.55)">No mostrar más el tutorial</span>
-    </label>
   </div>
+
+  <label style="display:flex;align-items:center;justify-content:center;gap:8px;margin-top:12px;cursor:pointer;-webkit-tap-highlight-color:transparent;position:relative;z-index:10">
+    <input type="checkbox" id="hideTutorial" style="width:18px;height:18px;accent-color:#6366f1;cursor:pointer">
+    <span style="font-size:.78rem;font-weight:600;color:var(--muted)">No mostrar más el tutorial</span>
+  </label>
 
   <div style="text-align:center;padding:20px 0 10px;font-size:.56rem;color:#c4c4c4;font-weight:600">© 2026 Parlia.app</div>
 </div>
