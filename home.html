@@ -2423,7 +2423,7 @@ function _wtRender() {
     sp.style.left   = cx + 'px';
     sp.style.width  = '0px';
     sp.style.height = '0px';
-    if (fast) setTimeout(() => { sp.style.transition = ''; }, 220);
+    if (fast) _wtNavTimers.push(setTimeout(() => { sp.style.transition = ''; }, 220));
   };
 
   // ── Helper: expand spotlight to element bounds ──
@@ -2467,7 +2467,7 @@ function _wtRender() {
       _collapse(prevCX, prevCY, true);
     }
 
-    setTimeout(() => {
+    _wtNavTimers.push(setTimeout(() => {
       const el = document.querySelector(s.highlight);
       if (!el) { _collapse(window.innerWidth / 2, window.innerHeight / 2, false); return; }
 
@@ -2498,22 +2498,22 @@ function _wtRender() {
         _expandTo(predictedTop - pad, elRect.left - pad, elRect.width + pad*2, elRect.height + pad*2, elRect, slideMode);
         pageEl.scrollTo({ top: targetScroll, behavior: 'smooth' });
 
-        // Fine-tune after scroll settles (small fast correction)
-        setTimeout(() => {
+        // Fine-tune after scroll settles — tracked so it's cancelled if user skips ahead
+        _wtNavTimers.push(setTimeout(() => {
           const r = el.getBoundingClientRect();
           sp.style.transition = 'top .15s ease, left .15s ease, width .15s ease, height .15s ease';
           sp.style.top    = (r.top    - pad) + 'px';
           sp.style.left   = (r.left   - pad) + 'px';
           sp.style.width  = (r.width  + pad * 2) + 'px';
           sp.style.height = (r.height + pad * 2) + 'px';
-          setTimeout(() => { sp.style.transition = ''; }, 200);
-        }, 620);
+          _wtNavTimers.push(setTimeout(() => { sp.style.transition = ''; }, 200));
+        }, 620));
 
       } else {
         const r = el.getBoundingClientRect();
         _expandTo(r.top - pad, r.left - pad, r.width + pad*2, r.height + pad*2, r, slideMode);
       }
-    }, navDelay);
+    }, navDelay));
 
   } else {
     // No highlight — collapse spotlight to center (= full dark, no hole)
