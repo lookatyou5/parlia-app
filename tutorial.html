@@ -409,7 +409,7 @@ html,body { height:100%; overflow:hidden; font-family:'Plus Jakarta Sans',sans-s
     <button class="cta-btn" onclick="goToApp()" id="ctaBtn">¡Listo! Ir a la App →</button>
   </div>
 
-  <div style="height:8px"></div>
+  <div style="height:220px"></div>
 </div>
 </div>
 
@@ -523,7 +523,11 @@ function applyFocus(widgetId){
     const scrollAreaRect=scrollArea.getBoundingClientRect();
     const visibleH=scrollArea.clientHeight-tourCardH;
     const targetTop=targetRect.top-scrollAreaRect.top+scrollArea.scrollTop;
-    const desiredScroll=targetTop-Math.max(10,(visibleH-target.offsetHeight)/2);
+    // If widget fits in visible area, center it; otherwise scroll to its top
+    const fitsInView=target.offsetHeight<=visibleH;
+    const desiredScroll=fitsInView
+      ? targetTop-Math.max(10,(visibleH-target.offsetHeight)/2)
+      : targetTop-10;
     scrollArea.scrollTo({top:Math.max(0,desiredScroll),behavior:'smooth'});
   },80);
 }
