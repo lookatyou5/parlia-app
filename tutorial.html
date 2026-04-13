@@ -312,17 +312,17 @@ html,body { height:100%; overflow:hidden; font-family:'Plus Jakarta Sans',sans-s
       <div style="font-size:.75rem;font-weight:600;color:var(--muted)">Tus herramientas de terapia</div>
     </div>
     <div style="display:flex;flex-direction:column;gap:10px">
-      <div style="background:var(--card);border:1.5px solid var(--border);border-radius:var(--radius);padding:16px;display:flex;align-items:center;gap:14px;box-shadow:var(--shadow)">
+      <div id="rehab-logo" style="background:var(--card);border:1.5px solid var(--border);border-radius:var(--radius);padding:16px;display:flex;align-items:center;gap:14px;box-shadow:var(--shadow);transition:border-color .4s,box-shadow .4s,transform .3s">
         <div style="width:48px;height:48px;border-radius:14px;background:#fdf4ff;display:flex;align-items:center;justify-content:center;font-size:1.4rem;flex-shrink:0">🗣️</div>
         <div style="flex:1"><div style="font-size:.88rem;font-weight:800;color:#7e22ce">Logopedia</div><div style="font-size:.72rem;font-weight:600;color:var(--muted);margin-top:2px">Ejercicios de voz y comunicación con tu logopeda virtual</div></div>
         <div style="font-size:1rem;color:var(--muted)">→</div>
       </div>
-      <div style="background:var(--card);border:1.5px solid var(--border);border-radius:var(--radius);padding:16px;display:flex;align-items:center;gap:14px;box-shadow:var(--shadow)">
+      <div id="rehab-cogni" style="background:var(--card);border:1.5px solid var(--border);border-radius:var(--radius);padding:16px;display:flex;align-items:center;gap:14px;box-shadow:var(--shadow);transition:border-color .4s,box-shadow .4s,transform .3s">
         <div style="width:48px;height:48px;border-radius:14px;background:#f5f3ff;display:flex;align-items:center;justify-content:center;font-size:1.4rem;flex-shrink:0">🧠</div>
         <div style="flex:1"><div style="font-size:.88rem;font-weight:800;color:#6d28d9">Estimulación cognitiva</div><div style="font-size:.72rem;font-weight:600;color:var(--muted);margin-top:2px">Juegos de memoria, atención y lógica adaptados a ti</div></div>
         <div style="font-size:1rem;color:var(--muted)">→</div>
       </div>
-      <div style="background:var(--card);border:1.5px solid var(--border);border-radius:var(--radius);padding:16px;display:flex;align-items:center;gap:14px;box-shadow:var(--shadow)">
+      <div id="rehab-prog" style="background:var(--card);border:1.5px solid var(--border);border-radius:var(--radius);padding:16px;display:flex;align-items:center;gap:14px;box-shadow:var(--shadow);transition:border-color .4s,box-shadow .4s,transform .3s">
         <div style="width:48px;height:48px;border-radius:14px;background:#f0fdfa;display:flex;align-items:center;justify-content:center;font-size:1.4rem;flex-shrink:0">📊</div>
         <div style="flex:1"><div style="font-size:.88rem;font-weight:800;color:#0d9488">Mis progresos</div><div style="font-size:.72rem;font-weight:600;color:var(--muted);margin-top:2px">Historial de sesiones, rachas y logros conseguidos</div></div>
         <div style="font-size:1rem;color:var(--muted)">→</div>
@@ -594,6 +594,30 @@ function goToApp(){
 }
 
 if('speechSynthesis' in window){ speechSynthesis.getVoices(); speechSynthesis.onvoiceschanged=()=>speechSynthesis.getVoices(); }
+
+// Rehab cards highlight animation
+(function rehabGlow(){
+  const cards=[
+    {id:'rehab-logo',  color:'#7e22ce', shadow:'rgba(126,34,206,.3)'},
+    {id:'rehab-cogni', color:'#6d28d9', shadow:'rgba(109,40,217,.3)'},
+    {id:'rehab-prog',  color:'#0d9488', shadow:'rgba(13,148,136,.3)'}
+  ];
+  let i=0;
+  function highlight(){
+    cards.forEach(c=>{
+      const el=document.getElementById(c.id);
+      el.style.borderColor=''; el.style.boxShadow='var(--shadow)'; el.style.transform='';
+    });
+    const c=cards[i];
+    const el=document.getElementById(c.id);
+    el.style.borderColor=c.color;
+    el.style.boxShadow='0 0 0 3px '+c.shadow+', 0 4px 16px '+c.shadow;
+    el.style.transform='scale(1.02)';
+    i=(i+1)%cards.length;
+  }
+  highlight();
+  setInterval(highlight,1500);
+})();
 
 // Agenda auto-swipe animation
 (function agendaSwipe(){
