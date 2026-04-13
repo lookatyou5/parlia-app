@@ -606,7 +606,6 @@ let _animTimers=[];
   ];
   let i=0;
   function highlight(){
-    if(tourStep>=0) return;
     cards.forEach(c=>{
       const el=document.getElementById(c.id);
       el.style.borderColor=''; el.style.boxShadow='var(--shadow)'; el.style.transform=''; el.style.background='var(--card)';
@@ -651,7 +650,6 @@ function aacFlash(){
   ];
   let i=0;
   function highlight(){
-    if(tourStep>=0) return;
     rows.forEach(r=>{
       const el=document.getElementById(r.id);
       el.style.borderColor=''; el.style.boxShadow=''; el.style.transform=''; el.style.background='var(--card)';
@@ -674,7 +672,6 @@ function aacFlash(){
   if(!s) return;
   let forward=true;
   _animTimers.push(setInterval(()=>{
-    if(tourStep>=0) return;
     if(forward){
       s.scrollTo({left:s.scrollWidth,behavior:'smooth'});
     } else {
