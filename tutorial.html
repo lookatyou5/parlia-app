@@ -172,6 +172,24 @@ html,body { height:100%; overflow:hidden; font-family:'Plus Jakarta Sans',sans-s
   transition: opacity .4s ease, filter .4s ease;
 }
 
+/* INITIAL SPOTLIGHT on tour button */
+.initial-dimmed {
+  opacity: .12;
+  filter: blur(2px) brightness(.4);
+  pointer-events: none;
+  transition: opacity .5s ease, filter .5s ease;
+}
+.initial-spotlight {
+  position: relative;
+  z-index: 10;
+  animation: spotPulse 1.8s ease-in-out infinite;
+  box-shadow: 0 0 0 8px rgba(99,102,241,.25), 0 0 40px rgba(99,102,241,.3), 0 6px 20px rgba(37,99,235,.35) !important;
+}
+@keyframes spotPulse {
+  0%,100% { box-shadow: 0 0 0 8px rgba(99,102,241,.25), 0 0 40px rgba(99,102,241,.3), 0 6px 20px rgba(37,99,235,.35); }
+  50% { box-shadow: 0 0 0 14px rgba(99,102,241,.15), 0 0 60px rgba(99,102,241,.2), 0 6px 20px rgba(37,99,235,.35); }
+}
+
 /* POPUP */
 #popup-overlay { position:fixed; inset:0; z-index:800; background:rgba(10,10,20,.55); backdrop-filter:blur(6px); display:flex; align-items:flex-end; padding:0 14px 20px; opacity:0; pointer-events:none; transition:opacity .25s; }
 #popup-overlay.open { opacity:1; pointer-events:auto; }
@@ -501,11 +519,24 @@ function updateText(step,cb){
   },180);
 }
 
-function startTour(){
-  tourStep=0;
+// Initial spotlight on page load
+(function initSpotlight(){
   const btn=document.getElementById('tourStartBtn');
+  btn.classList.add('initial-spotlight');
+  ['tour-intro','w-ai','w-agenda','w-rehab','w-perfil','w-aac','w-cta'].forEach(id=>{
+    const el=document.getElementById(id); if(el) el.classList.add('initial-dimmed');
+  });
+})();
+
+function startTour(){
+  // Remove initial spotlight
+  const btn=document.getElementById('tourStartBtn');
+  btn.classList.remove('initial-spotlight');
+  document.querySelectorAll('.initial-dimmed').forEach(el=>el.classList.remove('initial-dimmed'));
+
+  tourStep=0;
   btn.style.opacity='.4'; btn.style.pointerEvents='none';
-    applyFocus(TOUR[0].widgetId);
+  applyFocus(TOUR[0].widgetId);
   requestAnimationFrame(()=>{ tCard.classList.add('visible'); updateText(TOUR[0]); });
 }
 
