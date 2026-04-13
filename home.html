@@ -786,7 +786,7 @@ html, body {
     <div class="page" id="page0">
 
       <!-- Tutorial widget -->
-      <a href="tutorial.html" class="tutorial-widget" style="text-decoration:none;display:flex;align-items:center;gap:10px;padding:10px 14px;margin:0 0 12px;border-radius:14px;background:linear-gradient(135deg,#7c3aed,#6366f1);box-shadow:0 2px 12px rgba(99,102,241,.3);-webkit-tap-highlight-color:transparent;">
+      <a href="tutorial.html" id="tutorialWidget" class="tutorial-widget" style="text-decoration:none;display:flex;align-items:center;gap:10px;padding:10px 14px;margin:0 0 12px;border-radius:14px;background:linear-gradient(135deg,#7c3aed,#6366f1);box-shadow:0 2px 12px rgba(99,102,241,.3);-webkit-tap-highlight-color:transparent;">
         <span style="font-size:1.3rem;line-height:1;">🎓</span>
         <span style="font-size:0.82rem;font-weight:700;color:white;flex:1;">Descubre Parlia.app</span>
         <span style="font-size:0.75rem;font-weight:600;color:rgba(255,255,255,.7);">Ver tutorial →</span>
@@ -2161,6 +2161,9 @@ function toast(msg) {
 
 // ── INIT ──
 function init() {
+  if(localStorage.getItem('parlia_hide_tutorial_widget')){
+    const tw=document.getElementById('tutorialWidget'); if(tw) tw.style.display='none';
+  }
   initProfile();
   initAIHero();
   buildAgenda();
