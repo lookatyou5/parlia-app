@@ -523,7 +523,7 @@ function updateText(step,cb){
 (function initSpotlight(){
   const btn=document.getElementById('tourStartBtn');
   btn.classList.add('initial-spotlight');
-  ['tour-intro','w-ai','w-agenda','w-rehab','w-perfil','w-aac','w-cta'].forEach(id=>{
+  ['w-ai','w-agenda','w-rehab','w-perfil','w-aac','w-cta'].forEach(id=>{
     const el=document.getElementById(id); if(el) el.classList.add('initial-dimmed');
   });
 })();
