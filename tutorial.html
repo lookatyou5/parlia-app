@@ -518,10 +518,10 @@ function applyFocus(widgetId){
     const visibleH=scrollArea.clientHeight-tourCardH;
     const targetTop=targetRect.top-scrollAreaRect.top+scrollArea.scrollTop;
     const fitsInView=target.offsetHeight<=visibleH;
-    // If widget fits, center it; otherwise align its bottom just above tour card
+    // If widget fits, center it; otherwise show from top with small margin
     const desiredScroll=fitsInView
       ? targetTop-Math.max(10,(visibleH-target.offsetHeight)/2)
-      : targetTop+target.offsetHeight-visibleH+16;
+      : targetTop-8;
     scrollArea.scrollTo({top:Math.max(0,desiredScroll),behavior:'smooth'});
   },80);
 }
