@@ -1247,34 +1247,10 @@ function goTo(idx) {
 let tX=0, tY=0, dragging=false, scrolling=false, blocked=false;
 const wrap = document.getElementById('pagesWrap');
 
-// ── LAYOUT INIT ──
-// Forces pixel-exact page widths and resets scroll/transform so the layout
-// is always correct regardless of when the browser finishes applying CSS
-// (important when navigating from onboarding via location.replace).
-function _initLayout() {
-  window.scrollTo(0, 0);
-  const w = window.innerWidth;
-  document.querySelectorAll('.page').forEach(p => {
-    p.style.width = w + 'px';
-    p.style.minWidth = w + 'px';
-  });
-  // Snap track to current page with no transition
-  track.style.transition = 'none';
-  track.style.transform = `translateX(${-curPage * w}px)`;
-}
-_initLayout();                                    // immediate (before first paint)
-setTimeout(_initLayout, 100);                     // 100 ms: after CSS fully applied
-window.addEventListener('load', _initLayout);    // on full load (fonts, images)
-
-// Re-sync on orientation change / resize
+// Re-sync track position on resize/orientation change
 window.addEventListener('resize', () => {
-  const w = window.innerWidth;
-  document.querySelectorAll('.page').forEach(p => {
-    p.style.width = w + 'px';
-    p.style.minWidth = w + 'px';
-  });
   track.style.transition = 'none';
-  track.style.transform = `translateX(${-curPage * w}px)`;
+  track.style.transform = `translateX(${-curPage * window.innerWidth}px)`;
 });
 
 // Guard: ignore swipe input for the first 400ms after load
@@ -2541,12 +2517,18 @@ function init() {
 }
 init();
 
-// History management: back button = history.back() (like swipe)
-// Use replaceState (not pushState) to avoid creating a stale null-state entry
-// that can trigger a spurious popstate on iOS Safari
+// History management
 window.history.replaceState({inApp: true, page: 0}, '', window.location.href);
 
-// Override goTo to add history states
+// Force track to page0 immediately after replaceState.
+// On iOS Safari, replaceState can fire a spurious popstate with a stale state
+// (e.g. {inApp:true, page:1} from a previous session), which would shift the track.
+// Reset here so that even if that happens, we start at the correct position.
+curPage = 0;
+track.style.transition = 'none';
+track.style.transform = 'translateX(0px)';
+
+// Override goTo to push history states
 const originalGoTo = goTo;
 goTo = function(idx) {
   if (idx !== curPage) {
@@ -2555,7 +2537,14 @@ goTo = function(idx) {
   originalGoTo(idx);
 };
 
+// Guard: ignore any popstate fired within the first 600ms of page load.
+// iOS Safari can fire spurious popstate events during init (e.g. after replaceState
+// when navigating from onboarding via location.replace), causing wrong page to show.
+let _popstateReady = false;
+setTimeout(() => { _popstateReady = true; }, 600);
+
 window.addEventListener('popstate', (e) => {
+  if (!_popstateReady) return;
   if (!e.state || !e.state.inApp) {
     window.location.href = '/index.html';
   } else {
