@@ -1131,24 +1131,11 @@ html, body {
 <!-- METEO POPUP -->
 <div class="meteo-overlay" id="meteoOverlay" onclick="closeMeteo(event)">
   <div class="meteo-popup" id="meteoPopup">
-    <div class="wx-sky sunny" id="wxSky">
-      <div class="wx-stars" id="wxStars"></div>
-      <div class="wx-clouds" id="wxClouds"></div>
+    <div class="wx-sky" id="wxSky">
+      <canvas id="wxCanvas" style="position:absolute;inset:0;width:100%;height:100%;display:block;"></canvas>
       <div class="wx-rain-layer" id="wxRain"></div>
       <div class="wx-snow-layer" id="wxSnow"></div>
-      <div class="wx-sun-haze" id="wxSunHaze" style="display:none"></div>
-      <div class="wx-sun-wrap" id="wxSunWrap">
-        <div class="sun-rays" id="sunRays"></div>
-        <div class="sun-body"></div>
-      </div>
-      <div class="wx-moon" id="wxMoon" style="display:none">
-        <div class="moon-body">
-          <div class="moon-crater" style="width:10px;height:10px;top:12px;left:20px"></div>
-          <div class="moon-crater" style="width:6px;height:6px;top:28px;left:12px"></div>
-          <div class="moon-crater" style="width:7px;height:7px;top:18px;left:32px"></div>
-        </div>
-      </div>
-      <div class="wx-lightning" id="wxLightning" style="display:none">
+      <div id="wxLightning" style="position:absolute;display:none;top:16px;left:44%;transform:translateX(-50%);filter:drop-shadow(0 0 12px #fde047) drop-shadow(0 0 4px #fff);animation:lightningFlash 4.5s ease-in-out infinite;pointer-events:none;">
         <svg width="22" height="44" viewBox="0 0 22 44" fill="none"><path d="M13 2L3 24h8l-2 18L20 18h-8L13 2z" fill="#fde047" stroke="#fbbf24" stroke-width="1"/></svg>
       </div>
     </div>
@@ -1984,85 +1971,8 @@ function _wxSceneType(code, hour) {
   return 'rainy';
 }
 
-function _cloudSVG(w, h, op, color='white') {
-  // Forma più organica: base larga + cupole multiple sfalsate
-  const b = h * 0.42;  // altezza base
-  return `<svg width="${w}" height="${h+b}" viewBox="0 0 ${w} ${h+b}" fill="${color}" opacity="${op}">
-    <ellipse cx="${w*.5}"  cy="${h+b*.28}" rx="${w*.52}" ry="${b*.72}"/>
-    <ellipse cx="${w*.2}"  cy="${h*.52}"   rx="${w*.22}" ry="${h*.52}"/>
-    <ellipse cx="${w*.42}" cy="${h*.32}"   rx="${w*.28}" ry="${h*.6}"/>
-    <ellipse cx="${w*.63}" cy="${h*.42}"   rx="${w*.26}" ry="${h*.54}"/>
-    <ellipse cx="${w*.82}" cy="${h*.58}"   rx="${w*.2}"  ry="${h*.44}"/>
-    <ellipse cx="${w*.93}" cy="${h*.72}"   rx="${w*.12}" ry="${h*.3}"/>
-  </svg>`;
-}
-
-function _buildWxScene(type) {
-  const sky = document.getElementById('wxSky');
-  sky.className = `wx-sky ${type}`;
-  document.getElementById('wxStars').innerHTML = '';
-  document.getElementById('wxClouds').innerHTML = '';
-  document.getElementById('wxRain').innerHTML = '';
-  document.getElementById('wxSnow').innerHTML = '';
-  document.getElementById('wxSunWrap').style.display = 'none';
-  document.getElementById('wxMoon').style.display = 'none';
-  document.getElementById('wxLightning').style.display = 'none';
-  document.getElementById('wxSunHaze').style.display = 'none';
-
-  if (type === 'sunny') {
-    document.getElementById('wxSunWrap').style.display = 'block';
-    document.getElementById('wxSunHaze').style.display = 'block';
-  } else if (type === 'partcloud') {
-    document.getElementById('wxSunWrap').style.display = 'block';
-    document.getElementById('wxSunHaze').style.display = 'block';
-    document.getElementById('wxClouds').innerHTML =
-      `<div class="cloud" style="top:52px;right:-8px;animation-duration:10s">${_cloudSVG(170,62,.82)}</div>
-       <div class="cloud" style="top:88px;left:-12px;animation-duration:14s;animation-delay:-6s">${_cloudSVG(130,48,.58)}</div>`;
-  } else if (type === 'cloudy') {
-    document.getElementById('wxClouds').innerHTML =
-      `<div class="cloud" style="top:8px;right:-10px;animation-duration:12s">${_cloudSVG(200,70,.9)}</div>
-       <div class="cloud" style="top:58px;left:-14px;animation-duration:16s;animation-delay:-6s">${_cloudSVG(165,58,.78)}</div>
-       <div class="cloud" style="top:100px;right:30px;animation-duration:13s;animation-delay:-3s">${_cloudSVG(110,40,.52)}</div>`;
-  } else if (type === 'rainy') {
-    document.getElementById('wxClouds').innerHTML =
-      `<div class="cloud" style="top:4px;right:-8px;animation-duration:10s">${_cloudSVG(185,66,.82,'#94a3b8')}</div>
-       <div class="cloud" style="top:52px;left:-12px;animation-duration:13s;animation-delay:-4s">${_cloudSVG(155,56,.68,'#94a3b8')}</div>`;
-    document.getElementById('wxRain').innerHTML = Array.from({length:48},() => {
-      const x=Math.random()*110-5, dur=0.45+Math.random()*.4, delay=-Math.random()*2.5, h=14+Math.random()*18;
-      return `<div class="rain-drop" style="left:${x}%;height:${h}px;animation-duration:${dur}s;animation-delay:${delay}s;opacity:${0.5+Math.random()*.4}"></div>`;
-    }).join('');
-  } else if (type === 'stormy') {
-    document.getElementById('wxClouds').innerHTML =
-      `<div class="cloud" style="top:2px;left:-14px;animation-duration:8s">${_cloudSVG(230,80,.9,'#334155')}</div>
-       <div class="cloud" style="top:56px;right:-8px;animation-duration:10s;animation-delay:-4s">${_cloudSVG(175,64,.75,'#1e293b')}</div>`;
-    document.getElementById('wxRain').innerHTML = Array.from({length:64},() => {
-      const x=Math.random()*110-5, dur=0.28+Math.random()*.25, delay=-Math.random()*1.8, h=16+Math.random()*22;
-      return `<div class="rain-drop" style="left:${x}%;height:${h}px;animation-duration:${dur}s;animation-delay:${delay}s;opacity:${0.55+Math.random()*.35}"></div>`;
-    }).join('');
-    document.getElementById('wxLightning').style.display = 'block';
-  } else if (type === 'snowy') {
-    document.getElementById('wxClouds').innerHTML =
-      `<div class="cloud" style="top:10px;right:-8px;animation-duration:14s">${_cloudSVG(170,60,.82)}</div>
-       <div class="cloud" style="top:60px;left:-12px;animation-duration:18s;animation-delay:-7s">${_cloudSVG(140,50,.64)}</div>`;
-    document.getElementById('wxSnow').innerHTML = Array.from({length:36},() => {
-      const x=Math.random()*100, size=2+Math.random()*5, dur=2.2+Math.random()*3.5, delay=-Math.random()*5;
-      return `<div class="snow-flake" style="left:${x}%;width:${size}px;height:${size}px;animation-duration:${dur}s;animation-delay:${delay}s"></div>`;
-    }).join('');
-  } else if (type === 'night') {
-    document.getElementById('wxMoon').style.display = 'block';
-    document.getElementById('wxStars').innerHTML = Array.from({length:44},() => {
-      const x=Math.random()*92, y=Math.random()*80;
-      const s=Math.random()<.08?3.5:Math.random()<.25?2.5:Math.random()<.5?1.8:1.2;
-      const dur=1.8+Math.random()*3.5, delay=-Math.random()*5;
-      const op=0.4+Math.random()*.6;
-      return `<div class="wx-star" style="left:${x}%;top:${y}%;width:${s}px;height:${s}px;animation-duration:${dur}s;animation-delay:${delay}s;opacity:${op}"></div>`;
-    }).join('');
-  } else if (type === 'foggy') {
-    document.getElementById('wxClouds').innerHTML = Array.from({length:5},(_,i) =>
-      `<div class="wx-fog-layer" style="top:${18+i*32}px;animation-duration:${9+i*3}s;animation-delay:${-i*2.5}s;opacity:${0.42-i*.05}"></div>`
-    ).join('');
-  }
-}
+// ── CANVAS WEATHER RENDERER ──
+let _wxAF = null, _wxLastF = 0;
 
 const WX_SCENE_SKY = {
   sunny:'linear-gradient(135deg,#38bdf8,#fbbf24)',
@@ -2074,6 +1984,176 @@ const WX_SCENE_SKY = {
   night:'linear-gradient(135deg,#0f172a,#1e3a5f)',
   foggy:'linear-gradient(135deg,#4b5563,#9ca3af)'
 };
+
+const _WX_SKY_STOPS = {
+  sunny:    ['#0369a1','#0284c7','#38bdf8','#7dd3fc','#fed7aa','#fbbf24'],
+  partcloud:['#1d4ed8','#2563eb','#60a5fa','#93c5fd','#bfdbfe','#dbeafe'],
+  cloudy:   ['#111827','#1f2937','#374151','#4b5563','#6b7280','#9ca3af'],
+  rainy:    ['#0c1a2e','#0f2543','#1e3a5f','#1e40af','#1d4ed8','#2563eb'],
+  stormy:   ['#020617','#060412','#0f0a1e','#1e1b4b','#2d1b69','#3b0764'],
+  snowy:    ['#64748b','#94a3b8','#cbd5e1','#e2e8f0','#f1f5f9','#f8fafc'],
+  night:    ['#000005','#04071a','#0a0f1e','#0f172a','#1a2744','#1e3a5f'],
+  foggy:    ['#374151','#4b5563','#6b7280','#9ca3af','#c4ccd5','#d1d5db']
+};
+
+function _wxGrad(ctx, W, H, stops) {
+  const g = ctx.createLinearGradient(0,0,0,H);
+  stops.forEach((c,i) => g.addColorStop(i/(stops.length-1), c));
+  ctx.fillStyle=g; ctx.fillRect(0,0,W,H);
+}
+
+function _wxSun(ctx, W, H, behindClouds) {
+  const sx=W*.74, sy=H*.2, r=H*.17;
+  // Atmospheric scatter — concentric glow rings
+  [[r*8,.022],[r*5,.048],[r*3,.1],[r*1.8,.2]].forEach(([gr,a]) => {
+    const g=ctx.createRadialGradient(sx,sy,0,sx,sy,gr);
+    g.addColorStop(0,`rgba(255,242,180,${a})`);
+    g.addColorStop(.5,`rgba(255,210,90,${a*.4})`);
+    g.addColorStop(1,'rgba(255,180,50,0)');
+    ctx.fillStyle=g; ctx.beginPath(); ctx.arc(sx,sy,gr,0,Math.PI*2); ctx.fill();
+  });
+  // Warm horizon glow
+  const hg=ctx.createLinearGradient(0,H*.4,0,H);
+  hg.addColorStop(0,'rgba(253,186,116,0)'); hg.addColorStop(1,'rgba(252,211,77,.18)');
+  ctx.fillStyle=hg; ctx.fillRect(0,H*.4,W,H*.6);
+  // Sun disc (skip when mostly behind clouds)
+  if (!behindClouds) {
+    const d=ctx.createRadialGradient(sx-r*.22,sy-r*.22,0,sx,sy,r);
+    d.addColorStop(0,'#fffde7'); d.addColorStop(.32,'#fde68a');
+    d.addColorStop(.62,'#fbbf24'); d.addColorStop(1,'#f59e0b');
+    ctx.fillStyle=d; ctx.beginPath(); ctx.arc(sx,sy,r,0,Math.PI*2); ctx.fill();
+  }
+}
+
+// Volumetric cloud: many overlapping soft radial gradients = realistic depth
+function _wxCloud(ctx, cx, cy, sz, alpha, gray) {
+  const blobs = [
+    [0,0,1,.94],[-.42,.09,.74,.87],[.47,.07,.78,.85],
+    [-.2,-.34,.62,.79],[.23,-.31,.67,.81],[.71,.19,.52,.71],
+    [-.71,.15,.47,.67],[.11,-.54,.41,.63],[-.37,-.5,.37,.59],
+    [.41,-.46,.39,.61],[.91,.27,.31,.53],[-.91,.23,.29,.49],
+    [.56,-.37,.33,.56],[-.56,-.34,.31,.53],[.0,-.65,.29,.51],
+    [.15,.12,.88,.75],[-.1,.06,.65,.6],  // extra depth blobs
+  ];
+  const [tr,tg,tb] = gray ? [158,172,192] : [255,255,255];
+  const [br,bg,bb] = gray ? [95,110,132]  : [178,196,218];
+  blobs.forEach(([dx,dy,r,am]) => {
+    const bx=cx+dx*sz, by=cy+dy*sz, br2=r*sz;
+    const g=ctx.createRadialGradient(bx,by-br2*.18,0, bx,by+br2*.15,br2*1.07);
+    g.addColorStop(0,  `rgba(${tr},${tg},${tb},${alpha*am})`);
+    g.addColorStop(.42,`rgba(${Math.round((tr+br)/2)},${Math.round((tg+bg)/2)},${Math.round((tb+bb)/2)},${alpha*am*.58})`);
+    g.addColorStop(.8, `rgba(${br},${bg},${bb},${alpha*am*.2})`);
+    g.addColorStop(1,  'rgba(0,0,0,0)');
+    ctx.fillStyle=g; ctx.beginPath(); ctx.arc(bx,by,br2,0,Math.PI*2); ctx.fill();
+  });
+}
+
+function _wxMoon(ctx, W, H) {
+  const mx=W*.76, my=H*.21, r=H*.16;
+  [[r*4,.05],[r*2.5,.1],[r*1.5,.18]].forEach(([gr,a]) => {
+    const g=ctx.createRadialGradient(mx,my,0,mx,my,gr);
+    g.addColorStop(0,`rgba(210,225,240,${a})`); g.addColorStop(1,'rgba(148,163,184,0)');
+    ctx.fillStyle=g; ctx.beginPath(); ctx.arc(mx,my,gr,0,Math.PI*2); ctx.fill();
+  });
+  const d=ctx.createRadialGradient(mx-r*.28,my-r*.28,0,mx,my,r);
+  d.addColorStop(0,'#f0f4f8'); d.addColorStop(.4,'#e2e8f0');
+  d.addColorStop(.7,'#c8d5e0'); d.addColorStop(1,'#8fa3b4');
+  ctx.fillStyle=d; ctx.beginPath(); ctx.arc(mx,my,r,0,Math.PI*2); ctx.fill();
+  ctx.save(); ctx.globalCompositeOperation='multiply';
+  const sh=ctx.createRadialGradient(mx+r*.3,my+r*.08,0,mx+r*.26,my,r*1.04);
+  sh.addColorStop(0,'rgba(50,65,95,.9)'); sh.addColorStop(.5,'rgba(50,65,95,.4)'); sh.addColorStop(1,'rgba(50,65,95,0)');
+  ctx.fillStyle=sh; ctx.beginPath(); ctx.arc(mx,my,r,0,Math.PI*2); ctx.fill(); ctx.restore();
+}
+
+function _wxStars(ctx, W, H, t) {
+  for (let i=0; i<54; i++) {
+    const ph=i*1.618; const x=(ph*.891%0.94)*W; const y=(ph*.723%0.84)*H;
+    const s=i%9===0?2.4:i%4===0?1.7:1.1;
+    const tw=.2+.8*(.5+.5*Math.sin(t*.05+ph*3.7));
+    if (s>2) {
+      const g=ctx.createRadialGradient(x,y,0,x,y,s*4.5);
+      g.addColorStop(0,`rgba(210,230,255,${tw*.26})`); g.addColorStop(1,'rgba(0,0,0,0)');
+      ctx.fillStyle=g; ctx.beginPath(); ctx.arc(x,y,s*4.5,0,Math.PI*2); ctx.fill();
+    }
+    ctx.fillStyle=`rgba(255,255,255,${tw*.92})`;
+    ctx.beginPath(); ctx.arc(x,y,s,0,Math.PI*2); ctx.fill();
+  }
+}
+
+function _wxFog(ctx, W, H, t) {
+  for (let i=0; i<6; i++) {
+    const y=H*(.1+i*.17), drift=Math.sin(t*.018+i*1.4)*W*.055;
+    const a=.22-i*.03;
+    const g=ctx.createLinearGradient(0,y,0,y+H*.2);
+    g.addColorStop(0,'rgba(215,228,238,0)'); g.addColorStop(.3,`rgba(215,228,238,${a})`);
+    g.addColorStop(.7,`rgba(215,228,238,${a*.75})`); g.addColorStop(1,'rgba(215,228,238,0)');
+    ctx.save(); ctx.translate(drift,0); ctx.fillStyle=g; ctx.fillRect(-W*.12,y,W*1.24,H*.22); ctx.restore();
+  }
+}
+
+function _wxFrame(canvas, type, t) {
+  const dpr=window.devicePixelRatio||1;
+  const W=+canvas.dataset.wxw||300, H=+canvas.dataset.wxh||150;
+  const ctx=canvas.getContext('2d');
+  ctx.save(); ctx.scale(dpr,dpr);
+  ctx.clearRect(0,0,W,H);
+  _wxGrad(ctx,W,H,_WX_SKY_STOPS[type]||_WX_SKY_STOPS.sunny);
+  if (type==='sunny')     _wxSun(ctx,W,H,false);
+  if (type==='partcloud') _wxSun(ctx,W,H,true);
+  if (type==='night')     { _wxStars(ctx,W,H,t); _wxMoon(ctx,W,H); }
+  if (type==='foggy')     _wxFog(ctx,W,H,t);
+  // Clouds — slow sinusoidal drift
+  const dr=Math.sin(t*.012)*W*.022;
+  if (type==='sunny')     _wxCloud(ctx,W*.22+dr,H*.58,W*.2,.38,false);
+  if (type==='partcloud') { _wxCloud(ctx,W*.62+dr,H*.34,W*.34,.9,false); _wxCloud(ctx,W*.18-dr*.7,H*.62,W*.25,.62,false); }
+  if (type==='cloudy')    { _wxCloud(ctx,W*.5+dr,H*.26,W*.48,.93,true); _wxCloud(ctx,W*.1-dr*.8,H*.5,W*.39,.85,true); _wxCloud(ctx,W*.82+dr*.5,H*.6,W*.28,.68,true); }
+  if (type==='rainy')     { _wxCloud(ctx,W*.5+dr*.4,H*.2,W*.54,.91,true); _wxCloud(ctx,W*.08-dr*.4,H*.42,W*.42,.77,true); }
+  if (type==='stormy')    { _wxCloud(ctx,W*.45+dr*.3,H*.16,W*.62,.97,true); _wxCloud(ctx,W*.9-dr*.5,H*.4,W*.38,.83,true); _wxCloud(ctx,W*.08+dr*.2,H*.34,W*.3,.72,true); }
+  if (type==='snowy')     { _wxCloud(ctx,W*.5+dr*.4,H*.24,W*.5,.87,false); _wxCloud(ctx,W*.12-dr*.3,H*.52,W*.35,.7,false); }
+  // Stormy flash
+  if (type==='stormy') {
+    const fl=Math.sin(t*.14)*Math.sin(t*.38);
+    if (fl>.91) { ctx.fillStyle=`rgba(255,255,200,${(fl-.91)*8})`; ctx.fillRect(0,0,W,H); }
+  }
+  ctx.restore();
+}
+
+function _wxTick(t) {
+  const canvas=document.getElementById('wxCanvas');
+  if (!canvas||!canvas.dataset.wxtype) return;
+  const now=performance.now();
+  if (now-_wxLastF>85) { _wxLastF=now; _wxFrame(canvas,canvas.dataset.wxtype,t); t++; }
+  _wxAF=requestAnimationFrame(()=>_wxTick(t));
+}
+
+function _buildWxScene(type) {
+  if (_wxAF) { cancelAnimationFrame(_wxAF); _wxAF=null; }
+  const canvas=document.getElementById('wxCanvas');
+  if (!canvas) return;
+  const dpr=window.devicePixelRatio||1;
+  const W=canvas.offsetWidth||300, H=canvas.offsetHeight||150;
+  canvas.dataset.wxtype=type; canvas.dataset.wxw=W; canvas.dataset.wxh=H;
+  canvas.width=Math.round(W*dpr); canvas.height=Math.round(H*dpr);
+  _wxFrame(canvas,type,0);
+  _wxLastF=0; _wxAF=requestAnimationFrame(()=>_wxTick(1));
+  // CSS overlays: rain, snow, lightning
+  document.getElementById('wxRain').innerHTML='';
+  document.getElementById('wxSnow').innerHTML='';
+  document.getElementById('wxLightning').style.display='none';
+  if (type==='rainy'||type==='stormy') {
+    const n=type==='stormy'?64:48, fast=type==='stormy';
+    document.getElementById('wxRain').innerHTML=Array.from({length:n},()=>{
+      const x=Math.random()*110-5,dur=(fast?.28:.45)+Math.random()*(fast?.25:.4),delay=-Math.random()*2.5,h=14+Math.random()*20;
+      return `<div class="rain-drop" style="left:${x}%;height:${h}px;animation-duration:${dur}s;animation-delay:${delay}s;opacity:${.5+Math.random()*.4}"></div>`;
+    }).join('');
+    if (type==='stormy') document.getElementById('wxLightning').style.display='block';
+  } else if (type==='snowy') {
+    document.getElementById('wxSnow').innerHTML=Array.from({length:36},()=>{
+      const x=Math.random()*100,sz=2+Math.random()*5,dur=2.2+Math.random()*3.5,delay=-Math.random()*5;
+      return `<div class="snow-flake" style="left:${x}%;width:${sz}px;height:${sz}px;animation-duration:${dur}s;animation-delay:${delay}s"></div>`;
+    }).join('');
+  }
+}
 
 async function loadMeteo() {
   try {
