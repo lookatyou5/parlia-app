@@ -1757,58 +1757,6 @@ function _speak(text) {
 const _H=new Date().getHours(), _M=new Date().getMinutes();
 const _IS_NIGHT = _H >= 23 || _H < 6;
 
-// ── DYNAMIC BACKGROUND ──
-(function dynamicBg(){
-  const r=document.documentElement.style;
-  const b1=document.querySelector('.blob1');
-  const b2=document.querySelector('.blob2');
-  const tb=document.querySelector('.topbar');
-
-  if(_H>=6 && _H<9){
-    // Mattina presto — toni caldi aurora
-    r.setProperty('--bg','#fef9ef');
-    b1.style.background='radial-gradient(circle,#fde68a,#fed7aa)';
-    b2.style.background='radial-gradient(circle,#bfdbfe,#c7d2fe)';
-    tb.style.background='rgba(254,249,239,.92)';
-  } else if(_H>=9 && _H<13){
-    // Mattina — azzurro chiaro (default rinfrescato)
-    r.setProperty('--bg','#f0f7ff');
-    b1.style.background='radial-gradient(circle,#bfdbfe,#93c5fd)';
-    b2.style.background='radial-gradient(circle,#a5f3fc,#99f6e4)';
-    tb.style.background='rgba(240,247,255,.92)';
-  } else if(_H>=13 && _H<17){
-    // Pomeriggio — azzurro/lavanda
-    r.setProperty('--bg','#f5f6fa');
-    b1.style.background='radial-gradient(circle,#bfdbfe,#ddd6fe)';
-    b2.style.background='radial-gradient(circle,#99f6e4,#a5f3fc)';
-    tb.style.background='rgba(245,246,250,.92)';
-  } else if(_H>=17 && _H<20){
-    // Tardo pomeriggio — tramonto
-    r.setProperty('--bg','#fdf4f0');
-    b1.style.background='radial-gradient(circle,#fecaca,#fde68a)';
-    b2.style.background='radial-gradient(circle,#c7d2fe,#e9d5ff)';
-    tb.style.background='rgba(253,244,240,.92)';
-  } else if(_H>=20 && _H<23){
-    // Sera — blu scuro/indigo
-    r.setProperty('--bg','#eef0f8');
-    b1.style.background='radial-gradient(circle,#a5b4fc,#c4b5fd)';
-    b2.style.background='radial-gradient(circle,#818cf8,#a78bfa)';
-    tb.style.background='rgba(238,240,248,.92)';
-  } else {
-    // Notte (23-6) — scuro
-    r.setProperty('--bg','#0f172a');
-    r.setProperty('--ink','#e2e8f0');
-    r.setProperty('--muted','#94a3b8');
-    r.setProperty('--card','#1e293b');
-    r.setProperty('--border','#334155');
-    b1.style.background='radial-gradient(circle,#312e81,#1e1b4b)';
-    b2.style.background='radial-gradient(circle,#1e3a5f,#0f172a)';
-    b1.style.opacity='0.3'; b2.style.opacity='0.3';
-    tb.style.background='rgba(15,23,42,.92)';
-    tb.style.borderBottomColor='#334155';
-  }
-})();
-
 function _timeStr(h) {
   if (h >= 6  && h < 12) return 'Buenos días';
   if (h >= 12 && h < 14) return 'Buenas tardes';
