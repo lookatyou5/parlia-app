@@ -523,8 +523,8 @@ function applyFocus(widgetId){
       // Center widget in visible area above tour card
       desiredScroll=targetTop-(visibleH-target.offsetHeight)/2;
     } else {
-      // Show bottom of widget just above tour card
-      desiredScroll=targetTop+target.offsetHeight-visibleH;
+      // Show bottom of widget just above tour card, biased slightly down
+      desiredScroll=targetTop+target.offsetHeight-visibleH+40;
     }
     scrollArea.scrollTo({top:Math.max(0,desiredScroll),behavior:'smooth'});
   },150);
