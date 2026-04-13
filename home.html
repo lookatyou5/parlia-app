@@ -95,11 +95,12 @@ html, body {
   will-change: transform;
 }
 .page {
-  width: 25%; height: 100%;
+  width: 25%; height: 100%; flex-shrink: 0;
   overflow-y: auto; overflow-x: hidden;
   -webkit-overflow-scrolling: touch;
   scrollbar-width: none;
   padding: 14px 14px 10px;
+  box-sizing: border-box;
   display: flex; flex-direction: column; gap: 12px;
 }
 .page::-webkit-scrollbar { display: none; }
@@ -2298,6 +2299,8 @@ const WT_STEPS = [
 ];
 let _wtStep = 0;
 let _wtHighlightEl = null;
+let _wtPaddedPage  = null;   // page that has the temporary 200px paddingBottom
+let _wtNavTimers   = [];     // swipe-animation timeouts to cancel on step change/close
 
 function showTutorial() {
   _wtStep = 0;
@@ -2308,9 +2311,23 @@ function showTutorial() {
   document.getElementById('wtOverlay').classList.add('open');
 }
 function _wtCleanup() {
-  // Fade out spotlight (keep display:block during tutorial — only closeTutorial sets display:none)
+  // Cancel any pending swipe-demo navigation timers
+  _wtNavTimers.forEach(t => clearTimeout(t));
+  _wtNavTimers = [];
+
+  // Fade out spotlight (display:none is set only in closeTutorial)
   document.getElementById('wtSpotlight').classList.remove('wt-spotlight-on');
-  // Restore any temporary padding immediately
+
+  // Restore padding using the dedicated tracker (works even if _wtHighlightEl is still null)
+  if (_wtPaddedPage) {
+    if (_wtPaddedPage._wtOrigPad !== undefined) {
+      _wtPaddedPage.style.paddingBottom = _wtPaddedPage._wtOrigPad;
+      _wtPaddedPage._wtOrigPad = undefined;
+    }
+    _wtPaddedPage.scrollTop = 0;   // reset vertical scroll so page looks correct after tutorial
+    _wtPaddedPage = null;
+  }
+  // Backup: also clean via _wtHighlightEl's page in case they differ
   if (_wtHighlightEl) {
     const p = _wtHighlightEl.closest('.page');
     if (p && p._wtOrigPad !== undefined) { p.style.paddingBottom = p._wtOrigPad; p._wtOrigPad = undefined; }
@@ -2321,8 +2338,10 @@ function closeTutorial() {
   document.getElementById('wtOverlay').classList.remove('open');
   if (_wtHighlightEl) { _wtHighlightEl.classList.remove('wt-highlighted'); _wtHighlightEl = null; }
   document.getElementById('wtSwipeHand').style.display = 'none';
-  // Hide spotlight after opacity transition, so the large box-shadow is not always rendered
+  // Hide spotlight after opacity transition so the large box-shadow is not always rendered
   setTimeout(() => { document.getElementById('wtSpotlight').style.display = 'none'; }, 400);
+  // Force track back to page 0 with correct transform — cleans up any stale position
+  originalGoTo(0);
   localStorage.setItem('parlia_tutorial_done', '1');
 }
 function wtNext() {
@@ -2372,13 +2391,13 @@ function _wtRender() {
     dark.classList.remove('off');
     document.getElementById('wtSwipeHand').style.display = 'block';
     document.getElementById('wtBtn').disabled = true;
-    setTimeout(() => {
+    _wtNavTimers.push(setTimeout(() => {
       originalGoTo(1);
-      setTimeout(() => {
+      _wtNavTimers.push(setTimeout(() => {
         originalGoTo(0);
         document.getElementById('wtBtn').disabled = false;
-      }, 900);
-    }, 700);
+      }, 900));
+    }, 700));
 
   } else if (s.highlight) {
     // Spotlight on element — start after navigation settles
@@ -2397,6 +2416,7 @@ function _wtRender() {
         // Add temporary padding so there is enough room to scroll
         pageEl._wtOrigPad = pageEl.style.paddingBottom;
         pageEl.style.paddingBottom = '200px';
+        _wtPaddedPage = pageEl;   // track for reliable cleanup
 
         const wtCardH = document.querySelector('.wt-card').offsetHeight || 234;
         const pageTop = pageEl.getBoundingClientRect().top;
