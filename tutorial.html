@@ -307,34 +307,29 @@ html,body { height:100%; overflow:hidden; font-family:'Plus Jakarta Sans',sans-s
 
   <!-- WIDGET 3: REHAB -->
   <div id="w-rehab">
-    <div style="background:var(--card);border:1.5px solid var(--border);border-radius:var(--radius);overflow:hidden;box-shadow:var(--shadow)">
-      <div style="padding:12px 14px 8px;display:flex;align-items:center;justify-content:space-between">
-        <div style="font-size:.72rem;font-weight:800;color:var(--ink);display:flex;align-items:center;gap:6px">
-          <span style="width:7px;height:7px;border-radius:50%;background:#a78bfa;box-shadow:0 0 0 3px rgba(167,139,250,.2);display:inline-block"></span>
-          Rehabilitación
-        </div>
-        <div style="font-size:.65rem;font-weight:700;color:#7c3aed">Ver todo →</div>
+    <div style="margin-bottom:8px">
+      <div style="font-family:'Bricolage Grotesque',sans-serif;font-size:1.05rem;font-weight:800;color:var(--ink)">Rehabilitación</div>
+      <div style="font-size:.75rem;font-weight:600;color:var(--muted)">Tus herramientas de terapia</div>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:10px">
+      <div style="background:var(--card);border:1.5px solid var(--border);border-radius:var(--radius);padding:16px;display:flex;align-items:center;gap:14px;box-shadow:var(--shadow)">
+        <div style="width:48px;height:48px;border-radius:14px;background:#fdf4ff;display:flex;align-items:center;justify-content:center;font-size:1.4rem;flex-shrink:0">🗣️</div>
+        <div style="flex:1"><div style="font-size:.88rem;font-weight:800;color:#7e22ce">Logopedia</div><div style="font-size:.72rem;font-weight:600;color:var(--muted);margin-top:2px">Ejercicios de voz y comunicación con tu logopeda virtual</div></div>
+        <div style="font-size:1rem;color:var(--muted)">→</div>
       </div>
-      <div style="display:flex;flex-direction:column;gap:8px;padding:0 14px 14px">
-        <div style="background:#f5f3ff;border:1.5px solid #ede9fe;border-radius:14px;padding:12px 14px;display:flex;align-items:center;gap:12px">
-          <span style="font-size:1.3rem">📝</span>
-          <div style="flex:1"><div style="font-size:.82rem;font-weight:800;color:var(--ink)">Palabras</div><div style="font-size:.7rem;color:var(--muted)">Completa la sílaba</div></div>
-          <div style="font-size:.6rem;font-weight:800;background:#dcfce7;color:#16a34a;padding:3px 9px;border-radius:100px">Fácil</div>
-        </div>
-        <div style="background:#f5f3ff;border:1.5px solid #ede9fe;border-radius:14px;padding:12px 14px;display:flex;align-items:center;gap:12px">
-          <span style="font-size:1.3rem">🃏</span>
-          <div style="flex:1"><div style="font-size:.82rem;font-weight:800;color:var(--ink)">Memoria</div><div style="font-size:.7rem;color:var(--muted)">Encuentra los pares</div></div>
-          <div style="font-size:.6rem;font-weight:800;background:#dbeafe;color:#2563eb;padding:3px 9px;border-radius:100px">Nuevo</div>
-        </div>
-        <div style="background:linear-gradient(135deg,#1e3a8a,#4f46e5);border-radius:14px;padding:12px 14px;display:flex;align-items:center;gap:10px">
-          <span style="font-size:1.1rem">🎙️</span>
-          <div style="flex:1"><div style="font-size:.82rem;font-weight:800;color:white">Logopedia</div><div style="font-size:.7rem;color:rgba(255,255,255,.55)">Sesión guiada con IA</div></div>
-          <div style="font-size:.75rem;font-weight:800;color:white;background:rgba(255,255,255,.2);padding:5px 12px;border-radius:100px">Iniciar →</div>
-        </div>
+      <div style="background:var(--card);border:1.5px solid var(--border);border-radius:var(--radius);padding:16px;display:flex;align-items:center;gap:14px;box-shadow:var(--shadow)">
+        <div style="width:48px;height:48px;border-radius:14px;background:#f5f3ff;display:flex;align-items:center;justify-content:center;font-size:1.4rem;flex-shrink:0">🧠</div>
+        <div style="flex:1"><div style="font-size:.88rem;font-weight:800;color:#6d28d9">Estimulación cognitiva</div><div style="font-size:.72rem;font-weight:600;color:var(--muted);margin-top:2px">Juegos de memoria, atención y lógica adaptados a ti</div></div>
+        <div style="font-size:1rem;color:var(--muted)">→</div>
+      </div>
+      <div style="background:var(--card);border:1.5px solid var(--border);border-radius:var(--radius);padding:16px;display:flex;align-items:center;gap:14px;box-shadow:var(--shadow)">
+        <div style="width:48px;height:48px;border-radius:14px;background:#f0fdfa;display:flex;align-items:center;justify-content:center;font-size:1.4rem;flex-shrink:0">📊</div>
+        <div style="flex:1"><div style="font-size:.88rem;font-weight:800;color:#0d9488">Mis progresos</div><div style="font-size:.72rem;font-weight:600;color:var(--muted);margin-top:2px">Historial de sesiones, rachas y logros conseguidos</div></div>
+        <div style="font-size:1rem;color:var(--muted)">→</div>
       </div>
     </div>
     <div class="hs-wrap">
-      <div class="hs-btn" onclick="openPopup('rehab-juegos')"><div class="hs-badge">i</div><span class="hs-label">Los 4 ejercicios</span></div>
+      <div class="hs-btn" onclick="openPopup('rehab-juegos')"><div class="hs-badge">i</div><span class="hs-label">Los ejercicios</span></div>
       <div class="hs-btn" onclick="openPopup('rehab-logo')"><div class="hs-badge">i</div><span class="hs-label">Sesión de logopedia</span></div>
     </div>
   </div>
