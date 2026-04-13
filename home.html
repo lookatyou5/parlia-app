@@ -1178,6 +1178,30 @@ html, body {
 const PROXY = 'https://voci-ai-proxy.luca-peltrini.workers.dev/v1/messages';
 const profile = JSON.parse(localStorage.getItem('parlia_profile') || '{"userName":"María","caregiverName":"Carlos","condicion":""}');
 
+// ── PARLIA MEMORY ──
+const _mem = JSON.parse(localStorage.getItem('parlia_memory') || 'null') || {
+  user_profile: { hobbies:[], musica:'', comida:'', notas:'' },
+  interaction_stats: { opens:0, last_open:'', favorite_hours:[] },
+  mood_log: { last_mood:'', last_mood_date:'' }
+};
+// Track this visit
+_mem.interaction_stats.opens++;
+_mem.interaction_stats.last_open = new Date().toISOString();
+const hArr = _mem.interaction_stats.favorite_hours;
+hArr.push(new Date().getHours());
+if(hArr.length>30) hArr.splice(0,hArr.length-30);
+localStorage.setItem('parlia_memory',JSON.stringify(_mem));
+function _saveMemory(){ localStorage.setItem('parlia_memory',JSON.stringify(_mem)); }
+// Sync profile_extra data into memory
+(function syncProfileToMemory(){
+  const extra=JSON.parse(localStorage.getItem('parlia_profile_extra')||'{}');
+  if(extra.hobbies&&extra.hobbies.length) _mem.user_profile.hobbies=extra.hobbies;
+  if(extra.personal){
+    if(extra.personal.favoriteFood) _mem.user_profile.comida=extra.personal.favoriteFood;
+  }
+  _saveMemory();
+})();
+
 // ── SETTINGS ──
 // SOS
 function openSOS(){ document.getElementById('sosOverlay').classList.add('open'); }
@@ -1862,6 +1886,16 @@ function _buildSystem(ctx) {
   if (ctx.allDone.length===_sessions.length) lines.push(`Ha completado TODAS las sesiones del día.`);
   if (ctx.next&&!ctx.soon) lines.push(`Próxima sesión: ${ctx.next.label} a las ${ctx.next.time}.`);
   if (window._meteoCtx) lines.push(window._meteoCtx);
+  // Memory context injection
+  const mp=_mem.user_profile;
+  const memLines=[];
+  if(mp.hobbies&&mp.hobbies.length) memLines.push(`Hobbies: ${mp.hobbies.join(', ')}.`);
+  if(mp.musica) memLines.push(`Música favorita: ${mp.musica}.`);
+  if(mp.comida) memLines.push(`Comida favorita: ${mp.comida}.`);
+  if(mp.notas) memLines.push(`Notas personales: ${mp.notas}.`);
+  if(_mem.mood_log.last_mood) memLines.push(`Último estado de ánimo: "${_mem.mood_log.last_mood}" (${_mem.mood_log.last_mood_date}).`);
+  if(_mem.interaction_stats.opens>1) memLines.push(`Ha abierto la app ${_mem.interaction_stats.opens} veces.`);
+  if(memLines.length) lines.push(`\nCONOCIMIENTO PERSONAL del usuario (úsalo de forma natural, no recites la lista):\n${memLines.join(' ')}`);
   lines.push(`\nREGLAS ABSOLUTAS:\n1. NUNCA repitas lo que ya dijiste.\n2. Responde SIEMPRE al último mensaje.\n3. No repitas preguntas.\n4. Máx 18 palabras.\n5. Escribe en nueva línea: CHIPS: y 3-4 opciones separadas por |\n6. Chips = respuestas directas a TU mensaje. Nunca genéricos.\n7. Sin asteriscos ni markdown.`);
   return lines.join(' ');
 }
@@ -1916,7 +1950,12 @@ function _renderChips(chips) {
     const chip=document.createElement('div');
     chip.className='ai-chip'+(c.startsWith('🎤')||c.startsWith('🧩')||c.startsWith('💬')?' cta':'');
     chip.textContent=c.trim(); chip.style.animationDelay=(idx*.09)+'s';
-    chip.onclick=()=>_sendMsg(c.trim()); w.appendChild(chip);
+    chip.onclick=()=>{
+      _mem.mood_log.last_mood=c.trim();
+      _mem.mood_log.last_mood_date=new Date().toLocaleDateString('es-ES');
+      _saveMemory();
+      _sendMsg(c.trim());
+    }; w.appendChild(chip);
   });
 }
 function _buildFallback(ctx) {
