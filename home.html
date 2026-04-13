@@ -1285,6 +1285,23 @@ wrap.addEventListener('touchend', e => {
   dragging = false; blocked = false;
 }, {passive:true});
 
+// touchcancel: iOS cancels touch on system gesture/notification — reset track to avoid stuck position
+wrap.addEventListener('touchcancel', () => {
+  track.style.transition = 'transform .38s cubic-bezier(.4,0,.2,1)';
+  track.style.transform = `translateX(-${curPage * 25}%)`;
+  dragging = false; blocked = false; scrolling = false;
+});
+
+// visibilitychange: when app returns from background (notification, phone call, sleep)
+// any active touch is silently cancelled — reset track position so it's never stuck halfway
+document.addEventListener('visibilitychange', () => {
+  if (!document.hidden) {
+    track.style.transition = 'none';
+    track.style.transform = `translateX(-${curPage * 25}%)`;
+    dragging = false; blocked = false; scrolling = false;
+  }
+});
+
 // ── PULL TO REFRESH ──
 let ptrStartY = 0, ptrActive = false, ptrTriggered = false;
 const ptrEl = document.getElementById('ptrIndicator');
