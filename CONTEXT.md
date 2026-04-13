@@ -14,6 +14,7 @@ Parlia è una PWA (app web progressiva) per comunicazione aumentativa (AAC) dest
 - `home.html` — app principale con 4 pagine a swipe (Inicio / AAC / Rehab / Yo)
 - `profile.html` — schermata profilo
 - `comunicador.html` — comunicador AAC standalone
+- `tutorial.html` — tutorial interattivo standalone con tour guidato
 - `roadmap.html` — roadmap interna (accessibile da ⚙️ nella home)
 - `manifest.json` — PWA manifest (start_url: /)
 - `sw.js` — service worker
@@ -38,17 +39,10 @@ Parlia è una PWA (app web progressiva) per comunicazione aumentativa (AAC) dest
 - Meteo pill in topbar con popup
 - Settings ⚙️ con link a roadmap e profilo
 - Copyright © 2026 Parlia.app — dentro la navbar come ultima riga (position: absolute; bottom: 3px)
-- **Tutorial interattivo** (card viola "Tutorial de la app" nella home page0):
-  - Banner card in page0 → avvia walkthrough in-home
-  - Si auto-avvia dopo onboarding (flag localStorage `parlia_show_tutorial`)
-  - 6 step con spotlight (box-shadow cutout) su elementi UI reali:
-    1. Benvenuto (schermo scuro)
-    2. Spotlight su #aiHeroWrap (AI hero)
-    3. Animazione swipe 👆 + navigazione reale a page1 e ritorno
-    4. Naviga a page1 (AAC), spotlight su #catScroll
-    5. Resta in page0, spotlight su .profile-card
-    6. Fine (schermo scuro)
-  - Tutto in spagnolo: Saltar / Siguiente → / ¡Empezar! 🚀
+- **Tutorial widget** (card viola compatta "Descubre Parlia.app" in cima a page0):
+  - Link a `tutorial.html` (pagina standalone)
+  - Nascondibile: checkbox "No mostrar más el tutorial" in tutorial.html salva `parlia_hide_tutorial_widget` in localStorage → il widget sparisce dalla home
+  - Tutorial accessibile anche da: menu ⚙️ (settings) e sezione Perfil (riga 🎓 prima di "Editar perfil")
 
 ## AAC (comunicador nella home + comunicador.html standalone)
 - 6 categorie: Necesidades, Emociones, Social, Actividades, Lugares, Urgencias
@@ -98,6 +92,23 @@ Parlia è una PWA (app web progressiva) per comunicazione aumentativa (AAC) dest
 - Nav-h aumentata da 72px a 80px per far vedere il copyright
 - Profile.html: aggiunte sezioni profilo arricchite (hobby, interessi, famiglia, info personali)
 - Deploy via GitHub → Cloudflare Pages (auto-deploy su push a main)
+
+## Sessione 13 aprile 2026
+- Creato `tutorial.html` — tutorial standalone (non più walkthrough in-home)
+  - Spotlight iniziale su bottone "Iniciar tour guiado" con tutto il resto offuscato
+  - Tour guidato 4 passi: Parlia AI → Agenda → Rehabilitación → Perfil
+  - Widget reali copiati dalla home (rehab con 3 card, perfil con avatar+righe)
+  - Scroll intelligente: centra widget piccoli, mostra top per widget grandi
+  - Animazioni: agenda auto-swipe (1.5s), rehab cards highlight sequenziale (1s), perfil rows highlight sequenziale (1s), AAC pictograms flash (2 giri a 300ms poi stop)
+  - Animazioni si fermano durante il tour per performance
+  - Fine tour → scroll a "Prueba el comunicador" con flash AAC
+  - Checkbox "No mostrar más el tutorial" → nasconde widget nella home (localStorage `parlia_hide_tutorial_widget`)
+  - "¡Listo! Ir a la App →" salva `parlia_tutorial_seen` e va a home.html
+  - Navbar rimossa (non funzionale nel tutorial)
+- Rimosso vecchio tutorial walkthrough in-home (CSS, JS, HTML overlay ~370 righe)
+- Aggiunto widget tutorial compatto in cima a home page0
+- Aggiunto link tutorial nel menu ⚙️ settings
+- Aggiunto link tutorial nella sezione Perfil (prima di "Editar perfil")
 - Branch di lavoro: main (le modifiche vengono mergeate su main e deployate)
 
 ## Sessione 12 aprile 2026 — pomeriggio
