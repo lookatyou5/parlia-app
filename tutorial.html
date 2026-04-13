@@ -353,19 +353,19 @@ html,body { height:100%; overflow:hidden; font-family:'Plus Jakarta Sans',sans-s
       </div>
     </div>
     <div style="display:flex;flex-direction:column;gap:5px">
-      <div style="display:flex;align-items:center;gap:10px;background:var(--card);border:1.5px solid var(--border);border-radius:12px;padding:10px 12px">
+      <div id="perfil-datos" style="display:flex;align-items:center;gap:10px;background:var(--card);border:1.5px solid var(--border);border-radius:12px;padding:10px 12px;transition:border-color .4s,box-shadow .4s,background .4s,transform .3s">
         <div style="font-size:1rem;width:24px;text-align:center">👤</div>
         <div style="flex:1;font-size:.8rem;font-weight:700;color:var(--ink)">Datos personales</div>
         <div style="font-size:.7rem;font-weight:600;color:var(--muted)">Laura</div>
         <div style="font-size:.85rem;color:var(--muted);margin-left:3px">›</div>
       </div>
-      <div style="display:flex;align-items:center;gap:10px;background:var(--card);border:1.5px solid var(--border);border-radius:12px;padding:10px 12px">
+      <div id="perfil-cond" style="display:flex;align-items:center;gap:10px;background:var(--card);border:1.5px solid var(--border);border-radius:12px;padding:10px 12px;transition:border-color .4s,box-shadow .4s,background .4s,transform .3s">
         <div style="font-size:1rem;width:24px;text-align:center">🏥</div>
         <div style="flex:1;font-size:.8rem;font-weight:700;color:var(--ink)">Condición</div>
         <div style="font-size:.7rem;font-weight:600;color:var(--muted)">Afasia</div>
         <div style="font-size:.85rem;color:var(--muted);margin-left:3px">›</div>
       </div>
-      <div style="display:flex;align-items:center;gap:10px;background:var(--card);border:1.5px solid var(--border);border-radius:12px;padding:10px 12px">
+      <div id="perfil-cuid" style="display:flex;align-items:center;gap:10px;background:var(--card);border:1.5px solid var(--border);border-radius:12px;padding:10px 12px;transition:border-color .4s,box-shadow .4s,background .4s,transform .3s">
         <div style="font-size:1rem;width:24px;text-align:center">🤝</div>
         <div style="flex:1;font-size:.8rem;font-weight:700;color:var(--ink)">Cuidador principal</div>
         <div style="font-size:.7rem;font-weight:600;color:var(--muted)">Luca</div>
@@ -615,6 +615,31 @@ if('speechSynthesis' in window){ speechSynthesis.getVoices(); speechSynthesis.on
     el.style.boxShadow='0 0 0 4px '+c.shadow+', 0 6px 24px '+c.shadow;
     el.style.transform='scale(1.03)';
     i=(i+1)%cards.length;
+  }
+  highlight();
+  setInterval(highlight,1000);
+})();
+
+// Perfil rows highlight animation
+(function perfilGlow(){
+  const rows=[
+    {id:'perfil-datos', color:'#2563eb', shadow:'rgba(37,99,235,.3)', bg:'#eff6ff'},
+    {id:'perfil-cond',  color:'#16a34a', shadow:'rgba(22,163,74,.3)', bg:'#f0fdf4'},
+    {id:'perfil-cuid',  color:'#7c3aed', shadow:'rgba(124,58,237,.3)',bg:'#f5f3ff'}
+  ];
+  let i=0;
+  function highlight(){
+    rows.forEach(r=>{
+      const el=document.getElementById(r.id);
+      el.style.borderColor=''; el.style.boxShadow=''; el.style.transform=''; el.style.background='var(--card)';
+    });
+    const r=rows[i];
+    const el=document.getElementById(r.id);
+    el.style.background=r.bg;
+    el.style.borderColor=r.color;
+    el.style.boxShadow='0 0 0 4px '+r.shadow+', 0 6px 24px '+r.shadow;
+    el.style.transform='scale(1.03)';
+    i=(i+1)%rows.length;
   }
   highlight();
   setInterval(highlight,1000);
