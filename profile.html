@@ -965,6 +965,18 @@
     showToast('📤 Memoria exportada');
   }
 
+  function deepMerge(target, source) {
+    for (const key of Object.keys(source)) {
+      if (source[key] && typeof source[key] === 'object' && !Array.isArray(source[key])
+          && target[key] && typeof target[key] === 'object' && !Array.isArray(target[key])) {
+        deepMerge(target[key], source[key]);
+      } else if (source[key] !== undefined && source[key] !== null && source[key] !== '') {
+        target[key] = source[key];
+      }
+    }
+    return target;
+  }
+
   function importMemory(e) {
     const file = e.target.files[0];
     if(!file) return;
@@ -972,9 +984,18 @@
     reader.onload = function(ev) {
       try {
         const data = JSON.parse(ev.target.result);
-        if(data.parlia_profile) localStorage.setItem('parlia_profile', JSON.stringify(data.parlia_profile));
-        if(data.parlia_profile_extra) localStorage.setItem('parlia_profile_extra', JSON.stringify(data.parlia_profile_extra));
-        if(data.parlia_memory) localStorage.setItem('parlia_memory', JSON.stringify(data.parlia_memory));
+        if(data.parlia_profile) {
+          const current = JSON.parse(localStorage.getItem('parlia_profile')||'{}');
+          localStorage.setItem('parlia_profile', JSON.stringify(deepMerge(current, data.parlia_profile)));
+        }
+        if(data.parlia_profile_extra) {
+          const current = JSON.parse(localStorage.getItem('parlia_profile_extra')||'{}');
+          localStorage.setItem('parlia_profile_extra', JSON.stringify(deepMerge(current, data.parlia_profile_extra)));
+        }
+        if(data.parlia_memory) {
+          const current = JSON.parse(localStorage.getItem('parlia_memory')||'{}');
+          localStorage.setItem('parlia_memory', JSON.stringify(deepMerge(current, data.parlia_memory)));
+        }
         showToast('📥 Memoria importada correctamente');
         setTimeout(()=>location.reload(), 1000);
       } catch(err) {
