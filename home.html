@@ -1045,7 +1045,13 @@ html, body {
         </div>
       </div>
 
-      <div class="yo-row" onclick="window.location.href='profile.html#memoria-ai'" style="margin-top:8px">
+      <div class="yo-row" onclick="window.location.href='profile.html'" style="margin-top:8px">
+          <div class="yo-row-icon">✏️</div>
+          <div class="yo-row-label">Editar perfil</div>
+          <div class="yo-row-arrow">›</div>
+        </div>
+
+      <div class="yo-row" onclick="window.location.href='memoriaAI.html'">
           <div class="yo-row-icon">🧠</div>
           <div class="yo-row-label">Mi Memoria AI</div>
           <div class="yo-row-value" style="font-size:.65rem;color:var(--blue)">Personalizar</div>
@@ -1057,21 +1063,6 @@ html, body {
           <div class="yo-row-label">Tutorial de la app</div>
           <div class="yo-row-arrow">›</div>
         </div>
-
-      <button onclick="window.location.href='profile.html'" style="
-        width:100%; margin-top:20px; padding:16px;
-        background:linear-gradient(135deg,#2563eb,#6366f1);
-        color:white; border:none; border-radius:16px;
-        font-family:'Plus Jakarta Sans',sans-serif;
-        font-size:0.9rem; font-weight:800;
-        cursor:pointer; -webkit-tap-highlight-color:transparent;
-        display:flex; align-items:center; justify-content:center; gap:8px;
-        box-shadow:0 4px 16px rgba(37,99,235,0.3);
-        transition:opacity .15s, transform .15s;
-      " ontouchstart="this.style.opacity='.85';this.style.transform='scale(.98)'"
-         ontouchend="this.style.opacity='1';this.style.transform='scale(1)'">
-        ✏️ Editar perfil
-      </button>
 
     </div><!-- /page3 -->
 
