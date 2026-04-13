@@ -100,7 +100,7 @@ Parlia è una PWA (app web progressiva) per comunicazione aumentativa (AAC) dest
 - Deploy via GitHub → Cloudflare Pages (auto-deploy su push a main)
 - Branch di lavoro: main (le modifiche vengono mergeate su main e deployate)
 
-## Ultima sessione (12 aprile 2026 — pomeriggio)
+## Sessione 12 aprile 2026 — pomeriggio
 - Riordinati widget in home page0: AI Hero → Agenda → Obiettivo del giorno → Profile card → Tutorial banner
 - Fix spotlight tutorial per il passo "Profilo":
   - Logica finale: aggiunge 200px paddingBottom temporaneo alla pagina per avere spazio di scroll
@@ -109,15 +109,30 @@ Parlia è una PWA (app web progressiva) per comunicazione aumentativa (AAC) dest
   - rAF dopo lo scroll per misurare getBoundingClientRect() accurato
   - Cleanup del paddingBottom quando si cambia step o si chiude il tutorial
 - Fix spotlight AI hero: funziona anche se page0 è scrollata (formula targetScroll gestisce scroll negativo → clamp a 0)
+- Meteo popup redesign: floating card con backdrop-filter blur, border-radius 24px, posizionata sotto pill, testo gerarchico, "consiglio" meteo
+- Canvas weather scene: nuvole volumetriche con 17 gradient radiali sovrapposti (bianco in alto, grigio-blu in basso), atmosfera realistica, glow solare, luna con globalCompositeOperation:'multiply', animazione ~12fps
 - Tutti i fix commitati e pushati su main → auto-deploy Cloudflare
+
+## Sessione 13 aprile 2026 — Tutorial premium
+- Tutorial upgrade a esperienza premium e fluida:
+  - **Spotlight persistente**: `wt-spotlight` non viene mai rimosso/ricreato; mostrato/nascosto via `opacity` + classe `.wt-spotlight-on`
+  - **Estetica**: `border-radius: 24px`, overlay `rgba(10,15,40,0.75)` (blu scuro), `inset 0 0 20px rgba(0,0,0,.2)` per bordi morbidi
+  - **Scroll sincronizzato**: predice posizione post-scroll (`predictedTop = elRect.top - deltaScroll`), imposta spotlight subito, avvia `pageEl.scrollTo({behavior:'smooth'})` contemporaneamente, fine-tune a 620ms
+  - **navDelay adattivo**: 60ms se stessa pagina, 320ms se cambia pagina (attende transizione)
+  - **Card animation**: ogni step triggera fade-in + slide-up 15px su `#wtCardInner` via `@keyframes wtCardStep` + classe `wt-step-anim` con reflow forzato
+  - **Elemento centrato**: `desiredElemTop = pageTop + (visibleH - el.offsetHeight) / 2` (centro nell'area sopra card)
+  - **catScroll**: spotlight copre l'intero contenitore `#catScroll` in page1
 
 ## Note tecniche spotlight tutorial
 - `.wt-ov`: position fixed; inset 0; z-index 400
-- `.wt-dark`: background rgba off quando c'è spotlight
-- `.wt-spotlight`: box-shadow 9999px crea il buio attorno; body trasparente mostra l'elemento sotto
-- Scroll formula: `elTopInContent = r.top - pageTop + pageEl.scrollTop`, `targetScroll = elTopInContent - (desiredElemTop - pageTop)`
-- desiredElemTop = `window.innerHeight - wtCardH - el.offsetHeight - 20`
-- Padding 200px temporaneo su pageEl rimosso da `_wtCleanup()` chiamato in `closeTutorial()` e in `_wtRender()` prima di ogni step
+- `.wt-dark`: background `rgba(10,15,40,0.75)`; `.off` → opacity 0
+- `.wt-spotlight`: opacity 0 default; `.wt-spotlight-on` → opacity 1; box-shadow 9999px + inset shadow
+- Transizioni spotlight: top/left/width/height 0.5s cubic-bezier + opacity 0.35s
+- Scroll formula: `elTopInContent = elRect.top - pageTop + pageEl.scrollTop`
+- `desiredElemTop = pageTop + (window.innerHeight - wtCardH - el.offsetHeight) / 2`
+- `targetScroll = Math.max(0, elTopInContent - (desiredElemTop - pageTop))`
+- `deltaScroll = targetScroll - pageEl.scrollTop`; `predictedTop = elRect.top - deltaScroll`
+- Padding 200px temporaneo su pageEl rimosso da `_wtCleanup()` (chiamato in `closeTutorial()` e all'inizio di `_wtRender()`)
 
 ## Istruzioni per Claude Code
 - Prima di qualsiasi modifica, fai sempre un commit git con messaggio "backup pre-modifica"
