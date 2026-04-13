@@ -512,18 +512,22 @@ function applyFocus(widgetId){
   ['tour-intro','tourStartBtn','w-cta'].forEach(id=>{ const el=document.getElementById(id); if(el) el.classList.add('tour-dimmed'); });
   setTimeout(()=>{
     const scrollArea=document.getElementById('scrollArea');
-    const tourCardH=document.querySelector('.tour-inner').offsetHeight+40;
-    const targetRect=target.getBoundingClientRect();
+    const tourCardH=240;
     const scrollAreaRect=scrollArea.getBoundingClientRect();
     const visibleH=scrollArea.clientHeight-tourCardH;
+    const targetRect=target.getBoundingClientRect();
     const targetTop=targetRect.top-scrollAreaRect.top+scrollArea.scrollTop;
     const fitsInView=target.offsetHeight<=visibleH;
-    // If widget fits, center it; otherwise show from top with small margin
-    const desiredScroll=fitsInView
-      ? targetTop-Math.max(10,(visibleH-target.offsetHeight)/2)
-      : targetTop-8;
+    let desiredScroll;
+    if(fitsInView){
+      // Center widget in visible area above tour card
+      desiredScroll=targetTop-(visibleH-target.offsetHeight)/2;
+    } else {
+      // Show bottom of widget just above tour card
+      desiredScroll=targetTop+target.offsetHeight-visibleH;
+    }
     scrollArea.scrollTo({top:Math.max(0,desiredScroll),behavior:'smooth'});
-  },80);
+  },150);
 }
 
 function updateText(step,cb){
