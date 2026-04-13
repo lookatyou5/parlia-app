@@ -91,6 +91,7 @@ html, body {
 .pages-track {
   display: flex; width: 400%; height: 100%;
   transition: transform .38s cubic-bezier(.4,0,.2,1);
+  transform: translateX(0%);
   will-change: transform;
 }
 .page {
@@ -1246,6 +1247,11 @@ function goTo(idx) {
 let tX=0, tY=0, dragging=false, scrolling=false, blocked=false;
 const wrap = document.getElementById('pagesWrap');
 
+// Guard: ignore swipe input for the first 400ms after load
+// Prevents carry-over touches from the previous page (onboarding) from shifting the track
+let _swipeReady = false;
+setTimeout(() => { _swipeReady = true; }, 400);
+
 function _isHScrollable(el) {
   while (el && el !== wrap) {
     const style = window.getComputedStyle(el);
@@ -1257,6 +1263,7 @@ function _isHScrollable(el) {
 }
 
 wrap.addEventListener('touchstart', e => {
+  if (!_swipeReady) return;
   tX = e.touches[0].clientX; tY = e.touches[0].clientY;
   blocked = _isHScrollable(e.target);
   dragging = !blocked; scrolling = false;
@@ -2477,7 +2484,9 @@ function init() {
 init();
 
 // History management: back button = history.back() (like swipe)
-window.history.pushState({inApp: true, page: 0}, '', window.location.href);
+// Use replaceState (not pushState) to avoid creating a stale null-state entry
+// that can trigger a spurious popstate on iOS Safari
+window.history.replaceState({inApp: true, page: 0}, '', window.location.href);
 
 // Override goTo to add history states
 const originalGoTo = goTo;
