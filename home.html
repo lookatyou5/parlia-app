@@ -729,17 +729,21 @@ html, body {
 }
 .wt-ov.open { opacity: 1; pointer-events: all; }
 .wt-dark {
-  position: absolute; inset: 0; background: rgba(10,10,20,.8);
-  transition: opacity .3s; pointer-events: none;
+  position: absolute; inset: 0; background: rgba(10,15,40,0.75);
+  transition: opacity .4s; pointer-events: none;
 }
 .wt-dark.off { opacity: 0; }
 .wt-spotlight {
-  position: absolute; display: none; border-radius: 20px;
-  box-shadow: 0 0 0 9999px rgba(10,10,20,.8);
-  transition: top .45s cubic-bezier(.4,0,.2,1), left .45s cubic-bezier(.4,0,.2,1),
-              width .45s cubic-bezier(.4,0,.2,1), height .45s cubic-bezier(.4,0,.2,1);
+  position: absolute; border-radius: 24px;
+  opacity: 0;
+  box-shadow: 0 0 0 9999px rgba(10,15,40,0.75),
+              inset 0 0 20px rgba(0,0,0,.2);
+  transition: top .5s cubic-bezier(.4,0,.2,1), left .5s cubic-bezier(.4,0,.2,1),
+              width .5s cubic-bezier(.4,0,.2,1), height .5s cubic-bezier(.4,0,.2,1),
+              opacity .35s ease;
   pointer-events: none; z-index: 0;
 }
+.wt-spotlight.wt-spotlight-on { opacity: 1; }
 .wt-swipe-hand {
   position: absolute; top: 42%; left: 50%;
   font-size: 2.4rem; display: none; pointer-events: none; z-index: 2;
@@ -798,6 +802,14 @@ html, body {
 @keyframes wtGlow {
   from { box-shadow: 0 0 0 0 rgba(37,99,235,.5); }
   to   { box-shadow: 0 0 0 10px rgba(37,99,235,0); }
+}
+@keyframes wtCardStep {
+  from { opacity: 0; transform: translateY(15px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.wt-card-inner { }
+.wt-card-inner.wt-step-anim {
+  animation: wtCardStep .35s cubic-bezier(.22,1,.36,1) both;
 }
 
 /* ── TUTORIAL BANNER (card nella home) ── */
@@ -2270,6 +2282,9 @@ function showTutorial() {
   document.getElementById('wtOverlay').classList.add('open');
 }
 function _wtCleanup() {
+  // Fade out spotlight
+  document.getElementById('wtSpotlight').classList.remove('wt-spotlight-on');
+  // Restore any temporary padding immediately
   if (_wtHighlightEl) {
     const p = _wtHighlightEl.closest('.page');
     if (p && p._wtOrigPad !== undefined) { p.style.paddingBottom = p._wtOrigPad; p._wtOrigPad = undefined; }
@@ -2291,15 +2306,18 @@ function _wtRender() {
   const s = WT_STEPS[_wtStep];
   const total = WT_STEPS.length;
 
-  // Remove previous highlight and restore padding
+  // Cleanup previous state (fade spotlight, restore padding)
   _wtCleanup();
   if (_wtHighlightEl) { _wtHighlightEl.classList.remove('wt-highlighted'); _wtHighlightEl = null; }
   document.getElementById('wtSwipeHand').style.display = 'none';
 
-  // Navigate to page
-  if (s.page !== null) originalGoTo(s.page);
+  // Card content fade-in + slide-up animation on each step
+  const inner = document.getElementById('wtCardInner');
+  inner.classList.remove('wt-step-anim');
+  void inner.offsetWidth; // force reflow to restart animation
+  inner.classList.add('wt-step-anim');
 
-  // Dots
+  // Update content
   let dots = '';
   for (let i = 0; i < total; i++) {
     const cls = i < _wtStep ? 'wt-dot done' : i === _wtStep ? 'wt-dot active' : 'wt-dot';
@@ -2315,9 +2333,14 @@ function _wtRender() {
   const spotlight = document.getElementById('wtSpotlight');
   const dark = document.getElementById('wtDark');
 
+  // Navigate to page, delay depends on whether a page change is needed
+  const prevPage = curPage;
+  if (s.page !== null) originalGoTo(s.page);
+  const navDelay = (s.page !== null && s.page !== prevPage) ? 320 : 60;
+
   if (s.swipe) {
-    // Swipe animation: show dark + animated hand, then navigate to page 1
-    spotlight.style.display = 'none';
+    // Swipe animation: full dark + animated hand
+    spotlight.classList.remove('wt-spotlight-on');
     dark.classList.remove('off');
     document.getElementById('wtSwipeHand').style.display = 'block';
     document.getElementById('wtBtn').disabled = true;
@@ -2328,46 +2351,76 @@ function _wtRender() {
         document.getElementById('wtBtn').disabled = false;
       }, 900);
     }, 700);
+
   } else if (s.highlight) {
-    // Spotlight on element
+    // Spotlight on element — start after navigation settles
     dark.classList.add('off');
-    spotlight.style.display = 'block';
     setTimeout(() => {
       const el = document.querySelector(s.highlight);
-      if (el) {
-        const pageEl = el.closest('.page');
-        if (pageEl) {
-          // Padding temporaneo per garantire spazio sufficiente a scrollare
-          pageEl._wtOrigPad = pageEl.style.paddingBottom;
-          pageEl.style.paddingBottom = '200px';
-          const wtCardH = document.querySelector('.wt-card').offsetHeight || 234;
-          const pageTop = pageEl.getBoundingClientRect().top;
-          const elRect = el.getBoundingClientRect();
-          const elTopInContent = elRect.top - pageTop + pageEl.scrollTop;
-          // Obiettivo: elemento appena sopra il pannello tutorial (20px di margine)
-          const desiredElemTop = window.innerHeight - wtCardH - el.offsetHeight - 20;
-          const targetScroll = Math.max(0, elTopInContent - (desiredElemTop - pageTop));
-          pageEl.scrollTop = targetScroll;
-        }
-        // Misura posizione reale dopo lo scroll
-        requestAnimationFrame(() => {
+      if (!el) { spotlight.classList.remove('wt-spotlight-on'); dark.classList.remove('off'); return; }
+
+      el.classList.add('wt-highlighted');
+      _wtHighlightEl = el;
+
+      const pageEl = el.closest('.page');
+      const pad = 12;
+
+      if (pageEl) {
+        // Add temporary padding so there is enough room to scroll
+        pageEl._wtOrigPad = pageEl.style.paddingBottom;
+        pageEl.style.paddingBottom = '200px';
+
+        const wtCardH = document.querySelector('.wt-card').offsetHeight || 234;
+        const pageTop = pageEl.getBoundingClientRect().top;
+        const elRect = el.getBoundingClientRect();
+        const elTopInContent = elRect.top - pageTop + pageEl.scrollTop;
+
+        // Center element in visible area above tutorial card
+        const visibleH = window.innerHeight - wtCardH;
+        const desiredElemTop = pageTop + (visibleH - el.offsetHeight) / 2;
+        const targetScroll = Math.max(0, elTopInContent - (desiredElemTop - pageTop));
+
+        // Predict where element will be after smooth scroll completes
+        const deltaScroll = targetScroll - pageEl.scrollTop;
+        const predictedTop = elRect.top - deltaScroll;
+
+        // Move spotlight to predicted position NOW (CSS transitions animate it smoothly)
+        spotlight.style.top    = (predictedTop - pad) + 'px';
+        spotlight.style.left   = (elRect.left   - pad) + 'px';
+        spotlight.style.width  = (elRect.width  + pad * 2) + 'px';
+        spotlight.style.height = (elRect.height + pad * 2) + 'px';
+        spotlight.classList.add('wt-spotlight-on');
+
+        // Start smooth scroll simultaneously with spotlight animation
+        pageEl.scrollTo({ top: targetScroll, behavior: 'smooth' });
+
+        // Fine-tune position after scroll settles (~600ms)
+        setTimeout(() => {
           const r = el.getBoundingClientRect();
-          const pad = 12;
-          spotlight.style.top    = (r.top  - pad) + 'px';
-          spotlight.style.left   = (r.left - pad) + 'px';
+          // Snap without transition for a clean final correction
+          spotlight.style.transition = 'opacity .35s ease';
+          spotlight.style.top    = (r.top    - pad) + 'px';
+          spotlight.style.left   = (r.left   - pad) + 'px';
           spotlight.style.width  = (r.width  + pad * 2) + 'px';
           spotlight.style.height = (r.height + pad * 2) + 'px';
-          el.classList.add('wt-highlighted');
-          _wtHighlightEl = el;
-        });
+          // Restore full transitions after the correction lands
+          requestAnimationFrame(() => { spotlight.style.transition = ''; });
+        }, 620);
+
       } else {
-        spotlight.style.display = 'none';
-        dark.classList.remove('off');
+        // No scrollable container — position immediately and show
+        const r = el.getBoundingClientRect();
+        spotlight.style.top    = (r.top    - pad) + 'px';
+        spotlight.style.left   = (r.left   - pad) + 'px';
+        spotlight.style.width  = (r.width  + pad * 2) + 'px';
+        spotlight.style.height = (r.height + pad * 2) + 'px';
+        spotlight.classList.add('wt-spotlight-on');
       }
-    }, 500);
+    }, navDelay);
+
   } else {
-    // Full dark
-    spotlight.style.display = 'none';
+    // No highlight — full dark overlay, no spotlight
+    spotlight.classList.remove('wt-spotlight-on');
     dark.classList.remove('off');
   }
 }
@@ -2431,11 +2484,13 @@ window.addEventListener('popstate', (e) => {
   <div class="wt-card">
     <div class="wt-handle"></div>
     <span class="wt-skip-btn" onclick="closeTutorial()">Saltar</span>
-    <div class="wt-dots" id="wtDots"></div>
-    <span class="wt-emoji" id="wtEmoji"></span>
-    <div class="wt-title" id="wtTitle"></div>
-    <div class="wt-desc" id="wtDesc"></div>
-    <button class="wt-btn" id="wtBtn" onclick="wtNext()"></button>
+    <div class="wt-card-inner" id="wtCardInner">
+      <div class="wt-dots" id="wtDots"></div>
+      <span class="wt-emoji" id="wtEmoji"></span>
+      <div class="wt-title" id="wtTitle"></div>
+      <div class="wt-desc" id="wtDesc"></div>
+      <button class="wt-btn" id="wtBtn" onclick="wtNext()"></button>
+    </div>
   </div>
 </div>
 
