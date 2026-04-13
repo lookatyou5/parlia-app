@@ -2334,13 +2334,22 @@ function _wtCleanup() {
 }
 function closeTutorial() {
   _wtCleanup();
+  // Snap track to page0 INSTANTLY before the overlay fades out (transition: none).
+  // The swipe-demo step may have left the track at page1 (-100vw).
+  // originalGoTo(0) would transition over 380ms but the overlay only takes 300ms to fade —
+  // the user would see the track mid-animation. Snap avoids that.
+  curPage = 0;
+  track.style.transition = 'none';
+  track.style.transform = 'translateX(0vw)';
+  document.querySelectorAll('.nav-item').forEach((el,i) => el.classList.toggle('active', i===0));
+  document.querySelectorAll('.nav-dot').forEach((d,i) => d.classList.toggle('active', i===0));
+  hideHint();
+  // Now start the overlay fade
   document.getElementById('wtOverlay').classList.remove('open');
   if (_wtHighlightEl) { _wtHighlightEl.classList.remove('wt-highlighted'); _wtHighlightEl = null; }
   document.getElementById('wtSwipeHand').style.display = 'none';
   // Hide spotlight after opacity transition so the large box-shadow is not always rendered
   setTimeout(() => { document.getElementById('wtSpotlight').style.display = 'none'; }, 400);
-  // Force track back to page 0 with correct transform — cleans up any stale position
-  originalGoTo(0);
   localStorage.setItem('parlia_tutorial_done', '1');
 }
 function wtNext() {
