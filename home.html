@@ -2319,17 +2319,12 @@ function _wtCleanup() {
   // Cancel any pending swipe-demo navigation timers
   _wtNavTimers.forEach(t => clearTimeout(t));
   _wtNavTimers = [];
-
-  // Fade out spotlight (display:none is set only in closeTutorial)
-  document.getElementById('wtSpotlight').classList.remove('wt-spotlight-on');
-
-  // Restore padding using the dedicated tracker (works even if _wtHighlightEl is still null)
+  // Restore padding only — spotlight visibility is managed by _wtRender/closeTutorial
   if (_wtPaddedPage) {
     if (_wtPaddedPage._wtOrigPad !== undefined) {
       _wtPaddedPage.style.paddingBottom = _wtPaddedPage._wtOrigPad;
       _wtPaddedPage._wtOrigPad = undefined;
     }
-    _wtPaddedPage.scrollTop = 0;   // reset vertical scroll so page looks correct after tutorial
     _wtPaddedPage = null;
   }
   // Backup: also clean via _wtHighlightEl's page in case they differ
@@ -2340,22 +2335,26 @@ function _wtCleanup() {
 }
 function closeTutorial() {
   _wtCleanup();
+  // Reset scroll on all pages
+  document.querySelectorAll('.page').forEach(p => { p.scrollTop = 0; });
   // Snap track to page0 INSTANTLY before the overlay fades out (transition: none).
-  // The swipe-demo step may have left the track at page1 (-100vw).
-  // originalGoTo(0) would transition over 380ms but the overlay only takes 300ms to fade —
-  // the user would see the track mid-animation. Snap avoids that.
   curPage = 0;
   track.style.transition = 'none';
   track.style.transform = 'translateX(0px)';
   document.querySelectorAll('.nav-item').forEach((el,i) => el.classList.toggle('active', i===0));
   document.querySelectorAll('.nav-dot').forEach((d,i) => d.classList.toggle('active', i===0));
   hideHint();
-  // Now start the overlay fade
+  // Restore full dark overlay before fading out the overlay container
+  const _sp = document.getElementById('wtSpotlight');
+  const _dk = document.getElementById('wtDark');
+  _sp.classList.remove('wt-spotlight-on');
+  _dk.classList.remove('off');
+  // Now fade out overlay
   document.getElementById('wtOverlay').classList.remove('open');
   if (_wtHighlightEl) { _wtHighlightEl.classList.remove('wt-highlighted'); _wtHighlightEl = null; }
   document.getElementById('wtSwipeHand').style.display = 'none';
   // Hide spotlight after opacity transition so the large box-shadow is not always rendered
-  setTimeout(() => { document.getElementById('wtSpotlight').style.display = 'none'; }, 400);
+  setTimeout(() => { _sp.style.display = 'none'; }, 400);
   localStorage.setItem('parlia_tutorial_done', '1');
 }
 function wtNext() {
@@ -2367,7 +2366,7 @@ function _wtRender() {
   const s = WT_STEPS[_wtStep];
   const total = WT_STEPS.length;
 
-  // Cleanup previous state (fade spotlight, restore padding)
+  // Cancel timers + restore padding from previous step (does NOT touch spotlight)
   _wtCleanup();
   if (_wtHighlightEl) { _wtHighlightEl.classList.remove('wt-highlighted'); _wtHighlightEl = null; }
   document.getElementById('wtSwipeHand').style.display = 'none';
@@ -2393,14 +2392,16 @@ function _wtRender() {
 
   const spotlight = document.getElementById('wtSpotlight');
   const dark = document.getElementById('wtDark');
+  // Snapshot: was the spotlight visible before this render?
+  const wasSpotlightOn = spotlight.classList.contains('wt-spotlight-on');
 
-  // Navigate to page, delay depends on whether a page change is needed
+  // Navigate to target page immediately (before any spotlight work)
   const prevPage = curPage;
   if (s.page !== null) originalGoTo(s.page);
-  const navDelay = (s.page !== null && s.page !== prevPage) ? 320 : 60;
+  const pageChanged = s.page !== null && s.page !== prevPage;
 
   if (s.swipe) {
-    // Swipe animation: full dark + animated hand
+    // Swipe demo: full dark + animated hand
     spotlight.classList.remove('wt-spotlight-on');
     dark.classList.remove('off');
     document.getElementById('wtSwipeHand').style.display = 'block';
@@ -2414,8 +2415,14 @@ function _wtRender() {
     }, 700));
 
   } else if (s.highlight) {
-    // Spotlight on element — start after navigation settles
-    dark.classList.add('off');
+    // When the page is changing with an active spotlight, immediately cover with dark
+    // so the spotlight doesn't linger at the wrong position during the page slide
+    if (pageChanged && wasSpotlightOn) {
+      spotlight.classList.remove('wt-spotlight-on');
+      dark.classList.remove('off');
+    }
+
+    const navDelay = pageChanged ? 320 : 60;
     setTimeout(() => {
       const el = document.querySelector(s.highlight);
       if (!el) { spotlight.classList.remove('wt-spotlight-on'); dark.classList.remove('off'); return; }
@@ -2425,12 +2432,33 @@ function _wtRender() {
 
       const pageEl = el.closest('.page');
       const pad = 12;
+      // Is the spotlight currently on-screen (same page, continuous)? → slide it
+      // Otherwise (was dark, or page changed) → snap then fade-in
+      const slideMode = wasSpotlightOn && !pageChanged;
+
+      const _show = (top, left, w, h) => {
+        if (!slideMode) {
+          // Disable position transitions so we jump to the correct spot first,
+          // then restore them so only the opacity fade plays
+          spotlight.style.transition = 'opacity .35s ease';
+        }
+        spotlight.style.top    = top  + 'px';
+        spotlight.style.left   = left + 'px';
+        spotlight.style.width  = w    + 'px';
+        spotlight.style.height = h    + 'px';
+        if (!slideMode) {
+          void spotlight.offsetWidth; // flush paint before re-enabling transitions
+          requestAnimationFrame(() => { spotlight.style.transition = ''; });
+        }
+        spotlight.classList.add('wt-spotlight-on');
+        dark.classList.add('off');
+      };
 
       if (pageEl) {
         // Add temporary padding so there is enough room to scroll
         pageEl._wtOrigPad = pageEl.style.paddingBottom;
         pageEl.style.paddingBottom = '200px';
-        _wtPaddedPage = pageEl;   // track for reliable cleanup
+        _wtPaddedPage = pageEl;
 
         const wtCardH = document.querySelector('.wt-card').offsetHeight || 234;
         const pageTop = pageEl.getBoundingClientRect().top;
@@ -2442,16 +2470,10 @@ function _wtRender() {
         const desiredElemTop = pageTop + (visibleH - el.offsetHeight) / 2;
         const targetScroll = Math.max(0, elTopInContent - (desiredElemTop - pageTop));
 
-        // Predict where element will be after smooth scroll completes
+        // Predict final element position and move spotlight there immediately
         const deltaScroll = targetScroll - pageEl.scrollTop;
         const predictedTop = elRect.top - deltaScroll;
-
-        // Move spotlight to predicted position NOW (CSS transitions animate it smoothly)
-        spotlight.style.top    = (predictedTop - pad) + 'px';
-        spotlight.style.left   = (elRect.left   - pad) + 'px';
-        spotlight.style.width  = (elRect.width  + pad * 2) + 'px';
-        spotlight.style.height = (elRect.height + pad * 2) + 'px';
-        spotlight.classList.add('wt-spotlight-on');
+        _show(predictedTop - pad, elRect.left - pad, elRect.width + pad * 2, elRect.height + pad * 2);
 
         // Start smooth scroll simultaneously with spotlight animation
         pageEl.scrollTo({ top: targetScroll, behavior: 'smooth' });
@@ -2459,24 +2481,18 @@ function _wtRender() {
         // Fine-tune position after scroll settles (~600ms)
         setTimeout(() => {
           const r = el.getBoundingClientRect();
-          // Snap without transition for a clean final correction
           spotlight.style.transition = 'opacity .35s ease';
           spotlight.style.top    = (r.top    - pad) + 'px';
           spotlight.style.left   = (r.left   - pad) + 'px';
           spotlight.style.width  = (r.width  + pad * 2) + 'px';
           spotlight.style.height = (r.height + pad * 2) + 'px';
-          // Restore full transitions after the correction lands
           requestAnimationFrame(() => { spotlight.style.transition = ''; });
         }, 620);
 
       } else {
-        // No scrollable container — position immediately and show
+        // No scrollable container — position and show immediately
         const r = el.getBoundingClientRect();
-        spotlight.style.top    = (r.top    - pad) + 'px';
-        spotlight.style.left   = (r.left   - pad) + 'px';
-        spotlight.style.width  = (r.width  + pad * 2) + 'px';
-        spotlight.style.height = (r.height + pad * 2) + 'px';
-        spotlight.classList.add('wt-spotlight-on');
+        _show(r.top - pad, r.left - pad, r.width + pad * 2, r.height + pad * 2);
       }
     }, navDelay);
 
