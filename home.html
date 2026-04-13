@@ -735,7 +735,7 @@ html, body {
 .wt-dark.off { opacity: 0; }
 .wt-spotlight {
   position: absolute; border-radius: 24px;
-  opacity: 0;
+  display: none; opacity: 0;
   box-shadow: 0 0 0 9999px rgba(10,15,40,0.75),
               inset 0 0 20px rgba(0,0,0,.2);
   transition: top .5s cubic-bezier(.4,0,.2,1), left .5s cubic-bezier(.4,0,.2,1),
@@ -2278,11 +2278,13 @@ let _wtHighlightEl = null;
 function showTutorial() {
   _wtStep = 0;
   originalGoTo(0);
+  // Make spotlight renderable for the duration of the tutorial
+  document.getElementById('wtSpotlight').style.display = 'block';
   _wtRender();
   document.getElementById('wtOverlay').classList.add('open');
 }
 function _wtCleanup() {
-  // Fade out spotlight
+  // Fade out spotlight (keep display:block during tutorial — only closeTutorial sets display:none)
   document.getElementById('wtSpotlight').classList.remove('wt-spotlight-on');
   // Restore any temporary padding immediately
   if (_wtHighlightEl) {
@@ -2295,6 +2297,8 @@ function closeTutorial() {
   document.getElementById('wtOverlay').classList.remove('open');
   if (_wtHighlightEl) { _wtHighlightEl.classList.remove('wt-highlighted'); _wtHighlightEl = null; }
   document.getElementById('wtSwipeHand').style.display = 'none';
+  // Hide spotlight after opacity transition, so the large box-shadow is not always rendered
+  setTimeout(() => { document.getElementById('wtSpotlight').style.display = 'none'; }, 400);
   localStorage.setItem('parlia_tutorial_done', '1');
 }
 function wtNext() {
