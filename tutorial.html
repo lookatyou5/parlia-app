@@ -505,7 +505,16 @@ function applyFocus(widgetId){
   ['w-ai','w-agenda','w-aac','w-rehab','w-perfil'].forEach(id=>{ if(id!==widgetId){ const el=document.getElementById(id); if(el) el.classList.add('tour-dimmed'); } });
   // Scurisci anche intro, btn tour e CTA
   ['tour-intro','tourStartBtn','w-cta'].forEach(id=>{ const el=document.getElementById(id); if(el) el.classList.add('tour-dimmed'); });
-  setTimeout(()=>{ target.scrollIntoView({behavior:'smooth',block:'center'}); },80);
+  setTimeout(()=>{
+    const scrollArea=document.getElementById('scrollArea');
+    const tourCardH=document.querySelector('.tour-inner').offsetHeight+40;
+    const targetRect=target.getBoundingClientRect();
+    const scrollAreaRect=scrollArea.getBoundingClientRect();
+    const visibleH=scrollArea.clientHeight-tourCardH;
+    const targetTop=targetRect.top-scrollAreaRect.top+scrollArea.scrollTop;
+    const desiredScroll=targetTop-Math.max(10,(visibleH-target.offsetHeight)/2);
+    scrollArea.scrollTo({top:Math.max(0,desiredScroll),behavior:'smooth'});
+  },80);
 }
 
 function updateText(step,cb){
