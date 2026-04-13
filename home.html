@@ -2161,10 +2161,6 @@ function toast(msg) {
 
 // ── INIT ──
 function init() {
-  if (!localStorage.getItem('parlia_tutorial_seen')) {
-    window.location.href = 'tutorial.html';
-    return;
-  }
   initProfile();
   initAIHero();
   buildAgenda();
