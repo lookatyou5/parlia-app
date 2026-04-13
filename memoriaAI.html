@@ -45,8 +45,25 @@ html,body { height:100%; font-family:'Plus Jakarta Sans',sans-serif; background:
 
 .field-card {
   background:var(--card); border:1.5px solid var(--border);
-  border-radius:16px; padding:14px 16px; box-shadow:var(--shadow);
+  border-radius:16px; box-shadow:var(--shadow); overflow:hidden;
+  transition:border-color .2s;
 }
+.field-card.open { border-color:#bfdbfe; }
+.field-header {
+  display:flex; align-items:center; justify-content:space-between;
+  padding:14px 16px; cursor:pointer; -webkit-tap-highlight-color:transparent;
+  user-select:none;
+}
+.field-header-left { display:flex; align-items:center; gap:10px; flex:1; min-width:0; }
+.field-header-title { font-size:.85rem; font-weight:800; color:var(--ink); }
+.field-header-preview { font-size:.7rem; font-weight:600; color:var(--muted); margin-top:2px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.field-chevron { font-size:1rem; color:var(--muted); transition:transform .25s; flex-shrink:0; margin-left:8px; }
+.field-card.open .field-chevron { transform:rotate(90deg); }
+.field-body {
+  max-height:0; overflow:hidden; transition:max-height .3s ease, padding .3s ease;
+  padding:0 16px;
+}
+.field-card.open .field-body { max-height:200px; padding:0 16px 14px; }
 .field-label { font-size:.72rem; font-weight:800; color:var(--ink); display:block; margin-bottom:6px; }
 .field-input {
   width:100%; background:var(--bg); border:1.5px solid var(--border);
@@ -116,25 +133,69 @@ textarea.field-input { resize:none; }
   </div>
 
   <!-- FIELDS -->
-  <div class="field-card">
-    <label class="field-label">🎨 Hobbies favoritos</label>
-    <input type="text" class="field-input" id="mem-hobbies" placeholder="ej: plantas, lectura, música, cocina…">
-    <div style="font-size:.65rem;color:var(--muted);margin-top:4px;padding-left:2px">Separa con comas</div>
+  <div class="field-card" id="fc-hobbies" onclick="toggleField('hobbies')">
+    <div class="field-header">
+      <div class="field-header-left">
+        <span style="font-size:1.1rem">🎨</span>
+        <div>
+          <div class="field-header-title">Hobbies favoritos</div>
+          <div class="field-header-preview" id="prev-hobbies">Añade lo que te gusta hacer</div>
+        </div>
+      </div>
+      <div class="field-chevron">›</div>
+    </div>
+    <div class="field-body" onclick="event.stopPropagation()">
+      <input type="text" class="field-input" id="mem-hobbies" placeholder="ej: plantas, lectura, música, cocina…">
+      <div style="font-size:.65rem;color:var(--muted);margin-top:4px;padding-left:2px">Separa con comas</div>
+    </div>
   </div>
 
-  <div class="field-card">
-    <label class="field-label">🎵 Música favorita</label>
-    <input type="text" class="field-input" id="mem-musica" placeholder="ej: jazz, Rosalía, clásica, reggaetón…">
+  <div class="field-card" id="fc-musica" onclick="toggleField('musica')">
+    <div class="field-header">
+      <div class="field-header-left">
+        <span style="font-size:1.1rem">🎵</span>
+        <div>
+          <div class="field-header-title">Música favorita</div>
+          <div class="field-header-preview" id="prev-musica">Tus géneros o artistas preferidos</div>
+        </div>
+      </div>
+      <div class="field-chevron">›</div>
+    </div>
+    <div class="field-body" onclick="event.stopPropagation()">
+      <input type="text" class="field-input" id="mem-musica" placeholder="ej: jazz, Rosalía, clásica, reggaetón…">
+    </div>
   </div>
 
-  <div class="field-card">
-    <label class="field-label">🍽️ Comida favorita</label>
-    <input type="text" class="field-input" id="mem-comida" placeholder="ej: paella, sushi, chocolate, fruta…">
+  <div class="field-card" id="fc-comida" onclick="toggleField('comida')">
+    <div class="field-header">
+      <div class="field-header-left">
+        <span style="font-size:1.1rem">🍽️</span>
+        <div>
+          <div class="field-header-title">Comida favorita</div>
+          <div class="field-header-preview" id="prev-comida">Platos o sabores que amas</div>
+        </div>
+      </div>
+      <div class="field-chevron">›</div>
+    </div>
+    <div class="field-body" onclick="event.stopPropagation()">
+      <input type="text" class="field-input" id="mem-comida" placeholder="ej: paella, sushi, chocolate, fruta…">
+    </div>
   </div>
 
-  <div class="field-card">
-    <label class="field-label">📝 Notas personales</label>
-    <textarea class="field-input" id="mem-notas" rows="3" placeholder="Cosas que quieres que Parlia AI sepa de ti… ej: me gusta que me hablen con humor, tengo un gato que se llama Michi…"></textarea>
+  <div class="field-card" id="fc-notas" onclick="toggleField('notas')">
+    <div class="field-header">
+      <div class="field-header-left">
+        <span style="font-size:1.1rem">📝</span>
+        <div>
+          <div class="field-header-title">Notas personales</div>
+          <div class="field-header-preview" id="prev-notas">Detalles que quieres compartir</div>
+        </div>
+      </div>
+      <div class="field-chevron">›</div>
+    </div>
+    <div class="field-body" onclick="event.stopPropagation()">
+      <textarea class="field-input" id="mem-notas" rows="3" placeholder="Cosas que quieres que Parlia AI sepa de ti… ej: me gusta que me hablen con humor, tengo un gato que se llama Michi…"></textarea>
+    </div>
   </div>
 
   <!-- STATS -->
@@ -183,10 +244,40 @@ const _mem = JSON.parse(localStorage.getItem('parlia_memory') || 'null') || {
 
 // Populate fields
 const mp = _mem.user_profile;
-document.getElementById('mem-hobbies').value = (mp.hobbies||[]).join(', ');
+const hobbiesVal = (mp.hobbies||[]).join(', ');
+document.getElementById('mem-hobbies').value = hobbiesVal;
 document.getElementById('mem-musica').value = mp.musica || '';
 document.getElementById('mem-comida').value = mp.comida || '';
 document.getElementById('mem-notas').value = mp.notas || '';
+
+// Update previews
+function updatePreviews(){
+  const set = (id,val,fallback) => { document.getElementById(id).textContent = val ? val : fallback; };
+  set('prev-hobbies', document.getElementById('mem-hobbies').value, 'Añade lo que te gusta hacer');
+  set('prev-musica', document.getElementById('mem-musica').value, 'Tus géneros o artistas preferidos');
+  set('prev-comida', document.getElementById('mem-comida').value, 'Platos o sabores que amas');
+  set('prev-notas', document.getElementById('mem-notas').value, 'Detalles que quieres compartir');
+}
+updatePreviews();
+['mem-hobbies','mem-musica','mem-comida','mem-notas'].forEach(id=>{
+  document.getElementById(id).addEventListener('input',updatePreviews);
+});
+
+// Accordion toggle
+function toggleField(key){
+  const card = document.getElementById('fc-'+key);
+  const isOpen = card.classList.contains('open');
+  // Close all
+  document.querySelectorAll('.field-card').forEach(c=>c.classList.remove('open'));
+  // Open clicked if was closed
+  if(!isOpen){
+    card.classList.add('open');
+    setTimeout(()=>{
+      const input = card.querySelector('input, textarea');
+      if(input) input.focus();
+    },300);
+  }
+}
 
 // Stats
 const statsEl = document.getElementById('memStats');
