@@ -537,7 +537,7 @@ function updateText(step,cb){
     btnNext.classList.toggle('last',!!step.last);
     tTitle.classList.remove('fade'); tDesc.classList.remove('fade');
     buildDots(); if(cb) cb();
-  },180);
+  },100);
 }
 
 // Initial spotlight on page load
@@ -597,6 +597,7 @@ function goToApp(){
 if('speechSynthesis' in window){ speechSynthesis.getVoices(); speechSynthesis.onvoiceschanged=()=>speechSynthesis.getVoices(); }
 
 // Rehab cards highlight animation
+let _animTimers=[];
 (function rehabGlow(){
   const cards=[
     {id:'rehab-logo',  color:'#7e22ce', shadow:'rgba(126,34,206,.3)', bg:'#fdf4ff'},
@@ -605,6 +606,7 @@ if('speechSynthesis' in window){ speechSynthesis.getVoices(); speechSynthesis.on
   ];
   let i=0;
   function highlight(){
+    if(tourStep>=0) return;
     cards.forEach(c=>{
       const el=document.getElementById(c.id);
       el.style.borderColor=''; el.style.boxShadow='var(--shadow)'; el.style.transform=''; el.style.background='var(--card)';
@@ -618,7 +620,7 @@ if('speechSynthesis' in window){ speechSynthesis.getVoices(); speechSynthesis.on
     i=(i+1)%cards.length;
   }
   highlight();
-  setInterval(highlight,1000);
+  _animTimers.push(setInterval(highlight,1000));
 })();
 
 // AAC pictograms flash animation — 2 rounds then stop
@@ -649,6 +651,7 @@ function aacFlash(){
   ];
   let i=0;
   function highlight(){
+    if(tourStep>=0) return;
     rows.forEach(r=>{
       const el=document.getElementById(r.id);
       el.style.borderColor=''; el.style.boxShadow=''; el.style.transform=''; el.style.background='var(--card)';
@@ -662,7 +665,7 @@ function aacFlash(){
     i=(i+1)%rows.length;
   }
   highlight();
-  setInterval(highlight,1000);
+  _animTimers.push(setInterval(highlight,1000));
 })();
 
 // Agenda auto-swipe animation
@@ -670,14 +673,15 @@ function aacFlash(){
   const s=document.getElementById('agendaScroll');
   if(!s) return;
   let forward=true;
-  setInterval(()=>{
+  _animTimers.push(setInterval(()=>{
+    if(tourStep>=0) return;
     if(forward){
       s.scrollTo({left:s.scrollWidth,behavior:'smooth'});
     } else {
       s.scrollTo({left:0,behavior:'smooth'});
     }
     forward=!forward;
-  },1500);
+  },1500));
 })();
 </script>
 </body>
