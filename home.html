@@ -731,20 +731,20 @@ html, body {
 .wt-ov.open { opacity: 1; pointer-events: all; }
 .wt-dark {
   position: absolute; inset: 0; background: rgba(10,15,40,0.75);
-  transition: opacity .4s; pointer-events: none;
+  pointer-events: none;
 }
+/* .wt-dark is hidden during tutorial — spotlight box-shadow is the only dark source */
 .wt-dark.off { opacity: 0; }
 .wt-spotlight {
   position: absolute; border-radius: 24px;
-  display: none; opacity: 0;
+  display: none;
   box-shadow: 0 0 0 9999px rgba(10,15,40,0.75),
               inset 0 0 20px rgba(0,0,0,.2);
-  transition: top .5s cubic-bezier(.4,0,.2,1), left .5s cubic-bezier(.4,0,.2,1),
-              width .5s cubic-bezier(.4,0,.2,1), height .5s cubic-bezier(.4,0,.2,1),
-              opacity .35s ease;
-  pointer-events: none; z-index: 0;
+  /* Only animate position/size — no opacity transitions between steps */
+  transition: top .45s cubic-bezier(.4,0,.2,1), left .45s cubic-bezier(.4,0,.2,1),
+              width .45s cubic-bezier(.4,0,.2,1), height .45s cubic-bezier(.4,0,.2,1);
+  pointer-events: none; z-index: 1;
 }
-.wt-spotlight.wt-spotlight-on { opacity: 1; }
 .wt-swipe-hand {
   position: absolute; top: 42%; left: 50%;
   font-size: 2.4rem; display: none; pointer-events: none; z-index: 2;
@@ -2310,8 +2310,19 @@ let _wtNavTimers   = [];     // swipe-animation timeouts to cancel on step chang
 function showTutorial() {
   _wtStep = 0;
   originalGoTo(0);
-  // Make spotlight renderable for the duration of the tutorial
-  document.getElementById('wtSpotlight').style.display = 'block';
+  // Position spotlight at "dark" state (zero-size at screen center) before showing.
+  // The box-shadow still covers the full screen → full dark with no visible hole.
+  const sp = document.getElementById('wtSpotlight');
+  sp.style.transition = 'none';
+  sp.style.top    = (window.innerHeight / 2) + 'px';
+  sp.style.left   = (window.innerWidth  / 2) + 'px';
+  sp.style.width  = '0px';
+  sp.style.height = '0px';
+  sp.style.display = 'block';
+  void sp.offsetWidth;
+  sp.style.transition = '';
+  // Dark layer is never used during tutorial — spotlight box-shadow is the only dark source
+  document.getElementById('wtDark').classList.add('off');
   _wtRender();
   document.getElementById('wtOverlay').classList.add('open');
 }
@@ -2319,7 +2330,7 @@ function _wtCleanup() {
   // Cancel any pending swipe-demo navigation timers
   _wtNavTimers.forEach(t => clearTimeout(t));
   _wtNavTimers = [];
-  // Restore padding only — spotlight visibility is managed by _wtRender/closeTutorial
+  // Restore padding only — spotlight movement is managed entirely by _wtRender/closeTutorial
   if (_wtPaddedPage) {
     if (_wtPaddedPage._wtOrigPad !== undefined) {
       _wtPaddedPage.style.paddingBottom = _wtPaddedPage._wtOrigPad;
@@ -2327,7 +2338,6 @@ function _wtCleanup() {
     }
     _wtPaddedPage = null;
   }
-  // Backup: also clean via _wtHighlightEl's page in case they differ
   if (_wtHighlightEl) {
     const p = _wtHighlightEl.closest('.page');
     if (p && p._wtOrigPad !== undefined) { p.style.paddingBottom = p._wtOrigPad; p._wtOrigPad = undefined; }
@@ -2335,26 +2345,27 @@ function _wtCleanup() {
 }
 function closeTutorial() {
   _wtCleanup();
-  // Reset scroll on all pages
   document.querySelectorAll('.page').forEach(p => { p.scrollTop = 0; });
-  // Snap track to page0 INSTANTLY before the overlay fades out (transition: none).
+  // Snap track to page0 INSTANTLY before the overlay fades out
   curPage = 0;
   track.style.transition = 'none';
   track.style.transform = 'translateX(0px)';
   document.querySelectorAll('.nav-item').forEach((el,i) => el.classList.toggle('active', i===0));
   document.querySelectorAll('.nav-dot').forEach((d,i) => d.classList.toggle('active', i===0));
   hideHint();
-  // Restore full dark overlay before fading out the overlay container
-  const _sp = document.getElementById('wtSpotlight');
-  const _dk = document.getElementById('wtDark');
-  _sp.classList.remove('wt-spotlight-on');
-  _dk.classList.remove('off');
-  // Now fade out overlay
-  document.getElementById('wtOverlay').classList.remove('open');
   if (_wtHighlightEl) { _wtHighlightEl.classList.remove('wt-highlighted'); _wtHighlightEl = null; }
   document.getElementById('wtSwipeHand').style.display = 'none';
-  // Hide spotlight after opacity transition so the large box-shadow is not always rendered
-  setTimeout(() => { _sp.style.display = 'none'; }, 400);
+  // Collapse spotlight to zero before fading out the overlay container
+  const sp = document.getElementById('wtSpotlight');
+  sp.style.top    = (window.innerHeight / 2) + 'px';
+  sp.style.left   = (window.innerWidth  / 2) + 'px';
+  sp.style.width  = '0px';
+  sp.style.height = '0px';
+  document.getElementById('wtOverlay').classList.remove('open');
+  setTimeout(() => {
+    sp.style.display = 'none';
+    document.getElementById('wtDark').classList.remove('off'); // restore for next tutorial session
+  }, 400);
   localStorage.setItem('parlia_tutorial_done', '1');
 }
 function wtNext() {
@@ -2365,19 +2376,29 @@ function wtNext() {
 function _wtRender() {
   const s = WT_STEPS[_wtStep];
   const total = WT_STEPS.length;
+  const sp = document.getElementById('wtSpotlight');
 
-  // Cancel timers + restore padding from previous step (does NOT touch spotlight)
+  // Capture the current highlight element center BEFORE cleanup clears it
+  const wasHighlight = _wtHighlightEl !== null;
+  let prevCX = window.innerWidth / 2, prevCY = window.innerHeight / 2;
+  if (_wtHighlightEl) {
+    const pr = _wtHighlightEl.getBoundingClientRect();
+    prevCX = pr.left + pr.width  / 2;
+    prevCY = pr.top  + pr.height / 2;
+  }
+
+  // Cancel timers + restore padding (does NOT touch spotlight)
   _wtCleanup();
   if (_wtHighlightEl) { _wtHighlightEl.classList.remove('wt-highlighted'); _wtHighlightEl = null; }
   document.getElementById('wtSwipeHand').style.display = 'none';
 
-  // Card content fade-in + slide-up animation on each step
+  // Card content animation
   const inner = document.getElementById('wtCardInner');
   inner.classList.remove('wt-step-anim');
-  void inner.offsetWidth; // force reflow to restart animation
+  void inner.offsetWidth;
   inner.classList.add('wt-step-anim');
 
-  // Update content
+  // Update card content
   let dots = '';
   for (let i = 0; i < total; i++) {
     const cls = i < _wtStep ? 'wt-dot done' : i === _wtStep ? 'wt-dot active' : 'wt-dot';
@@ -2390,20 +2411,43 @@ function _wtRender() {
   document.getElementById('wtBtn').textContent = _wtStep === total - 1 ? '¡Empezar! 🚀' : 'Siguiente →';
   document.getElementById('wtBtn').disabled = false;
 
-  const spotlight = document.getElementById('wtSpotlight');
-  const dark = document.getElementById('wtDark');
-  // Snapshot: was the spotlight visible before this render?
-  const wasSpotlightOn = spotlight.classList.contains('wt-spotlight-on');
-
-  // Navigate to target page immediately (before any spotlight work)
+  // Navigate to target page immediately (before spotlight work)
   const prevPage = curPage;
   if (s.page !== null) originalGoTo(s.page);
   const pageChanged = s.page !== null && s.page !== prevPage;
 
+  // ── Helper: collapse spotlight to a point (full dark, no hole) ──
+  const _collapse = (cx, cy, fast) => {
+    if (fast) sp.style.transition = 'top .18s ease, left .18s ease, width .18s ease, height .18s ease';
+    sp.style.top    = cy + 'px';
+    sp.style.left   = cx + 'px';
+    sp.style.width  = '0px';
+    sp.style.height = '0px';
+    if (fast) setTimeout(() => { sp.style.transition = ''; }, 220);
+  };
+
+  // ── Helper: expand spotlight to element bounds ──
+  // slideMode = true  → spotlight is already visible on same page, just slide it
+  // slideMode = false → snap to element center first, then expand (hole "opens")
+  const _expandTo = (top, left, w, h, elRect, slideMode) => {
+    if (!slideMode) {
+      sp.style.transition = 'none';
+      sp.style.top    = (elRect.top  + elRect.height / 2) + 'px';
+      sp.style.left   = (elRect.left + elRect.width  / 2) + 'px';
+      sp.style.width  = '0px';
+      sp.style.height = '0px';
+      void sp.offsetWidth;
+      sp.style.transition = '';
+    }
+    sp.style.top    = top  + 'px';
+    sp.style.left   = left + 'px';
+    sp.style.width  = w    + 'px';
+    sp.style.height = h    + 'px';
+  };
+
   if (s.swipe) {
-    // Swipe demo: full dark + animated hand
-    spotlight.classList.remove('wt-spotlight-on');
-    dark.classList.remove('off');
+    // Swipe demo: collapse spotlight quickly, show animated hand
+    _collapse(prevCX, prevCY, true);
     document.getElementById('wtSwipeHand').style.display = 'block';
     document.getElementById('wtBtn').disabled = true;
     _wtNavTimers.push(setTimeout(() => {
@@ -2415,91 +2459,65 @@ function _wtRender() {
     }, 700));
 
   } else if (s.highlight) {
-    // When the page is changing with an active spotlight, immediately cover with dark
-    // so the spotlight doesn't linger at the wrong position during the page slide
-    if (pageChanged && wasSpotlightOn) {
-      spotlight.classList.remove('wt-spotlight-on');
-      dark.classList.remove('off');
+    const navDelay = pageChanged ? 320 : 60;
+
+    // Cross-page transition with active spotlight: collapse quickly at old element
+    // while the page slides, so the hole doesn't linger at the wrong position
+    if (pageChanged && wasHighlight) {
+      _collapse(prevCX, prevCY, true);
     }
 
-    const navDelay = pageChanged ? 320 : 60;
     setTimeout(() => {
       const el = document.querySelector(s.highlight);
-      if (!el) { spotlight.classList.remove('wt-spotlight-on'); dark.classList.remove('off'); return; }
+      if (!el) { _collapse(window.innerWidth / 2, window.innerHeight / 2, false); return; }
 
       el.classList.add('wt-highlighted');
       _wtHighlightEl = el;
 
       const pageEl = el.closest('.page');
       const pad = 12;
-      // Is the spotlight currently on-screen (same page, continuous)? → slide it
-      // Otherwise (was dark, or page changed) → snap then fade-in
-      const slideMode = wasSpotlightOn && !pageChanged;
-
-      const _show = (top, left, w, h) => {
-        if (!slideMode) {
-          // Disable position transitions so we jump to the correct spot first,
-          // then restore them so only the opacity fade plays
-          spotlight.style.transition = 'opacity .35s ease';
-        }
-        spotlight.style.top    = top  + 'px';
-        spotlight.style.left   = left + 'px';
-        spotlight.style.width  = w    + 'px';
-        spotlight.style.height = h    + 'px';
-        if (!slideMode) {
-          void spotlight.offsetWidth; // flush paint before re-enabling transitions
-          requestAnimationFrame(() => { spotlight.style.transition = ''; });
-        }
-        spotlight.classList.add('wt-spotlight-on');
-        dark.classList.add('off');
-      };
+      // slideMode: spotlight was visible and we stayed on the same page
+      const slideMode = wasHighlight && !pageChanged;
 
       if (pageEl) {
-        // Add temporary padding so there is enough room to scroll
         pageEl._wtOrigPad = pageEl.style.paddingBottom;
         pageEl.style.paddingBottom = '200px';
         _wtPaddedPage = pageEl;
 
         const wtCardH = document.querySelector('.wt-card').offsetHeight || 234;
-        const pageTop = pageEl.getBoundingClientRect().top;
-        const elRect = el.getBoundingClientRect();
+        const pageTop  = pageEl.getBoundingClientRect().top;
+        const elRect   = el.getBoundingClientRect();
         const elTopInContent = elRect.top - pageTop + pageEl.scrollTop;
 
-        // Center element in visible area above tutorial card
-        const visibleH = window.innerHeight - wtCardH;
+        const visibleH      = window.innerHeight - wtCardH;
         const desiredElemTop = pageTop + (visibleH - el.offsetHeight) / 2;
-        const targetScroll = Math.max(0, elTopInContent - (desiredElemTop - pageTop));
+        const targetScroll  = Math.max(0, elTopInContent - (desiredElemTop - pageTop));
+        const deltaScroll   = targetScroll - pageEl.scrollTop;
+        const predictedTop  = elRect.top - deltaScroll;
 
-        // Predict final element position and move spotlight there immediately
-        const deltaScroll = targetScroll - pageEl.scrollTop;
-        const predictedTop = elRect.top - deltaScroll;
-        _show(predictedTop - pad, elRect.left - pad, elRect.width + pad * 2, elRect.height + pad * 2);
-
-        // Start smooth scroll simultaneously with spotlight animation
+        _expandTo(predictedTop - pad, elRect.left - pad, elRect.width + pad*2, elRect.height + pad*2, elRect, slideMode);
         pageEl.scrollTo({ top: targetScroll, behavior: 'smooth' });
 
-        // Fine-tune position after scroll settles (~600ms)
+        // Fine-tune after scroll settles (small fast correction)
         setTimeout(() => {
           const r = el.getBoundingClientRect();
-          spotlight.style.transition = 'opacity .35s ease';
-          spotlight.style.top    = (r.top    - pad) + 'px';
-          spotlight.style.left   = (r.left   - pad) + 'px';
-          spotlight.style.width  = (r.width  + pad * 2) + 'px';
-          spotlight.style.height = (r.height + pad * 2) + 'px';
-          requestAnimationFrame(() => { spotlight.style.transition = ''; });
+          sp.style.transition = 'top .15s ease, left .15s ease, width .15s ease, height .15s ease';
+          sp.style.top    = (r.top    - pad) + 'px';
+          sp.style.left   = (r.left   - pad) + 'px';
+          sp.style.width  = (r.width  + pad * 2) + 'px';
+          sp.style.height = (r.height + pad * 2) + 'px';
+          setTimeout(() => { sp.style.transition = ''; }, 200);
         }, 620);
 
       } else {
-        // No scrollable container — position and show immediately
         const r = el.getBoundingClientRect();
-        _show(r.top - pad, r.left - pad, r.width + pad * 2, r.height + pad * 2);
+        _expandTo(r.top - pad, r.left - pad, r.width + pad*2, r.height + pad*2, r, slideMode);
       }
     }, navDelay);
 
   } else {
-    // No highlight — full dark overlay, no spotlight
-    spotlight.classList.remove('wt-spotlight-on');
-    dark.classList.remove('off');
+    // No highlight — collapse spotlight to center (= full dark, no hole)
+    _collapse(window.innerWidth / 2, window.innerHeight / 2, false);
   }
 }
 
