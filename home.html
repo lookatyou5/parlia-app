@@ -525,92 +525,115 @@ html, body {
 }
 
 .wx-sky {
-  width: 120px; height: 120px; border-radius: 14px;
-  margin: 16px auto 0;
+  width: 100%; height: 150px;
+  margin: 0;
   position: relative; overflow: hidden; flex-shrink: 0;
-  transition: background 1.5s ease;
+  transition: background 2s ease;
 }
-.wx-sky.sunny     { background: linear-gradient(170deg,#0ea5e9 0%,#38bdf8 40%,#7dd3fc 70%,#fde68a 100%); }
-.wx-sky.partcloud { background: linear-gradient(170deg,#1e40af 0%,#3b82f6 40%,#93c3fe 75%,#bae6fd 100%); }
-.wx-sky.cloudy    { background: linear-gradient(170deg,#374151 0%,#4b5563 40%,#6b7280 70%,#9ca3af 100%); }
-.wx-sky.rainy     { background: linear-gradient(170deg,#0f172a 0%,#1e3a8a 35%,#1d4ed8 65%,#3b82f6 100%); }
-.wx-sky.stormy    { background: linear-gradient(170deg,#0c0a1e 0%,#1e1b4b 40%,#312e81 70%,#4c1d95 100%); }
-.wx-sky.snowy     { background: linear-gradient(170deg,#c7d2fe 0%,#ddd6fe 40%,#ede9fe 70%,#f5f3ff 100%); }
-.wx-sky.night     { background: linear-gradient(170deg,#020617 0%,#0f172a 40%,#1e1b4b 70%,#1e3a5f 100%); }
-.wx-sky.foggy     { background: linear-gradient(170deg,#374151 0%,#6b7280 40%,#9ca3af 70%,#d1d5db 100%); }
+/* Gradients realistici top→bottom */
+.wx-sky.sunny     { background: linear-gradient(180deg,#0369a1 0%,#0284c7 25%,#38bdf8 55%,#7dd3fc 78%,#fed7aa 92%,#fcd34d 100%); }
+.wx-sky.partcloud { background: linear-gradient(180deg,#1d4ed8 0%,#2563eb 30%,#60a5fa 62%,#93c5fd 82%,#dbeafe 100%); }
+.wx-sky.cloudy    { background: linear-gradient(180deg,#111827 0%,#1f2937 30%,#374151 58%,#4b5563 78%,#6b7280 100%); }
+.wx-sky.rainy     { background: linear-gradient(180deg,#0c1a2e 0%,#0f2543 28%,#1e3a5f 55%,#1e40af 78%,#1d4ed8 100%); }
+.wx-sky.stormy    { background: linear-gradient(180deg,#020617 0%,#060412 25%,#0f0a1e 50%,#1e1b4b 75%,#2d1b69 100%); }
+.wx-sky.snowy     { background: linear-gradient(180deg,#64748b 0%,#94a3b8 28%,#cbd5e1 55%,#e2e8f0 78%,#f8fafc 100%); }
+.wx-sky.night     { background: linear-gradient(180deg,#000005 0%,#04071a 30%,#0a0f1e 55%,#0f172a 78%,#1a2744 100%); }
+.wx-sky.foggy     { background: linear-gradient(180deg,#374151 0%,#4b5563 28%,#6b7280 55%,#9ca3af 78%,#d1d5db 100%); }
 
 .wx-stars,.wx-clouds,.wx-rain-layer,.wx-snow-layer { position:absolute;inset:0;pointer-events:none;overflow:hidden; }
 
-/* Sole */
-.wx-sun-wrap { position:absolute;top:24px;right:24px;width:72px;height:72px; }
+/* Sole — corona atmosferica, no raggi cartoon */
+.wx-sun-wrap { position:absolute;top:18px;right:28px;width:88px;height:88px; }
 .sun-body {
-  position:absolute;inset:14px;border-radius:50%;
-  background:radial-gradient(circle at 35% 35%,#fef9c3,#fbbf24 50%,#f59e0b);
-  box-shadow:0 0 0 4px rgba(251,191,36,.2),0 0 24px rgba(251,191,36,.5),0 0 60px rgba(245,158,11,.25);
-  animation:sunBreath 4s ease-in-out infinite;
+  position:absolute;inset:10px;border-radius:50%;
+  background:radial-gradient(circle at 38% 32%,#fff9e0,#fde68a 28%,#fbbf24 55%,#f59e0b 75%,#ea580c 100%);
+  box-shadow:
+    0 0 0 10px rgba(253,211,77,.13),
+    0 0 0 22px rgba(253,211,77,.07),
+    0 0 0 40px rgba(253,211,77,.03),
+    0 0 55px rgba(251,191,36,.65),
+    0 0 110px rgba(245,158,11,.32),
+    0 0 200px rgba(234,179,8,.14);
+  animation:sunPulse 7s ease-in-out infinite;
 }
-@keyframes sunBreath {
-  0%,100%{box-shadow:0 0 0 4px rgba(251,191,36,.2),0 0 24px rgba(251,191,36,.5),0 0 60px rgba(245,158,11,.25)}
-  50%{box-shadow:0 0 0 8px rgba(251,191,36,.15),0 0 40px rgba(251,191,36,.6),0 0 90px rgba(245,158,11,.3)}
+@keyframes sunPulse {
+  0%,100%{box-shadow:0 0 0 10px rgba(253,211,77,.13),0 0 0 22px rgba(253,211,77,.07),0 0 55px rgba(251,191,36,.65),0 0 110px rgba(245,158,11,.32)}
+  50%{box-shadow:0 0 0 14px rgba(253,211,77,.1),0 0 0 30px rgba(253,211,77,.05),0 0 75px rgba(251,191,36,.75),0 0 140px rgba(245,158,11,.38)}
 }
-.sun-rays { position:absolute;inset:0;animation:sunRotate 20s linear infinite; }
-@keyframes sunRotate { to{transform:rotate(360deg)} }
-.sun-ray { position:absolute;left:50%;top:0;width:2px;height:10px;margin-left:-1px;background:linear-gradient(to bottom,rgba(251,191,36,.8),transparent);border-radius:2px;transform-origin:1px 36px; }
+.sun-rays { display:none; }
+.sun-ray  { display:none; }
 
-/* Luna */
-.wx-moon { position:absolute;top:24px;right:28px;width:54px;height:54px; }
+/* Bagliore orizzonte (sole) */
+.wx-sun-haze {
+  position:absolute;bottom:0;left:0;right:0;height:55%;
+  background:linear-gradient(to top,rgba(253,186,116,.22),rgba(253,211,77,.06),transparent);
+  pointer-events:none;
+}
+
+/* Luna — più realistica con alone */
+.wx-moon { position:absolute;top:18px;right:32px;width:64px;height:64px; }
 .moon-body {
-  width:54px;height:54px;border-radius:50%;position:relative;
-  background:radial-gradient(circle at 30% 30%,#f8fafc,#e2e8f0 60%,#cbd5e1);
-  box-shadow:0 0 0 2px rgba(226,232,240,.2),0 0 24px rgba(148,163,184,.35),inset -8px -4px 0 rgba(100,116,139,.15);
-  animation:moonGlow 5s ease-in-out infinite;
+  width:64px;height:64px;border-radius:50%;position:relative;
+  background:radial-gradient(circle at 34% 30%,#f0f4f8,#e2e8f0 38%,#c8d5e0 65%,#8fa3b4 100%);
+  box-shadow:
+    0 0 0 1px rgba(226,232,240,.25),
+    0 0 28px rgba(148,163,184,.45),
+    0 0 64px rgba(148,163,184,.18),
+    inset -12px -6px 0 rgba(100,116,139,.22);
+  animation:moonGlow 8s ease-in-out infinite;
 }
 @keyframes moonGlow {
-  0%,100%{box-shadow:0 0 0 2px rgba(226,232,240,.2),0 0 24px rgba(148,163,184,.35),inset -8px -4px 0 rgba(100,116,139,.15)}
-  50%{box-shadow:0 0 0 4px rgba(226,232,240,.15),0 0 40px rgba(148,163,184,.45),inset -8px -4px 0 rgba(100,116,139,.15)}
+  0%,100%{box-shadow:0 0 0 1px rgba(226,232,240,.25),0 0 28px rgba(148,163,184,.45),0 0 64px rgba(148,163,184,.18),inset -12px -6px 0 rgba(100,116,139,.22)}
+  50%{box-shadow:0 0 0 2px rgba(226,232,240,.18),0 0 44px rgba(148,163,184,.55),0 0 90px rgba(148,163,184,.25),inset -12px -6px 0 rgba(100,116,139,.22)}
 }
-.moon-crater { position:absolute;border-radius:50%;background:rgba(100,116,139,.18); }
+.moon-crater { position:absolute;border-radius:50%;background:rgba(100,116,139,.16); }
 
-/* Stelle */
+/* Stelle — variazione dimensione e luminosità */
 .wx-star { position:absolute;border-radius:50%;background:white;animation:starTwinkle ease-in-out infinite; }
-@keyframes starTwinkle { 0%,100%{opacity:.15;transform:scale(.8)} 50%{opacity:.9;transform:scale(1.1)} }
+@keyframes starTwinkle { 0%,100%{opacity:.1;transform:scale(.7)} 50%{opacity:1;transform:scale(1.2)} }
 
-/* Nuvole SVG */
-.cloud { position:absolute;animation:cloudDrift linear infinite; }
-.cloud svg { display:block;filter:drop-shadow(0 4px 12px rgba(0,0,0,.12)); }
-@keyframes cloudDrift { 0%,100%{transform:translateX(0)} 50%{transform:translateX(-10px)} }
+/* Nuvole — movimento leggero, ombra morbida */
+.cloud { position:absolute;animation:cloudDrift ease-in-out infinite; }
+.cloud svg { display:block; }
+@keyframes cloudDrift { 0%{transform:translateX(-8px)} 50%{transform:translateX(8px)} 100%{transform:translateX(-8px)} }
 
-/* Pioggia */
+/* Pioggia — angolata, gocce sottili */
 .rain-drop {
-  position:absolute;top:-20px;width:1.5px;border-radius:2px;
-  background:linear-gradient(to bottom,transparent,rgba(147,197,253,.7),rgba(96,165,250,.9));
+  position:absolute;top:-24px;width:1px;border-radius:1px;
+  background:linear-gradient(to bottom,transparent,rgba(147,197,253,.45) 35%,rgba(96,165,250,.8));
   animation:rainFall linear infinite;
+  transform-origin:top center;
 }
-@keyframes rainFall { to{transform:translateY(250px);opacity:0} }
+@keyframes rainFall { to{transform:translateY(200px) translateX(-18px);opacity:0} }
 
-/* Neve */
+/* Neve — deriva naturale */
 .snow-flake {
   position:absolute;top:-10px;border-radius:50%;
-  background:radial-gradient(circle,white,rgba(255,255,255,.6));
+  background:radial-gradient(circle,rgba(255,255,255,.95),rgba(220,230,255,.6));
   animation:snowFall linear infinite;
 }
-@keyframes snowFall { to{transform:translateY(250px) rotate(360deg);opacity:0} }
+@keyframes snowFall {
+  0%  {transform:translateY(0) translateX(0);opacity:.9}
+  33% {transform:translateY(55px) translateX(7px);opacity:.8}
+  66% {transform:translateY(110px) translateX(-5px);opacity:.6}
+  100%{transform:translateY(170px) translateX(4px);opacity:0}
+}
 
 /* Fulmine */
 .wx-lightning {
-  position:absolute;top:36px;left:50%;transform:translateX(-50%);
-  opacity:0;filter:drop-shadow(0 0 8px #fde047);
-  animation:lightningFlash 5s ease-in-out infinite;
+  position:absolute;top:24px;left:45%;transform:translateX(-50%);
+  opacity:0;filter:drop-shadow(0 0 12px #fde047) drop-shadow(0 0 4px #fff);
+  animation:lightningFlash 4.5s ease-in-out infinite;
 }
-@keyframes lightningFlash { 0%,85%,100%{opacity:0} 87%,93%{opacity:1} 90%{opacity:.2} }
+@keyframes lightningFlash { 0%,82%,100%{opacity:0} 84%,90%{opacity:1} 87%{opacity:.1} }
 
-/* Nebbia */
+/* Nebbia — bande sfumate */
 .wx-fog-layer {
-  position:absolute;left:-10%;right:-10%;height:36px;
-  background:rgba(255,255,255,.14);filter:blur(10px);
+  position:absolute;left:-8%;right:-8%;height:42px;
+  background:rgba(255,255,255,.12);filter:blur(14px);
   animation:fogDrift ease-in-out infinite;
 }
-@keyframes fogDrift { 0%,100%{transform:translateX(0) scaleX(1)} 50%{transform:translateX(14px) scaleX(1.04)} }
+@keyframes fogDrift { 0%,100%{transform:translateX(0)} 50%{transform:translateX(18px)} }
 
 /* Body info */
 .wx-body { padding:12px 18px 6px; }
@@ -1113,6 +1136,7 @@ html, body {
       <div class="wx-clouds" id="wxClouds"></div>
       <div class="wx-rain-layer" id="wxRain"></div>
       <div class="wx-snow-layer" id="wxSnow"></div>
+      <div class="wx-sun-haze" id="wxSunHaze" style="display:none"></div>
       <div class="wx-sun-wrap" id="wxSunWrap">
         <div class="sun-rays" id="sunRays"></div>
         <div class="sun-body"></div>
@@ -1961,12 +1985,15 @@ function _wxSceneType(code, hour) {
 }
 
 function _cloudSVG(w, h, op, color='white') {
-  const r = h * 0.45;
-  return `<svg width="${w}" height="${h+r}" viewBox="0 0 ${w} ${h+r}" fill="none">
-    <ellipse cx="${w*.5}" cy="${h+r*.3}" rx="${w*.5}" ry="${r*.7}" fill="${color}" opacity="${op}"/>
-    <ellipse cx="${w*.28}" cy="${h*.55}" rx="${w*.26}" ry="${h*.5}" fill="${color}" opacity="${op}"/>
-    <ellipse cx="${w*.55}" cy="${h*.4}" rx="${w*.3}" ry="${h*.58}" fill="${color}" opacity="${op}"/>
-    <ellipse cx="${w*.78}" cy="${h*.6}" rx="${w*.22}" ry="${h*.42}" fill="${color}" opacity="${op}"/>
+  // Forma più organica: base larga + cupole multiple sfalsate
+  const b = h * 0.42;  // altezza base
+  return `<svg width="${w}" height="${h+b}" viewBox="0 0 ${w} ${h+b}" fill="${color}" opacity="${op}">
+    <ellipse cx="${w*.5}"  cy="${h+b*.28}" rx="${w*.52}" ry="${b*.72}"/>
+    <ellipse cx="${w*.2}"  cy="${h*.52}"   rx="${w*.22}" ry="${h*.52}"/>
+    <ellipse cx="${w*.42}" cy="${h*.32}"   rx="${w*.28}" ry="${h*.6}"/>
+    <ellipse cx="${w*.63}" cy="${h*.42}"   rx="${w*.26}" ry="${h*.54}"/>
+    <ellipse cx="${w*.82}" cy="${h*.58}"   rx="${w*.2}"  ry="${h*.44}"/>
+    <ellipse cx="${w*.93}" cy="${h*.72}"   rx="${w*.12}" ry="${h*.3}"/>
   </svg>`;
 }
 
@@ -1980,58 +2007,59 @@ function _buildWxScene(type) {
   document.getElementById('wxSunWrap').style.display = 'none';
   document.getElementById('wxMoon').style.display = 'none';
   document.getElementById('wxLightning').style.display = 'none';
-
-  // Raggi sole
-  document.getElementById('sunRays').innerHTML = Array.from({length:12},(_,i) =>
-    `<div class="sun-ray" style="transform:rotate(${i*30}deg)"></div>`).join('');
+  document.getElementById('wxSunHaze').style.display = 'none';
 
   if (type === 'sunny') {
     document.getElementById('wxSunWrap').style.display = 'block';
+    document.getElementById('wxSunHaze').style.display = 'block';
   } else if (type === 'partcloud') {
     document.getElementById('wxSunWrap').style.display = 'block';
+    document.getElementById('wxSunHaze').style.display = 'block';
     document.getElementById('wxClouds').innerHTML =
-      `<div class="cloud" style="top:60px;right:-12px;animation-duration:9s">${_cloudSVG(130,52,.88)}</div>
-       <div class="cloud" style="top:96px;left:-18px;animation-duration:12s;animation-delay:-5s">${_cloudSVG(100,40,.6)}</div>`;
+      `<div class="cloud" style="top:52px;right:-8px;animation-duration:10s">${_cloudSVG(170,62,.82)}</div>
+       <div class="cloud" style="top:88px;left:-12px;animation-duration:14s;animation-delay:-6s">${_cloudSVG(130,48,.58)}</div>`;
   } else if (type === 'cloudy') {
     document.getElementById('wxClouds').innerHTML =
-      `<div class="cloud" style="top:18px;right:-14px;animation-duration:10s">${_cloudSVG(160,64,.9)}</div>
-       <div class="cloud" style="top:72px;left:-18px;animation-duration:14s;animation-delay:-5s">${_cloudSVG(130,52,.75)}</div>
-       <div class="cloud" style="top:112px;right:36px;animation-duration:11s;animation-delay:-2s">${_cloudSVG(88,35,.55)}</div>`;
+      `<div class="cloud" style="top:8px;right:-10px;animation-duration:12s">${_cloudSVG(200,70,.9)}</div>
+       <div class="cloud" style="top:58px;left:-14px;animation-duration:16s;animation-delay:-6s">${_cloudSVG(165,58,.78)}</div>
+       <div class="cloud" style="top:100px;right:30px;animation-duration:13s;animation-delay:-3s">${_cloudSVG(110,40,.52)}</div>`;
   } else if (type === 'rainy') {
     document.getElementById('wxClouds').innerHTML =
-      `<div class="cloud" style="top:10px;right:-10px;animation-duration:8s">${_cloudSVG(160,64,.8,'#94a3b8')}</div>
-       <div class="cloud" style="top:58px;left:-14px;animation-duration:11s;animation-delay:-3s">${_cloudSVG(138,54,.7,'#94a3b8')}</div>`;
-    document.getElementById('wxRain').innerHTML = Array.from({length:28},(_,i) => {
-      const x=Math.random()*100, dur=0.5+Math.random()*.4, delay=-Math.random()*2, h=12+Math.random()*14;
-      return `<div class="rain-drop" style="left:${x}%;height:${h}px;animation-duration:${dur}s;animation-delay:${delay}s"></div>`;
+      `<div class="cloud" style="top:4px;right:-8px;animation-duration:10s">${_cloudSVG(185,66,.82,'#94a3b8')}</div>
+       <div class="cloud" style="top:52px;left:-12px;animation-duration:13s;animation-delay:-4s">${_cloudSVG(155,56,.68,'#94a3b8')}</div>`;
+    document.getElementById('wxRain').innerHTML = Array.from({length:48},() => {
+      const x=Math.random()*110-5, dur=0.45+Math.random()*.4, delay=-Math.random()*2.5, h=14+Math.random()*18;
+      return `<div class="rain-drop" style="left:${x}%;height:${h}px;animation-duration:${dur}s;animation-delay:${delay}s;opacity:${0.5+Math.random()*.4}"></div>`;
     }).join('');
   } else if (type === 'stormy') {
     document.getElementById('wxClouds').innerHTML =
-      `<div class="cloud" style="top:5px;left:-18px;animation-duration:7s">${_cloudSVG(200,74,.85,'#475569')}</div>
-       <div class="cloud" style="top:62px;right:-10px;animation-duration:9s;animation-delay:-3s">${_cloudSVG(148,58,.7,'#334155')}</div>`;
-    document.getElementById('wxRain').innerHTML = Array.from({length:36},(_,i) => {
-      const x=Math.random()*100, dur=0.35+Math.random()*.3, delay=-Math.random()*1.5, h=14+Math.random()*18;
-      return `<div class="rain-drop" style="left:${x}%;height:${h}px;animation-duration:${dur}s;animation-delay:${delay}s;opacity:.6"></div>`;
+      `<div class="cloud" style="top:2px;left:-14px;animation-duration:8s">${_cloudSVG(230,80,.9,'#334155')}</div>
+       <div class="cloud" style="top:56px;right:-8px;animation-duration:10s;animation-delay:-4s">${_cloudSVG(175,64,.75,'#1e293b')}</div>`;
+    document.getElementById('wxRain').innerHTML = Array.from({length:64},() => {
+      const x=Math.random()*110-5, dur=0.28+Math.random()*.25, delay=-Math.random()*1.8, h=16+Math.random()*22;
+      return `<div class="rain-drop" style="left:${x}%;height:${h}px;animation-duration:${dur}s;animation-delay:${delay}s;opacity:${0.55+Math.random()*.35}"></div>`;
     }).join('');
     document.getElementById('wxLightning').style.display = 'block';
   } else if (type === 'snowy') {
     document.getElementById('wxClouds').innerHTML =
-      `<div class="cloud" style="top:14px;right:-10px;animation-duration:12s">${_cloudSVG(148,58,.85)}</div>
-       <div class="cloud" style="top:66px;left:-14px;animation-duration:15s;animation-delay:-6s">${_cloudSVG(118,46,.65)}</div>`;
-    document.getElementById('wxSnow').innerHTML = Array.from({length:20},(_,i) => {
-      const x=Math.random()*100, size=3+Math.random()*5, dur=2+Math.random()*3, delay=-Math.random()*4;
+      `<div class="cloud" style="top:10px;right:-8px;animation-duration:14s">${_cloudSVG(170,60,.82)}</div>
+       <div class="cloud" style="top:60px;left:-12px;animation-duration:18s;animation-delay:-7s">${_cloudSVG(140,50,.64)}</div>`;
+    document.getElementById('wxSnow').innerHTML = Array.from({length:36},() => {
+      const x=Math.random()*100, size=2+Math.random()*5, dur=2.2+Math.random()*3.5, delay=-Math.random()*5;
       return `<div class="snow-flake" style="left:${x}%;width:${size}px;height:${size}px;animation-duration:${dur}s;animation-delay:${delay}s"></div>`;
     }).join('');
   } else if (type === 'night') {
     document.getElementById('wxMoon').style.display = 'block';
-    document.getElementById('wxStars').innerHTML = Array.from({length:28},(_,i) => {
-      const x=Math.random()*90, y=Math.random()*70, s=Math.random()<.25?3:Math.random()<.5?2:1.5;
-      const dur=1.5+Math.random()*3, delay=-Math.random()*4;
-      return `<div class="wx-star" style="left:${x}%;top:${y}%;width:${s}px;height:${s}px;animation-duration:${dur}s;animation-delay:${delay}s"></div>`;
+    document.getElementById('wxStars').innerHTML = Array.from({length:44},() => {
+      const x=Math.random()*92, y=Math.random()*80;
+      const s=Math.random()<.08?3.5:Math.random()<.25?2.5:Math.random()<.5?1.8:1.2;
+      const dur=1.8+Math.random()*3.5, delay=-Math.random()*5;
+      const op=0.4+Math.random()*.6;
+      return `<div class="wx-star" style="left:${x}%;top:${y}%;width:${s}px;height:${s}px;animation-duration:${dur}s;animation-delay:${delay}s;opacity:${op}"></div>`;
     }).join('');
   } else if (type === 'foggy') {
-    document.getElementById('wxClouds').innerHTML = Array.from({length:4},(_,i) =>
-      `<div class="wx-fog-layer" style="top:${28+i*42}px;animation-duration:${8+i*3}s;animation-delay:${-i*2}s;opacity:${0.38-i*.06}"></div>`
+    document.getElementById('wxClouds').innerHTML = Array.from({length:5},(_,i) =>
+      `<div class="wx-fog-layer" style="top:${18+i*32}px;animation-duration:${9+i*3}s;animation-delay:${-i*2.5}s;opacity:${0.42-i*.05}"></div>`
     ).join('');
   }
 }
