@@ -5,6 +5,9 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
 <title>Tutorial · Parlia</title>
 <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<!-- Eredita gli stili del nuovo AI Core orbitale e delle sezioni della home -->
+<link rel="stylesheet" href="inicio.css?v=20260414g">
+<link rel="stylesheet" href="rehab.css?v=20260414g">
 <style>
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 :root {
@@ -235,75 +238,72 @@ html,body { height:100%; overflow:hidden; font-family:'Plus Jakarta Sans',sans-s
   </button>
 
   <!-- WIDGET 1: PARLIA AI -->
+  <!-- WIDGET 1: AI CORE (Parlia AI + agenda fusa dentro, orbita fluttuante) -->
   <div id="w-ai">
-    <div class="ai-hero">
-      <div class="ai-hero-grid"></div>
-      <div class="ai-hero-inner">
-        <div class="ai-header">
-          <div class="ai-avatar-box">
-            <div class="ai-bars">
-              <div class="ai-bar"></div><div class="ai-bar"></div><div class="ai-bar"></div><div class="ai-bar"></div><div class="ai-bar"></div>
+    <div class="ai-core-wrap">
+      <div class="ai-hero">
+        <div class="ai-orbit-ring ai-orbit-ring-1"></div>
+        <div class="ai-orbit-ring ai-orbit-ring-2"></div>
+        <div class="ai-hero-grid"></div>
+        <div class="ai-hero-inner">
+          <div class="ai-header">
+            <div class="ai-orb">
+              <div class="ai-orb-core">
+                <div class="ai-bars">
+                  <div class="ai-bar"></div><div class="ai-bar"></div><div class="ai-bar"></div><div class="ai-bar"></div><div class="ai-bar"></div>
+                </div>
+              </div>
+              <div class="ai-orb-halo"></div>
             </div>
+            <div class="ai-meta">
+              <div class="ai-name-lbl">Parlia AI</div>
+              <div class="ai-status"><div class="ai-online"></div><span class="ai-status-txt">Escuchándote</span></div>
+            </div>
+            <div class="ai-tts-btn">🔇</div>
           </div>
-          <div class="ai-meta">
-            <div class="ai-name-lbl">Parlia AI</div>
-            <div class="ai-status"><div class="ai-online"></div><span class="ai-status-txt">Escuchándote</span></div>
+          <div class="ai-session-pill" style="display:inline-flex">
+            <span class="ai-session-pill-dot"></span>
+            <span class="ai-session-pill-emoji">🎤</span>
+            <span><span class="ai-session-pill-label">Ahora</span> · <span class="ai-session-pill-value">Logopedia</span></span>
           </div>
-          <div class="ai-tts-btn">🔇</div>
-        </div>
-        <div class="sessions-badge"><div class="sessions-dot"></div>🎉 Todas las sesiones completadas</div>
-        <div class="bubble-ai">Buenas noches Laura, ¡excelente trabajo hoy! Completaste todas tus sesiones. ¿Cómo te sientes?</div>
-        <div class="ai-chips">
-          <div class="ai-chip" id="ai-chip-0">Cansada</div>
-          <div class="ai-chip" id="ai-chip-1">Bien pero dolorida</div>
-          <div class="ai-chip" id="ai-chip-2">Muy motivada</div>
-          <div class="ai-chip" id="ai-chip-3">Quiero relajarme</div>
+          <div class="bubble-ai">Buenas tardes Laura, ¿cómo fue la sesión de esta mañana? 🌿</div>
+          <div class="ai-chips">
+            <div class="ai-chip" id="ai-chip-0">Muy bien</div>
+            <div class="ai-chip" id="ai-chip-1">Regular</div>
+            <div class="ai-chip" id="ai-chip-2">Difícil</div>
+            <div class="ai-chip" id="ai-chip-3">Cansada</div>
+          </div>
+          <!-- Agenda integrata dentro il core -->
+          <div class="ai-agenda-divider">
+            <span class="ai-agenda-divider-label">📅 Tu día</span>
+          </div>
+          <div class="agenda-scroll" id="agendaScroll">
+            <div class="agenda-card done">
+              <div class="ac-time">09:00</div>
+              <div class="ac-label" style="text-decoration:line-through;opacity:.6">Fisioterapia</div>
+              <div class="ac-sub">Gimnasio</div>
+              <div class="ac-tag" style="background:rgba(34,197,94,.15);color:#86efac">Rehab</div>
+            </div>
+            <div class="agenda-card now">
+              <div class="ac-time">13:00 <div class="ac-now-badge">AHORA</div></div>
+              <div class="ac-label">Logopedia</div>
+              <div class="ac-sub">Dra. Martínez</div>
+              <div class="ac-tag" style="background:rgba(99,102,241,.2);color:#a5b4fc">Voz</div>
+            </div>
+            <div class="agenda-card">
+              <div class="ac-time">15:00</div>
+              <div class="ac-label">Almuerzo</div>
+              <div class="ac-sub">Comedor</div>
+              <div class="ac-tag" style="background:rgba(251,191,36,.15);color:#fde68a">Descanso</div>
+            </div>
+            <div class="agenda-add-chip">+ Recordatorio</div>
+          </div>
         </div>
       </div>
     </div>
     <div class="hs-wrap">
       <div class="hs-btn" onclick="openPopup('ai-chat')"><div class="hs-badge">i</div><span class="hs-label">¿Qué es Parlia AI?</span></div>
-      <div class="hs-btn" onclick="openPopup('ai-chips')"><div class="hs-badge">i</div><span class="hs-label">Los chips de respuesta</span></div>
-    </div>
-  </div>
-
-  <!-- WIDGET 2: AGENDA -->
-  <div id="w-agenda">
-    <div class="agenda-wrap">
-      <div class="agenda-hdr">
-        <div class="agenda-hdr-title"><div class="agenda-dot"></div>Agenda de hoy</div>
-        <div style="font-size:.65rem;font-weight:700;color:var(--blue)">+ Recordatorio</div>
-      </div>
-      <div class="agenda-scroll" id="agendaScroll">
-        <div class="agenda-card done">
-          <div class="ac-time">09:00</div>
-          <div class="ac-label" style="text-decoration:line-through;opacity:.6">Fisioterapia</div>
-          <div class="ac-sub">Gimnasio Guttmann</div>
-          <div class="ac-tag" style="background:#dcfce7;color:#16a34a">Rehab</div>
-        </div>
-        <div class="agenda-card done">
-          <div class="ac-time">11:00</div>
-          <div class="ac-label" style="text-decoration:line-through;opacity:.6">Terapia ocupacional</div>
-          <div class="ac-sub">Sala 3 · planta 2</div>
-          <div class="ac-tag" style="background:#f3e8ff;color:#7c3aed">Terapia</div>
-        </div>
-        <div class="agenda-card now">
-          <div class="ac-time">13:00 <div class="ac-now-badge">AHORA</div></div>
-          <div class="ac-label">Logopedia</div>
-          <div class="ac-sub">Dra. Martínez</div>
-          <div class="ac-tag" style="background:#dbeafe;color:#2563eb">Voz</div>
-        </div>
-        <div class="agenda-card">
-          <div class="ac-time">15:00</div>
-          <div class="ac-label">Almuerzo</div>
-          <div class="ac-sub">Comedor planta 1</div>
-          <div class="ac-tag" style="background:#fef9c3;color:#92400e">Descanso</div>
-        </div>
-      </div>
-    </div>
-    <div class="hs-wrap">
-      <div class="hs-btn" onclick="openPopup('agenda-cards')"><div class="hs-badge">i</div><span class="hs-label">Leer la agenda</span></div>
-      <div class="hs-btn" onclick="openPopup('agenda-add')"><div class="hs-badge">i</div><span class="hs-label">Añadir recordatorio</span></div>
+      <div class="hs-btn" onclick="openPopup('ai-agenda')"><div class="hs-badge">i</div><span class="hs-label">Agenda integrada</span></div>
     </div>
   </div>
 
@@ -312,6 +312,13 @@ html,body { height:100%; overflow:hidden; font-family:'Plus Jakarta Sans',sans-s
     <div style="margin-bottom:8px">
       <div style="font-family:'Bricolage Grotesque',sans-serif;font-size:1.05rem;font-weight:800;color:var(--ink)">Rehabilitación</div>
       <div style="font-size:.75rem;font-weight:600;color:var(--muted)">Tus herramientas de terapia</div>
+    </div>
+    <!-- Objetivo de hoy — focus della rehab -->
+    <div class="goal-card" style="margin-bottom:10px">
+      <div class="goal-badge">🎯 Objetivo de hoy</div>
+      <div class="goal-title">Mejorar expresión verbal</div>
+      <div class="goal-sub">Practicar vocabulario y construcción de frases simples diarias.</div>
+      <div class="goal-action">Iniciar sesión →</div>
     </div>
     <div style="display:flex;flex-direction:column;gap:10px">
       <div id="rehab-logo" style="background:var(--card);border:1.5px solid var(--border);border-radius:var(--radius);padding:16px;display:flex;align-items:center;gap:14px;box-shadow:var(--shadow);transition:border-color .4s,box-shadow .4s,transform .3s">
@@ -434,8 +441,7 @@ html,body { height:100%; overflow:hidden; font-family:'Plus Jakarta Sans',sans-s
 const POPUPS = {
   'ai-chat':{ emoji:'🤖', title:'¿Qué es Parlia AI?', body:'Parlia AI es tu asistente personal. Cada día te saluda con un mensaje adaptado a la hora, tu estado de ánimo y tus actividades del día. Puedes responderle tocando los chips — sin escribir nada.' },
   'ai-chips':{ emoji:'💬', title:'Los chips de respuesta', body:'Los chips son botones generados automáticamente por la IA según el contexto. Un solo toque y tu respuesta se envía. Parlia también los puede leer en voz alta si tienes el audio activado.' },
-  'agenda-cards':{ emoji:'📅', title:'Leer la agenda', body:'Las tarjetas muestran tus sesiones del día. Las completadas aparecen tachadas, la actual está resaltada en azul con el badge "AHORA". Desliza para ver todas las actividades.' },
-  'agenda-add':{ emoji:'⏰', title:'Añadir recordatorio', body:'Toca "+ Recordatorio" para añadir un aviso con la hora que quieras. Los recordatorios aparecen en la agenda con fondo amarillo y puedes eliminarlos tocando la X.' },
+  'ai-agenda':{ emoji:'📅', title:'Tu agenda integrada', body:'Dentro del mismo core de Parlia AI encuentras tu día: sesiones completadas tachadas, la actual resaltada en blanco brillante con el badge "AHORA", y la próxima a continuación. Desliza horizontalmente para ver todo. Toca "+ Recordatorio" al final para añadir un aviso con la hora que prefieras.' },
   'rehab-juegos':{ emoji:'🧠', title:'Los 4 ejercicios cognitivos', body:'Parlia tiene 4 tipos de ejercicios: Palabras (completa sílabas), Memoria (encuentra pares), Atención (identifica el elemento diferente) y Lógica (sigue la secuencia). La dificultad se adapta automáticamente a tu progreso.' },
   'rehab-logo':{ emoji:'🎙️', title:'Sesión de logopedia', body:'La sección Logopedia incluye ejercicios guiados por IA con reconocimiento de voz. El semáforo visual te indica si la pronunciación fue correcta (verde), aproximada (amarillo) o necesita repetición (rojo).' },
   'perfil-memoria':{ emoji:'💙', title:'Memoria AI — lo más importante', body:'Entra en "Editar mi perfil" y desliza hasta la sección rosa "Cuéntale a Parlia quién eres": ahí puedes contar tus hobbies, música y comida favoritas, intereses, familia, profesión, lugar de origen y cómo te gusta que te hablen. Cada dato que añadas hará que Parlia AI converse contigo de forma más humana, cercana y personal. Todo se guarda solo en tu dispositivo.' },
@@ -472,10 +478,9 @@ function speak(el,text){
 
 // TOUR
 const TOUR=[
-  { widgetId:'w-ai',     badge:'Paso 1 de 4', title:'🤖 Parlia AI — tu asistente',  desc:'Este es el corazón de la app. Cada día Parlia AI te saluda con un mensaje personalizado y te propone chips de respuesta rápida. Un solo toque y te comunicas sin escribir nada.' },
-  { widgetId:'w-agenda', badge:'Paso 2 de 4', title:'📅 Tu agenda del día',          desc:'Aquí ves todas tus sesiones de rehabilitación. Las completadas están tachadas, la sesión actual resaltada en azul. Desliza para ver más actividades y toca "+ Recordatorio" para añadir un aviso.' },
-  { widgetId:'w-rehab',  badge:'Paso 3 de 4', title:'🧠 Rehabilitación y logopedia', desc:'Ejercicios cognitivos (palabras, memoria, atención, lógica) y sesiones de logopedia con reconocimiento de voz. La dificultad se adapta automáticamente a tu progreso.' },
-  { widgetId:'w-perfil', badge:'Paso 4 de 4', title:'👤 Tu perfil + 💙 Memoria AI',  desc:'Aquí ves un resumen de tus datos y accedes a "Editar mi perfil". Dentro encontrarás la sección rosa "Memoria AI": hobbies, música, familia, tono de conversación… Cuanto más le cuentes, más humana será cada charla con Parlia. Toca la "i" para saber más.', last:true },
+  { widgetId:'w-ai',     badge:'Paso 1 de 3', title:'🤖 Parlia AI + 📅 Tu día',       desc:'El corazón de la app: Parlia AI te saluda con un mensaje personalizado y te propone chips de respuesta. Integrada, ves también tu agenda del día — sesiones completadas tachadas, la actual resaltada. Toca "+ Recordatorio" para añadir un aviso.' },
+  { widgetId:'w-rehab',  badge:'Paso 2 de 3', title:'🎯 Objetivo + 🧠 Rehabilitación', desc:'Cada día Parlia AI te propone un objetivo personalizado (la tarjeta amarilla). Debajo, los módulos de logopedia, estimulación cognitiva y tus progresos. Todo adaptado a ti.' },
+  { widgetId:'w-perfil', badge:'Paso 3 de 3', title:'👤 Tu perfil + 💙 Memoria AI',   desc:'Aquí ves un resumen de tus datos y accedes a "Editar mi perfil". Dentro encontrarás la sección rosa "Memoria AI": hobbies, música, familia, tono de conversación… Cuanto más le cuentes, más humana será cada charla con Parlia. Toca la "i" para saber más.', last:true },
 ];
 
 let tourStep=-1;
@@ -498,7 +503,7 @@ function applyFocus(widgetId){
   const target=document.getElementById(widgetId);
   if(!target) return;
   target.classList.add('tour-focus');
-  ['w-ai','w-agenda','w-aac','w-rehab','w-perfil'].forEach(id=>{ if(id!==widgetId){ const el=document.getElementById(id); if(el) el.classList.add('tour-dimmed'); } });
+  ['w-ai','w-aac','w-rehab','w-perfil'].forEach(id=>{ if(id!==widgetId){ const el=document.getElementById(id); if(el) el.classList.add('tour-dimmed'); } });
   // Scurisci anche intro, btn tour e CTA
   ['tour-intro','tourStartBtn','w-cta'].forEach(id=>{ const el=document.getElementById(id); if(el) el.classList.add('tour-dimmed'); });
 
@@ -557,7 +562,7 @@ function updateText(step,cb){
 (function initSpotlight(){
   const btn=document.getElementById('tourStartBtn');
   btn.classList.add('initial-spotlight');
-  ['w-ai','w-agenda','w-rehab','w-perfil','w-aac','w-cta'].forEach(id=>{
+  ['w-ai','w-rehab','w-perfil','w-aac','w-cta'].forEach(id=>{
     const el=document.getElementById(id); if(el) el.classList.add('initial-dimmed');
   });
 })();
