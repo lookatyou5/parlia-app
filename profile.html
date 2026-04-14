@@ -2,877 +2,193 @@
 <html lang="es">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-<title>Parlia — Perfil</title>
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<title>Mi perfil · Parlia</title>
 <link rel="manifest" href="manifest.json">
 <meta name="theme-color" content="#2563eb">
-<meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Parlia">
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
 <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <style>
-  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-  :root {
-    --bg: #f9fafb; --card: #fff; --ink: #0f0f10; --muted: #6b7280;
-    --border: #e5e7eb; --blue: #2563eb; --blue-light: #eff6ff;
-    --violet: #7c3aed; --violet-light: #f5f3ff;
-    --green: #16a34a; --green-light: #dcfce7;
-    --radius: 20px; --shadow: 0 2px 16px rgba(0,0,0,0.07);
-  }
-  html, body { height: 100%; font-family: 'Plus Jakarta Sans', sans-serif; background: var(--bg); color: var(--ink); }
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+:root {
+  --bg:#f5f6fa; --card:#fff; --ink:#0f0f10; --muted:#6b7280; --border:#e5e7eb;
+  --blue:#2563eb; --blue-light:#eff6ff; --indigo:#6366f1;
+  --pink:#db2777; --pink-light:#fdf2f8;
+  --radius:18px; --shadow:0 2px 12px rgba(0,0,0,.06),0 1px 3px rgba(0,0,0,.04);
+}
+html,body{height:100%;font-family:'Plus Jakarta Sans',sans-serif;background:var(--bg);color:var(--ink);-webkit-font-smoothing:antialiased;}
+.mesh{position:fixed;inset:0;z-index:0;pointer-events:none;overflow:hidden;}
+.blob{position:absolute;border-radius:50%;filter:blur(80px);opacity:.4;}
+.blob1{width:340px;height:340px;top:-100px;right:-80px;background:radial-gradient(circle,#bfdbfe,#ddd6fe);animation:bf 10s ease-in-out infinite;}
+.blob2{width:260px;height:260px;bottom:60px;left:-60px;background:radial-gradient(circle,#fbcfe8,#c4b5fd);animation:bf 14s ease-in-out infinite reverse;}
+@keyframes bf{0%,100%{transform:translate(0,0)}50%{transform:translate(12px,-12px)}}
 
-  /* ── MESH ── */
-  .mesh { position: fixed; inset: 0; z-index: 0; pointer-events: none; overflow: hidden; }
-  .mb { position: absolute; border-radius: 50%; filter: blur(80px); opacity: 0.3; }
-  .mb1 { width:300px; height:300px; top:-80px; right:-60px; background:radial-gradient(circle,#bfdbfe,#ddd6fe); animation: bf 9s ease-in-out infinite; }
-  .mb2 { width:220px; height:220px; bottom:80px; left:-50px; background:radial-gradient(circle,#99f6e4,#a5f3fc); animation: bf 12s ease-in-out infinite reverse; }
-  @keyframes bf { 0%,100%{transform:translate(0,0)} 50%{transform:translate(12px,-12px)} }
+.topbar{position:fixed;top:0;left:0;right:0;z-index:100;height:56px;background:rgba(245,246,250,.92);backdrop-filter:blur(20px);border-bottom:1px solid var(--border);display:flex;align-items:center;padding:0 16px;gap:10px;}
+.back-btn{font-size:1.2rem;cursor:pointer;-webkit-tap-highlight-color:transparent;padding:4px;}
+.page-title{font-family:'Bricolage Grotesque',sans-serif;font-size:1rem;font-weight:800;flex:1;}
+.scroll-area{position:fixed;top:56px;bottom:0;left:0;right:0;overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch;scrollbar-width:none;z-index:1;overscroll-behavior:contain;}
+.scroll-area::-webkit-scrollbar{display:none;}
+.content{padding:14px 14px 40px;display:flex;flex-direction:column;gap:14px;}
 
-  /* ── TOPBAR ── */
-  .topbar {
-    position: sticky; top: 0; z-index: 40;
-    background: rgba(249,250,251,0.9); backdrop-filter: blur(16px);
-    border-bottom: 1px solid var(--border);
-    padding: 12px 18px; display: flex; align-items: center; gap: 12px;
-  }
-  .back-btn {
-    width: 36px; height: 36px; border-radius: 11px;
-    background: var(--card); border: 1.5px solid var(--border);
-    display: flex; align-items: center; justify-content: center;
-    font-size: 1rem; cursor: pointer; flex-shrink: 0;
-    transition: all .18s; -webkit-tap-highlight-color: transparent;
-  }
-  .back-btn:active { background: var(--blue-light); border-color: var(--blue); }
-  .topbar-title { font-family:'Bricolage Grotesque',sans-serif; font-size:1rem; font-weight:800; letter-spacing:-0.02em; flex:1; }
+/* Progress */
+.progress-card{background:linear-gradient(135deg,#1e3a8a,#4f46e5);border-radius:var(--radius);padding:16px 18px;color:white;position:relative;overflow:hidden;}
+.progress-card::after{content:'';position:absolute;top:-30px;right:-30px;width:110px;height:110px;background:rgba(255,255,255,.07);border-radius:50%;}
+.pc-label{font-size:.6rem;font-weight:800;text-transform:uppercase;letter-spacing:.1em;color:rgba(255,255,255,.55);margin-bottom:4px;}
+.pc-title{font-family:'Bricolage Grotesque',sans-serif;font-size:1.1rem;font-weight:800;margin-bottom:10px;letter-spacing:-0.02em;}
+.pc-bar-wrap{background:rgba(255,255,255,.2);border-radius:20px;height:7px;margin-bottom:6px;overflow:hidden;}
+.pc-bar{height:100%;border-radius:20px;background:linear-gradient(90deg,#4ade80,#22d3ee);transition:width .6s cubic-bezier(.4,0,.2,1);}
+.pc-pct{font-size:.72rem;font-weight:600;color:rgba(255,255,255,.8);}
 
-  /* ── BODY ── */
-  .body { padding: 16px 16px 100px; display: flex; flex-direction: column; gap: 14px; position: relative; z-index: 1; }
+/* Section header */
+.sec-head{padding:4px 4px 0;}
+.sec-title{font-family:'Bricolage Grotesque',sans-serif;font-size:.95rem;font-weight:800;color:var(--ink);display:flex;align-items:center;gap:8px;}
+.sec-sub{font-size:.72rem;color:var(--muted);font-weight:500;margin-top:3px;line-height:1.45;}
 
-  /* ── PROGRESS CARD ── */
-  .progress-card {
-    background: linear-gradient(135deg,#1e3a8a,#2d5be3,#4f46e5);
-    border-radius: var(--radius); padding: 18px 20px;
-    position: relative; overflow: hidden;
-  }
-  .progress-card::after { content:''; position:absolute; top:-30px; right:-30px; width:110px; height:110px; background:rgba(255,255,255,0.07); border-radius:50%; }
-  .pc-label { font-size:0.62rem; font-weight:800; text-transform:uppercase; letter-spacing:.1em; color:rgba(255,255,255,.55); margin-bottom:4px; }
-  .pc-title { font-family:'Bricolage Grotesque',sans-serif; font-size:1.2rem; font-weight:800; color:white; letter-spacing:-0.02em; margin-bottom:12px; }
-  .pc-bar-wrap { background:rgba(255,255,255,0.2); border-radius:20px; height:8px; margin-bottom:8px; overflow:hidden; }
-  .pc-bar { height:100%; border-radius:20px; background:linear-gradient(90deg,#4ade80,#22d3ee); transition:width .6s cubic-bezier(.4,0,.2,1); }
-  .pc-pct { font-size:0.75rem; font-weight:700; color:rgba(255,255,255,.8); }
+/* Group card */
+.group{background:var(--card);border:1.5px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow);overflow:hidden;}
+.row{display:flex;align-items:center;gap:12px;padding:12px 14px;cursor:pointer;-webkit-tap-highlight-color:transparent;transition:background .15s;border-bottom:1px solid var(--border);}
+.row:last-child{border-bottom:none;}
+.row:active{background:var(--blue-light);}
+.row-icon{width:34px;height:34px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:1rem;flex-shrink:0;}
+.row-body{flex:1;min-width:0;}
+.row-title{font-size:.84rem;font-weight:700;color:var(--ink);}
+.row-value{font-size:.72rem;font-weight:600;color:var(--muted);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.row-value.empty{color:var(--blue);}
+.row-chev{color:var(--muted);font-size:1rem;flex-shrink:0;}
 
-  /* ── SECTION ── */
-  .section-title {
-    font-size:0.6rem; font-weight:800; text-transform:uppercase;
-    letter-spacing:.1em; color:var(--muted);
-    display:flex; align-items:center; gap:6px; padding:4px 2px 0;
-  }
-  .section-title::after { content:''; flex:1; height:1px; background:var(--border); }
+/* Toggle rows */
+.toggle-row{display:flex;align-items:center;gap:12px;padding:12px 14px;border-bottom:1px solid var(--border);}
+.toggle-row:last-child{border-bottom:none;}
+.toggle-row .row-icon{width:34px;height:34px;}
+.toggle-row > div{flex:1;min-width:0;}
+.toggle-row .tl{font-size:.84rem;font-weight:700;color:var(--ink);}
+.toggle-row .ts{font-size:.7rem;font-weight:500;color:var(--muted);margin-top:1px;line-height:1.3;}
+.toggle{width:44px;height:25px;border-radius:13px;background:var(--border);position:relative;cursor:pointer;transition:background .25s;flex-shrink:0;-webkit-tap-highlight-color:transparent;}
+.toggle.on{background:var(--blue);}
+.toggle::after{content:'';position:absolute;top:3px;left:3px;width:19px;height:19px;border-radius:50%;background:white;box-shadow:0 1px 4px rgba(0,0,0,.2);transition:left .25s cubic-bezier(.4,0,.2,1);}
+.toggle.on::after{left:22px;}
 
-  /* ── PROFILE CARD (già compilati) ── */
-  .profile-done {
-    background: var(--card); border: 1.5px solid var(--border);
-    border-radius: var(--radius); padding: 16px; box-shadow: var(--shadow);
-  }
-  .pd-row { display:flex; align-items:center; gap:12px; padding:9px 0; border-bottom:1px solid var(--border); }
-  .pd-row:last-child { border-bottom:none; padding-bottom:0; }
-  .pd-row:first-child { padding-top:0; }
-  .pd-icon { width:38px; height:38px; border-radius:12px; display:flex; align-items:center; justify-content:center; font-size:1.1rem; flex-shrink:0; }
-  .pd-key { font-size:0.67rem; font-weight:700; text-transform:uppercase; letter-spacing:.07em; color:var(--muted); }
-  .pd-val { font-size:0.92rem; font-weight:700; color:var(--ink); margin-top:1px; }
-  .pd-edit { margin-left:auto; font-size:0.68rem; font-weight:700; color:var(--blue); background:var(--blue-light); padding:4px 10px; border-radius:20px; cursor:pointer; flex-shrink:0; }
+/* Action buttons */
+.action-row{display:flex;gap:8px;}
+.action-btn{flex:1;padding:12px;background:var(--card);border:1.5px solid var(--border);border-radius:14px;font-family:'Plus Jakarta Sans',sans-serif;font-size:.8rem;font-weight:700;color:var(--ink);cursor:pointer;text-align:center;-webkit-tap-highlight-color:transparent;transition:all .15s;}
+.action-btn:active{background:var(--blue-light);transform:scale(.97);}
 
-  /* ── CAMPO DA COMPLETARE ── */
-  .field-card {
-    background: var(--card); border: 2px dashed var(--border);
-    border-radius: var(--radius); padding: 16px;
-    box-shadow: none; cursor: pointer; transition: all .2s;
-    -webkit-tap-highlight-color: transparent;
-  }
-  .field-card:active { border-color: var(--blue); background: var(--blue-light); }
-  .field-card.filled { border-style:solid; border-color:var(--border); background:var(--card); }
-  .fc-header { display:flex; align-items:center; gap:12px; }
-  .fc-icon { width:44px; height:44px; border-radius:14px; display:flex; align-items:center; justify-content:center; font-size:1.2rem; flex-shrink:0; }
-  .fc-body { flex:1; }
-  .fc-title { font-size:0.88rem; font-weight:800; color:var(--ink); }
-  .fc-sub { font-size:0.72rem; font-weight:500; color:var(--muted); margin-top:2px; line-height:1.4; }
-  .fc-badge { flex-shrink:0; }
-  .badge-todo { font-size:0.6rem; font-weight:800; color:var(--blue); background:var(--blue-light); padding:4px 9px; border-radius:20px; }
-  .badge-done { font-size:0.6rem; font-weight:800; color:var(--green); background:var(--green-light); padding:4px 9px; border-radius:20px; }
+/* Privacy */
+.privacy-card{padding:11px 14px;background:#f0fdf4;border:1.5px solid #bbf7d0;border-radius:14px;display:flex;align-items:center;gap:10px;}
+.privacy-text{font-size:.68rem;font-weight:600;color:#166534;line-height:1.45;}
 
-  /* Chips selezione dentro la card espansa */
-  .fc-expand { overflow:hidden; max-height:0; transition:max-height .4s cubic-bezier(.4,0,.2,1); }
-  .fc-expand.open { max-height:400px; }
-  .fc-expand-inner { padding-top:14px; border-top:1px solid var(--border); margin-top:14px; }
-  .chip-grid { display:flex; flex-wrap:wrap; gap:8px; }
-  .chip {
-    background:var(--bg); border:2px solid var(--border);
-    border-radius:20px; padding:8px 14px;
-    font-size:0.78rem; font-weight:700; color:var(--ink);
-    cursor:pointer; transition:all .18s;
-    user-select:none; -webkit-user-select:none; -webkit-tap-highlight-color:transparent;
-    display:flex; align-items:center; gap:5px;
-  }
-  .chip:active { transform:scale(0.95); }
-  .chip.selected { background:var(--blue-light); border-color:var(--blue); color:var(--blue); }
-  .chip.selected-green { background:var(--green-light); border-color:var(--green); color:var(--green); }
+/* ── MODAL ── */
+#mOverlay{position:fixed;inset:0;z-index:800;background:rgba(10,10,20,.55);backdrop-filter:blur(6px);display:flex;align-items:flex-end;padding:0 12px 16px;opacity:0;pointer-events:none;transition:opacity .25s;}
+#mOverlay.open{opacity:1;pointer-events:auto;}
+.mcard{background:white;border-radius:22px;width:100%;max-width:480px;padding:20px 18px 18px;margin:0 auto;box-shadow:0 -4px 40px rgba(0,0,0,.18);transform:translateY(24px);transition:transform .3s cubic-bezier(.4,0,.2,1);max-height:85vh;overflow-y:auto;}
+#mOverlay.open .mcard{transform:translateY(0);}
+.mhead{display:flex;align-items:center;gap:10px;margin-bottom:4px;}
+.memoji{font-size:1.5rem;}
+.mtitle{font-family:'Bricolage Grotesque',sans-serif;font-size:1.05rem;font-weight:800;color:var(--ink);flex:1;}
+.mhelp{font-size:.72rem;color:var(--muted);line-height:1.45;margin-bottom:14px;}
+.minput{width:100%;background:var(--bg);border:1.5px solid var(--border);border-radius:12px;padding:11px 14px;font-family:'Plus Jakarta Sans',sans-serif;font-size:.88rem;font-weight:600;color:var(--ink);outline:none;transition:border-color .2s;}
+.minput:focus{border-color:var(--blue);}
+textarea.minput{resize:none;min-height:96px;}
+.mchips{display:flex;flex-wrap:wrap;gap:7px;margin-bottom:10px;}
+.mchip{background:var(--bg);border:1.5px solid var(--border);border-radius:20px;padding:7px 13px;font-size:.77rem;font-weight:700;color:var(--ink);cursor:pointer;-webkit-tap-highlight-color:transparent;transition:all .15s;user-select:none;}
+.mchip:active{transform:scale(.95);}
+.mchip.sel{background:var(--blue-light);border-color:var(--blue);color:var(--blue);}
+.mhint{font-size:.64rem;color:var(--muted);margin-top:4px;padding-left:2px;}
+.mactions{display:flex;gap:8px;margin-top:14px;}
+.mbtn{flex:1;padding:12px;border:none;border-radius:14px;font-family:'Plus Jakarta Sans',sans-serif;font-size:.85rem;font-weight:700;cursor:pointer;-webkit-tap-highlight-color:transparent;transition:all .15s;}
+.mbtn-save{background:linear-gradient(135deg,#2563eb,#6366f1);color:white;box-shadow:0 4px 14px rgba(37,99,235,.3);}
+.mbtn-save:active{transform:scale(.97);opacity:.92;}
+.mbtn-cancel{background:var(--bg);color:var(--muted);border:1.5px solid var(--border);}
 
-  /* Toggle switch */
-  .toggle-row { display:flex; align-items:center; justify-content:space-between; padding:10px 0; border-bottom:1px solid var(--border); }
-  .toggle-row:last-child { border-bottom:none; }
-  .toggle-label { font-size:0.85rem; font-weight:700; color:var(--ink); display:flex; align-items:center; gap:8px; }
-  .toggle-sub { font-size:0.7rem; font-weight:500; color:var(--muted); margin-top:1px; }
-  .toggle {
-    width:46px; height:26px; border-radius:13px;
-    background:var(--border); position:relative; cursor:pointer;
-    transition:background .25s; flex-shrink:0;
-    -webkit-tap-highlight-color:transparent;
-  }
-  .toggle.on { background:var(--blue); }
-  .toggle::after {
-    content:''; position:absolute; top:3px; left:3px;
-    width:20px; height:20px; border-radius:50%; background:white;
-    box-shadow:0 1px 4px rgba(0,0,0,0.2);
-    transition:left .25s cubic-bezier(.4,0,.2,1);
-  }
-  .toggle.on::after { left:23px; }
-
-  /* Save btn */
-  .save-btn {
-    position:fixed; bottom:24px; left:16px; right:16px; z-index:50;
-    background:linear-gradient(135deg,#3b82f6,#6366f1);
-    color:white; border:none; border-radius:16px; padding:17px;
-    font-size:0.95rem; font-weight:700; font-family:'Plus Jakarta Sans',sans-serif;
-    cursor:pointer; box-shadow:0 4px 20px rgba(99,102,241,0.35);
-    transition:all .2s; -webkit-tap-highlight-color:transparent;
-    display:none;
-  }
-  .save-btn.show { display:block; }
-  .save-btn:active { opacity:.88; transform:scale(0.98); }
-
-  /* Toast */
-  #toast { position:fixed; bottom:90px; left:50%; transform:translateX(-50%) translateY(16px); background:#0f0f10; color:white; padding:10px 18px; border-radius:20px; font-size:0.8rem; font-weight:700; opacity:0; transition:all .3s; pointer-events:none; white-space:nowrap; z-index:300; }
-
-  @keyframes fadeUp { from{opacity:0;transform:translateY(10px)} to{opacity:1;transform:translateY(0)} }
-  .body > * { animation:fadeUp .35s ease both; }
-  .body > *:nth-child(1){animation-delay:.04s}
-  .body > *:nth-child(2){animation-delay:.08s}
-  .body > *:nth-child(3){animation-delay:.12s}
-  .body > *:nth-child(4){animation-delay:.16s}
-  .body > *:nth-child(5){animation-delay:.20s}
-  .body > *:nth-child(6){animation-delay:.24s}
+/* Toast */
+#toast{position:fixed;bottom:30px;left:50%;transform:translateX(-50%) translateY(16px);background:#0f0f10;color:white;padding:10px 20px;border-radius:100px;font-size:.8rem;font-weight:700;z-index:999;opacity:0;transition:opacity .3s,transform .3s;pointer-events:none;}
 </style>
 </head>
 <body>
+<div class="mesh"><div class="blob blob1"></div><div class="blob blob2"></div></div>
 
-<div class="mesh"><div class="mb mb1"></div><div class="mb mb2"></div></div>
-
-<!-- TOPBAR -->
 <div class="topbar">
   <div class="back-btn" onclick="history.back()">←</div>
-  <div class="topbar-title">Completar perfil</div>
+  <div class="page-title">Mi perfil</div>
 </div>
 
-<div class="body">
+<div class="scroll-area">
+<div class="content">
 
-  <!-- BARRA PROGRESSO -->
+  <!-- PROGRESSO -->
   <div class="progress-card">
     <div class="pc-label">Tu perfil</div>
-    <div class="pc-title" id="pcTitle">Perfil al 30% — ¡Casi!</div>
-    <div class="pc-bar-wrap"><div class="pc-bar" id="pcBar" style="width:30%"></div></div>
-    <div class="pc-pct" id="pcPct">Completa los campos para personalizar tu experiencia</div>
+    <div class="pc-title" id="pcTitle">Perfil al 0%</div>
+    <div class="pc-bar-wrap"><div class="pc-bar" id="pcBar" style="width:0%"></div></div>
+    <div class="pc-pct" id="pcPct">Cuanto más completes, más personal será Parlia AI</div>
   </div>
 
-  <!-- YA COMPLETADO -->
-  <div class="section-title">✅ Ya completado</div>
+  <!-- GRUPPO 1: DATOS PERSONALES -->
+  <div class="sec-head">
+    <div class="sec-title">👤 Datos personales</div>
+    <div class="sec-sub">Tu identidad y quién te acompaña cada día.</div>
+  </div>
+  <div class="group" id="g-personal"></div>
 
-  <div class="profile-done">
-    <div class="pd-row">
-      <div class="pd-icon" style="background:#eff6ff">🙋</div>
-      <div style="flex:1">
-        <div class="pd-key">Usuario</div>
-        <div class="pd-val" id="pdUser">—</div>
-        <input id="edit-userName" type="text" dir="ltr" inputmode="text" autocomplete="given-name" autocorrect="off" spellcheck="false"
-          style="display:none;margin-top:6px;width:100%;background:#f9fafb;border:2px solid #2563eb;border-radius:10px;padding:9px 12px;font-size:0.92rem;font-weight:600;font-family:'Plus Jakarta Sans',sans-serif;outline:none;color:#0f0f10;direction:ltr;text-align:left"
-          oninput="onBaseInput('userName','pdUser',this.value)">
-      </div>
-      <div class="pd-edit" onclick="toggleEditField('userName')">Editar</div>
-    </div>
-    <div class="pd-row">
-      <div class="pd-icon" style="background:#f5f3ff">👩</div>
-      <div style="flex:1">
-        <div class="pd-key">Género</div>
-        <div class="pd-val" id="pdGender">—</div>
-        <div id="edit-gender" style="display:none;margin-top:8px;display:none">
-          <div style="display:flex;gap:8px;flex-wrap:wrap">
-            <div class="chip" onclick="selectGender(this,'f')">👩 Mujer</div>
-            <div class="chip" onclick="selectGender(this,'m')">👨 Hombre</div>
-            <div class="chip" onclick="selectGender(this,'n')">🧑 No especificado</div>
-          </div>
-        </div>
-      </div>
-      <div class="pd-edit" onclick="toggleEditField('gender')">Editar</div>
-    </div>
-    <div class="pd-row">
-      <div class="pd-icon" style="background:#f0fdfa">🤝</div>
-      <div style="flex:1">
-        <div class="pd-key">Cuidador principal</div>
-        <div class="pd-val" id="pdCarer">—</div>
-        <input id="edit-caregiverName" type="text" dir="ltr" inputmode="text" autocomplete="given-name" autocorrect="off" spellcheck="false"
-          style="display:none;margin-top:6px;width:100%;background:#f9fafb;border:2px solid #2563eb;border-radius:10px;padding:9px 12px;font-size:0.92rem;font-weight:600;font-family:'Plus Jakarta Sans',sans-serif;outline:none;color:#0f0f10;direction:ltr;text-align:left"
-          oninput="onBaseInput('caregiverName','pdCarer',this.value)">
-      </div>
-      <div class="pd-edit" onclick="toggleEditField('caregiverName')">Editar</div>
-    </div>
+  <!-- GRUPPO 2: MEMORIA E INTERESES -->
+  <div class="sec-head">
+    <div class="sec-title">🧠 Memoria e intereses</div>
+    <div class="sec-sub">Lo que Parlia AI recuerda sobre ti para hablarte de forma única y humana.</div>
+  </div>
+  <div class="group" id="g-memory"></div>
+
+  <!-- GRUPPO 3: FUNCIONES -->
+  <div class="sec-head">
+    <div class="sec-title">⚙️ Funciones activas</div>
+    <div class="sec-sub">Elige qué módulos quieres ver en la home.</div>
+  </div>
+  <div class="group" id="g-functions"></div>
+
+  <!-- EXPORT/IMPORT -->
+  <div class="sec-head">
+    <div class="sec-title">💾 Copia de seguridad</div>
+    <div class="sec-sub">Guarda o restaura tus datos.</div>
+  </div>
+  <div class="action-row">
+    <button class="action-btn" onclick="exportData()">📤 Exportar</button>
+    <label class="action-btn" style="cursor:pointer">📥 Importar
+      <input type="file" accept=".json" onchange="importData(event)" style="display:none">
+    </label>
   </div>
 
-  <!-- DA COMPLETARE -->
-  <div class="section-title">📝 Por completar</div>
-
-  <!-- CONDICIÓN -->
-  <div class="field-card" id="fc-condicion" onclick="toggleExpand('condicion')">
-    <div class="fc-header">
-      <div class="fc-icon" style="background:#fef9c3">🏥</div>
-      <div class="fc-body">
-        <div class="fc-title">Condición</div>
-        <div class="fc-sub">Tipo de dificultad — adapta los ejercicios y el lenguaje de la IA</div>
-      </div>
-      <div class="fc-badge"><div class="badge-todo" id="badge-condicion">Añadir</div></div>
-    </div>
-    <div class="fc-expand" id="exp-condicion">
-      <div class="fc-expand-inner">
-        <div style="font-size:.7rem;color:var(--muted);font-weight:600;margin-bottom:8px">Puedes seleccionar más de una</div>
-        <div class="chip-grid">
-          <div class="chip" onclick="selectChipMulti(this,'condicion','Afasia')">🗣️ Afasia</div>
-          <div class="chip" onclick="selectChipMulti(this,'condicion','SLA')">⚡ SLA</div>
-          <div class="chip" onclick="selectChipMulti(this,'condicion','Parálisis cerebral')">🧠 Parálisis cerebral</div>
-          <div class="chip" onclick="selectChipMulti(this,'condicion','Daño cerebral adquirido')">💫 Daño cerebral</div>
-          <div class="chip" onclick="selectChipMulti(this,'condicion','Parkinson')">🫀 Parkinson</div>
-          <div class="chip" onclick="selectChipMulti(this,'condicion','Otra')">➕ Otra</div>
-        </div>
-      </div>
-    </div>
+  <!-- PRIVACY -->
+  <div class="privacy-card">
+    <span style="font-size:1.1rem">🔒</span>
+    <span class="privacy-text">Todo se guarda <strong>solo en tu dispositivo</strong>. Nunca se envía a ningún servidor.</span>
   </div>
 
-  <!-- MOVILIDAD -->
-  <div class="field-card" id="fc-movilidad" onclick="toggleExpand('movilidad')">
-    <div class="fc-header">
-      <div class="fc-icon" style="background:#fdf4ff">🖐️</div>
-      <div class="fc-body">
-        <div class="fc-title">Movilidad de manos</div>
-        <div class="fc-sub">Ajusta el tamaño de los botones y la forma de interactuar</div>
-      </div>
-      <div class="fc-badge"><div class="badge-todo" id="badge-movilidad">Añadir</div></div>
-    </div>
-    <div class="fc-expand" id="exp-movilidad">
-      <div class="fc-expand-inner">
-        <div class="chip-grid">
-          <div class="chip" onclick="selectChip(this,'movilidad','Completa')">✅ Completa</div>
-          <div class="chip" onclick="selectChip(this,'movilidad','Limitada')">⚠️ Limitada</div>
-          <div class="chip" onclick="selectChip(this,'movilidad','Solo un dedo')">☝️ Solo un dedo</div>
-          <div class="chip" onclick="selectChip(this,'movilidad','Switch externo')">🔘 Switch externo</div>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- EDAD -->
-  <div class="field-card" id="fc-edad" onclick="toggleExpand('edad')">
-    <div class="fc-header">
-      <div class="fc-icon" style="background:#f0fdfa">🎂</div>
-      <div class="fc-body">
-        <div class="fc-title">Edad</div>
-        <div class="fc-sub">Adapta el tono de la IA y el contenido de los ejercicios</div>
-      </div>
-      <div class="fc-badge"><div class="badge-todo" id="badge-edad">Añadir</div></div>
-    </div>
-    <div class="fc-expand" id="exp-edad">
-      <div class="fc-expand-inner">
-        <div class="chip-grid">
-          <div class="chip" onclick="selectChip(this,'edad','Niño (0-12)')">🧒 Niño (0–12)</div>
-          <div class="chip" onclick="selectChip(this,'edad','Adolescente (13-17)')">🧑 Adolescente</div>
-          <div class="chip" onclick="selectChip(this,'edad','Adulto joven (18-40)')">👨 Adulto joven</div>
-          <div class="chip" onclick="selectChip(this,'edad','Adulto (41-65)')">🧔 Adulto</div>
-          <div class="chip" onclick="selectChip(this,'edad','Mayor (65+)')">👴 Mayor</div>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- HOBBIES -->
-  <div class="field-card" id="fc-hobbies" onclick="toggleExpand('hobbies')">
-    <div class="fc-header">
-      <div class="fc-icon" style="background:#fef3c7">🎨</div>
-      <div class="fc-body">
-        <div class="fc-title">Hobbies</div>
-        <div class="fc-sub">Tus actividades favoritas para personalizar las sugerencias</div>
-      </div>
-      <div class="fc-badge"><div class="badge-todo" id="badge-hobbies">Añadir</div></div>
-    </div>
-    <div class="fc-expand" id="exp-hobbies">
-      <div class="fc-expand-inner">
-        <div class="chip-grid">
-          <div class="chip" onclick="selectChipMulti(this,'hobbies','Leer')">📚 Leer</div>
-          <div class="chip" onclick="selectChipMulti(this,'hobbies','Música')">🎵 Música</div>
-          <div class="chip" onclick="selectChipMulti(this,'hobbies','Películas')">🎬 Películas</div>
-          <div class="chip" onclick="selectChipMulti(this,'hobbies','Deportes')">⚽ Deportes</div>
-          <div class="chip" onclick="selectChipMulti(this,'hobbies','Videojuegos')">🎮 Videojuegos</div>
-          <div class="chip" onclick="selectChipMulti(this,'hobbies','Arte')">🎭 Arte</div>
-          <div class="chip" onclick="selectChipMulti(this,'hobbies','Cocinar')">👨‍🍳 Cocinar</div>
-          <div class="chip" onclick="selectChipMulti(this,'hobbies','Viajar')">✈️ Viajar</div>
-          <div class="chip" onclick="selectChipMulti(this,'hobbies','Jardinería')">🌱 Jardinería</div>
-          <div class="chip" onclick="selectChipMulti(this,'hobbies','Fotografía')">📷 Fotografía</div>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- INTERESES -->
-  <div class="field-card" id="fc-interests" onclick="toggleExpand('interests')">
-    <div class="fc-header">
-      <div class="fc-icon" style="background:#f5e6ff">💡</div>
-      <div class="fc-body">
-        <div class="fc-title">Intereses</div>
-        <div class="fc-sub">Temas que te interesan para adaptar las conversaciones</div>
-      </div>
-      <div class="fc-badge"><div class="badge-todo" id="badge-interests">Añadir</div></div>
-    </div>
-    <div class="fc-expand" id="exp-interests">
-      <div class="fc-expand-inner">
-        <div class="chip-grid">
-          <div class="chip" onclick="selectChipMulti(this,'interests','Tecnología')">💻 Tecnología</div>
-          <div class="chip" onclick="selectChipMulti(this,'interests','Naturaleza')">🌿 Naturaleza</div>
-          <div class="chip" onclick="selectChipMulti(this,'interests','Historia')">📖 Historia</div>
-          <div class="chip" onclick="selectChipMulti(this,'interests','Ciencia')">🔬 Ciencia</div>
-          <div class="chip" onclick="selectChipMulti(this,'interests','Deporte')">🏆 Deporte</div>
-          <div class="chip" onclick="selectChipMulti(this,'interests','Cultura')">🎪 Cultura</div>
-          <div class="chip" onclick="selectChipMulti(this,'interests','Salud')">⚕️ Salud</div>
-          <div class="chip" onclick="selectChipMulti(this,'interests','Familia')">👨‍👩‍👧‍👦 Familia</div>
-          <div class="chip" onclick="selectChipMulti(this,'interests','Comida')">🍽️ Comida</div>
-          <div class="chip" onclick="selectChipMulti(this,'interests','Finanzas')">💰 Finanzas</div>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- ACTIVIDADES SEMANALES -->
-  <div class="field-card" id="fc-activities" onclick="toggleExpand('activities')">
-    <div class="fc-header">
-      <div class="fc-icon" style="background:#f0fdfa">📅</div>
-      <div class="fc-body">
-        <div class="fc-title">Actividades semanales</div>
-        <div class="fc-sub">Lo que haces regularmente en tu semana</div>
-      </div>
-      <div class="fc-badge"><div class="badge-todo" id="badge-activities">Añadir</div></div>
-    </div>
-    <div class="fc-expand" id="exp-activities">
-      <div class="fc-expand-inner">
-        <div class="chip-grid">
-          <div class="chip" onclick="selectChipMulti(this,'activities','Terapia ocupacional')">🖐️ Terapia ocupacional</div>
-          <div class="chip" onclick="selectChipMulti(this,'activities','Fisioterapia')">🏋️ Fisioterapia</div>
-          <div class="chip" onclick="selectChipMulti(this,'activities','Logopedia')">🗣️ Logopedia</div>
-          <div class="chip" onclick="selectChipMulti(this,'activities','Paseos')">🚶 Paseos</div>
-          <div class="chip" onclick="selectChipMulti(this,'activities','Socializar')">👥 Socializar</div>
-          <div class="chip" onclick="selectChipMulti(this,'activities','Trabajo')">💼 Trabajo</div>
-          <div class="chip" onclick="selectChipMulti(this,'activities','Estudio')">📚 Estudio</div>
-          <div class="chip" onclick="selectChipMulti(this,'activities','Ejercicio')">💪 Ejercicio</div>
-          <div class="chip" onclick="selectChipMulti(this,'activities','Meditación')">🧘 Meditación</div>
-          <div class="chip" onclick="selectChipMulti(this,'activities','Voluntariado')">🤝 Voluntariado</div>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- FAMILIA Y MASCOTAS -->
-  <div class="field-card" id="fc-family" onclick="toggleExpand('family')">
-    <div class="fc-header">
-      <div class="fc-icon" style="background:#ffe6cc">👨‍👩‍👧‍👦</div>
-      <div class="fc-body">
-        <div class="fc-title">Familia y mascotas</div>
-        <div class="fc-sub">Con quién vives y tus mascotas</div>
-      </div>
-      <div class="fc-badge"><div class="badge-todo" id="badge-family">Añadir</div></div>
-    </div>
-    <div class="fc-expand" id="exp-family">
-      <div class="fc-expand-inner">
-        <div class="chip-grid">
-          <div class="chip" onclick="selectChipMulti(this,'family','Padre')">👨 Padre</div>
-          <div class="chip" onclick="selectChipMulti(this,'family','Madre')">👩 Madre</div>
-          <div class="chip" onclick="selectChipMulti(this,'family','Hermano')">👦 Hermano</div>
-          <div class="chip" onclick="selectChipMulti(this,'family','Hermana')">👧 Hermana</div>
-          <div class="chip" onclick="selectChipMulti(this,'family','Abuelo')">👴 Abuelo</div>
-          <div class="chip" onclick="selectChipMulti(this,'family','Abuela')">👵 Abuela</div>
-          <div class="chip" onclick="selectChipMulti(this,'family','Hijo')">👦 Hijo</div>
-          <div class="chip" onclick="selectChipMulti(this,'family','Hija')">👧 Hija</div>
-          <div class="chip" onclick="selectChipMulti(this,'family','Pareja')">💑 Pareja</div>
-          <div class="chip" onclick="selectChipMulti(this,'family','Perro')">🐕 Perro</div>
-          <div class="chip" onclick="selectChipMulti(this,'family','Gato')">🐱 Gato</div>
-          <div class="chip" onclick="selectChipMulti(this,'family','Otra mascota')">🐾 Otra mascota</div>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- INFORMACIÓN PERSONAL -->
-  <div class="field-card" id="fc-personal" onclick="toggleExpand('personal')">
-    <div class="fc-header">
-      <div class="fc-icon" style="background:#ffe6e6">👤</div>
-      <div class="fc-body">
-        <div class="fc-title">Información personal</div>
-        <div class="fc-sub">Detalles adicionales sobre ti</div>
-      </div>
-      <div class="fc-badge"><div class="badge-todo" id="badge-personal">Añadir</div></div>
-    </div>
-    <div class="fc-expand" id="exp-personal">
-      <div class="fc-expand-inner" onclick="event.stopPropagation()">
-        <div style="margin-bottom:15px">
-          <label style="font-size:.7rem;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;display:block;margin-bottom:7px">Profesión</label>
-          <input type="text" id="inp-profession" placeholder="Ej: Ingeniero, Profesor…"
-            lang="es" dir="ltr" inputmode="text"
-            style="width:100%;background:#fff;border:2px solid var(--border);border-radius:12px;padding:13px 15px;font-size:1rem;font-weight:600;font-family:'Plus Jakarta Sans',sans-serif;outline:none;color:var(--ink);-webkit-appearance:none;direction:ltr;text-align:left"
-            onclick="event.stopPropagation()"
-            onfocus="event.stopPropagation()"
-            oninput="onPersonalInput()"
-            autocorrect="off" spellcheck="false">
-        </div>
-        <div style="margin-bottom:15px">
-          <label style="font-size:.7rem;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;display:block;margin-bottom:7px">Lugar de origen</label>
-          <input type="text" id="inp-birthplace" placeholder="Ej: Barcelona, Madrid…"
-            lang="es" dir="ltr" inputmode="text"
-            style="width:100%;background:#fff;border:2px solid var(--border);border-radius:12px;padding:13px 15px;font-size:1rem;font-weight:600;font-family:'Plus Jakarta Sans',sans-serif;outline:none;color:var(--ink);-webkit-appearance:none;direction:ltr;text-align:left"
-            onclick="event.stopPropagation()"
-            onfocus="event.stopPropagation()"
-            oninput="onPersonalInput()"
-            autocorrect="off" spellcheck="false">
-        </div>
-        <div>
-          <label style="font-size:.7rem;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;display:block;margin-bottom:7px">Comida favorita</label>
-          <input type="text" id="inp-favoriteFood" placeholder="Ej: Paella, Pizza…"
-            lang="es" dir="ltr" inputmode="text"
-            style="width:100%;background:#fff;border:2px solid var(--border);border-radius:12px;padding:13px 15px;font-size:1rem;font-weight:600;font-family:'Plus Jakarta Sans',sans-serif;outline:none;color:var(--ink);-webkit-appearance:none;direction:ltr;text-align:left"
-            onclick="event.stopPropagation()"
-            onfocus="event.stopPropagation()"
-            oninput="onPersonalInput()"
-            autocorrect="off" spellcheck="false">
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- FUNCIONALIDADES -->
-  <div class="field-card filled" id="fc-funciones" onclick="toggleExpand('funciones')">
-    <div class="fc-header">
-      <div class="fc-icon" style="background:#eff6ff">⚙️</div>
-      <div class="fc-body">
-        <div class="fc-title">Funciones activas</div>
-        <div class="fc-sub">Elige qué módulos quieres ver en la home</div>
-      </div>
-      <div class="fc-badge"><div class="badge-todo" id="badge-funciones">Configurar</div></div>
-    </div>
-    <div class="fc-expand" id="exp-funciones">
-      <div class="fc-expand-inner">
-        <div class="toggle-row">
-          <div>
-            <div class="toggle-label">🗣️ Comunicador AAC</div>
-            <div class="toggle-sub">Frases y categorías con voz</div>
-          </div>
-          <div class="toggle on" onclick="toggleSwitch(this,'aac')"></div>
-        </div>
-        <div class="toggle-row">
-          <div>
-            <div class="toggle-label">💬 Chat con cuidador</div>
-            <div class="toggle-sub">Mensajes en tiempo real con IA</div>
-          </div>
-          <div class="toggle on" onclick="toggleSwitch(this,'chat')"></div>
-        </div>
-        <div class="toggle-row">
-          <div>
-            <div class="toggle-label">🗣️ Logopedia</div>
-            <div class="toggle-sub">Ejercicios de habla con logopeda virtual</div>
-          </div>
-          <div class="toggle on" onclick="toggleSwitch(this,'logo')"></div>
-        </div>
-        <div class="toggle-row">
-          <div>
-            <div class="toggle-label">🧠 Estimulación cognitiva</div>
-            <div class="toggle-sub">Juegos neurológicos con IA</div>
-          </div>
-          <div class="toggle on" onclick="toggleSwitch(this,'neuro')"></div>
-        </div>
-        <div class="toggle-row">
-          <div>
-            <div class="toggle-label">📍 GPS en vivo</div>
-            <div class="toggle-sub">Comparte tu posición con el cuidador</div>
-          </div>
-          <div class="toggle" onclick="toggleSwitch(this,'gps')"></div>
-        </div>
-        <div class="toggle-row">
-          <div>
-            <div class="toggle-label">😊 Widget de ánimo</div>
-            <div class="toggle-sub">Registra cómo te sientes cada día</div>
-          </div>
-          <div class="toggle on" onclick="toggleSwitch(this,'mood')"></div>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- CUIDADOR SECUNDARIO -->
-  <div class="field-card" id="fc-cuidador2" onclick="toggleExpand('cuidador2')">
-    <div class="fc-header">
-      <div class="fc-icon" style="background:#fef3c7">👴</div>
-      <div class="fc-body">
-        <div class="fc-title">Contacto secundario</div>
-        <div class="fc-sub">Un familiar adicional que puede comunicarse contigo</div>
-      </div>
-      <div class="fc-badge"><div class="badge-todo" id="badge-cuidador2">Añadir</div></div>
-    </div>
-    <div class="fc-expand" id="exp-cuidador2">
-      <div class="fc-expand-inner" onclick="event.stopPropagation()">
-        <label style="font-size:.7rem;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;display:block;margin-bottom:7px">Nombre</label>
-        <input type="text" id="inp-cuidador2" placeholder="Ej: Ana, Roberto…"
-          lang="es" dir="ltr" inputmode="text"
-          style="width:100%;background:#fff;border:2px solid var(--border);border-radius:12px;padding:13px 15px;font-size:1rem;font-weight:600;font-family:'Plus Jakarta Sans',sans-serif;outline:none;color:var(--ink);-webkit-appearance:none;direction:ltr;text-align:left;display:block"
-          onclick="event.stopPropagation()"
-          onfocus="event.stopPropagation()"
-          oninput="onCuidador2Input()"
-          autocorrect="off" autocomplete="given-name" autocapitalize="words" spellcheck="false">
-        <div style="font-size:.7rem;color:var(--muted);font-weight:500;margin-top:6px;padding-left:2px">Solo el nombre de pila.</div>
-      </div>
-    </div>
-  </div>
+  <div style="text-align:center;padding:8px 0 0;font-size:.56rem;color:#c4c4c4;font-weight:600">© 2026 Parlia.app</div>
 
 </div>
+</div>
 
-<!-- SAVE BTN -->
-<button class="save-btn" id="saveBtn" onclick="saveProfile()">Guardar cambios ✓</button>
+<!-- MODAL -->
+<div id="mOverlay" onclick="if(event.target===this)closeModal()">
+  <div class="mcard" id="mCard">
+    <div class="mhead">
+      <span class="memoji" id="mEmoji">✏️</span>
+      <div class="mtitle" id="mTitle">Editar</div>
+    </div>
+    <div class="mhelp" id="mHelp"></div>
+    <div id="mBody"></div>
+    <div class="mactions">
+      <button class="mbtn mbtn-cancel" onclick="closeModal()">Cancelar</button>
+      <button class="mbtn mbtn-save" onclick="saveModal()">Guardar</button>
+    </div>
+  </div>
+</div>
 
 <div id="toast"></div>
 
-<script>
-  // Profilo da localStorage
-  const profile = JSON.parse(localStorage.getItem('parlia_profile') || '{}');
-  const extra = JSON.parse(localStorage.getItem('parlia_profile_extra') || '{}');
-
-  // condicion è ora array
-  const fields = {
-    condicion: [], movilidad: null, edad: null, funciones: true, cuidador2: null,
-    hobbies: [], interests: [], activities: [], family: [],
-    personal: { profession: '', birthplace: '', favoriteFood: '' }
-  };
-
-  function calcProgress() {
-    let done = 3; // userName, gender, caregiverName (from onboarding)
-    if (fields.condicion.length > 0) done++;
-    if (fields.movilidad) done++;
-    if (fields.edad) done++;
-    if (fields.hobbies.length > 0) done++;
-    if (fields.interests.length > 0) done++;
-    if (fields.activities.length > 0) done++;
-    if (fields.family.length > 0) done++;
-    if (fields.personal.profession || fields.personal.birthplace || fields.personal.favoriteFood) done++;
-    return Math.round((done / 11) * 100);
-  }
-
-  function updateProgress() {
-    const pct = calcProgress();
-    document.getElementById('pcBar').style.width = pct + '%';
-    document.getElementById('pcPct').textContent = pct < 100
-      ? 'Añade más información para personalizar tu experiencia'
-      : '¡Perfil completo! La IA conoce bien tus necesidades 🎉';
-    const key = pct >= 100 ? 100 : pct >= 70 ? 70 : pct >= 50 ? 50 : 30;
-    const msgs = { 30:'Perfil al '+pct+'% — ¡Empieza!', 50:'Perfil al '+pct+'% — ¡Vas bien!', 70:'Perfil al '+pct+'% — ¡Casi!', 100:'¡Perfil completo! 🎉' };
-    document.getElementById('pcTitle').textContent = msgs[key] || 'Perfil al '+pct+'%';
-  }
-
-  // ── EDITAR campi base ──
-  const gMap = { f:'Mujer', m:'Hombre', n:'No especificado' };
-
-  function initProfile() {
-    document.getElementById('pdUser').textContent = profile.userName || '—';
-    document.getElementById('pdGender').textContent = gMap[profile.gender] || '—';
-    document.getElementById('pdCarer').textContent = profile.caregiverName || '—';
-    updateProgress();
-  }
-
-  function toggleEditField(field) {
-    if (field === 'userName' || field === 'caregiverName') {
-      const inp = document.getElementById('edit-' + field);
-      const isVisible = inp.style.display === 'block';
-      // Chiudi tutti gli edit aperti
-      closeAllEdits();
-      if (!isVisible) {
-        inp.style.display = 'block';
-        inp.value = profile[field] || '';
-        setTimeout(() => inp.focus(), 80);
-      }
-    } else if (field === 'gender') {
-      const el = document.getElementById('edit-gender');
-      const isVisible = el.style.display === 'block';
-      closeAllEdits();
-      if (!isVisible) {
-        el.style.display = 'block';
-        // Marca chip corrente
-        el.querySelectorAll('.chip').forEach(c => {
-          const m = c.getAttribute('onclick')?.match(/'([^']+)'\)$/);
-          c.classList.toggle('selected', m && m[1] === profile.gender);
-        });
-      }
-    }
-    showSaveBtn();
-  }
-
-  function closeAllEdits() {
-    ['userName','caregiverName'].forEach(f => {
-      const el = document.getElementById('edit-' + f);
-      if (el) el.style.display = 'none';
-    });
-    const eg = document.getElementById('edit-gender');
-    if (eg) eg.style.display = 'none';
-  }
-
-  function onBaseInput(field, displayId, val) {
-    profile[field] = val.trim();
-    if (val.trim().length >= 1) {
-      document.getElementById(displayId).textContent = val.trim();
-    }
-    showSaveBtn();
-  }
-
-  function selectGender(chip, val) {
-    chip.closest('div').querySelectorAll('.chip').forEach(c => c.classList.remove('selected'));
-    chip.classList.add('selected');
-    profile.gender = val;
-    document.getElementById('pdGender').textContent = gMap[val];
-    showSaveBtn();
-    setTimeout(() => { document.getElementById('edit-gender').style.display = 'none'; }, 400);
-  }
-
-  // ── EXPAND/COLLAPSE ──
-  function toggleExpand(id) {
-    const exp = document.getElementById('exp-' + id);
-    if (!exp) return;
-    const isOpen = exp.classList.contains('open');
-    document.querySelectorAll('.fc-expand').forEach(e => e.classList.remove('open'));
-    if (!isOpen) exp.classList.add('open');
-  }
-
-  // ── CHIP SINGOLO (movilidad, edad) ──
-  function selectChip(chip, field, value) {
-    chip.closest('.chip-grid').querySelectorAll('.chip').forEach(c => c.classList.remove('selected'));
-    chip.classList.add('selected');
-    fields[field] = value;
-    const badge = document.getElementById('badge-' + field);
-    if (badge) { badge.className = 'badge-done'; badge.textContent = value; }
-    document.getElementById('fc-' + field)?.classList.add('filled');
-    updateProgress();
-    showSaveBtn();
-    setTimeout(() => { document.getElementById('exp-' + field)?.classList.remove('open'); }, 600);
-  }
-
-  // ── CHIP MULTIPLO (condicion) ──
-  function selectChipMulti(chip, field, value) {
-    chip.classList.toggle('selected');
-    const selected = Array.from(chip.closest('.chip-grid').querySelectorAll('.chip.selected'))
-      .map(c => { const m = c.getAttribute('onclick')?.match(/'([^']+)'\)$/); return m ? m[1] : ''; })
-      .filter(Boolean);
-    fields[field] = selected;
-    const badge = document.getElementById('badge-' + field);
-    if (badge) {
-      if (selected.length > 0) {
-        badge.className = 'badge-done';
-        badge.textContent = selected.length === 1 ? selected[0] : selected.length + ' seleccionadas';
-      } else {
-        badge.className = 'badge-todo';
-        badge.textContent = 'Añadir';
-      }
-    }
-    document.getElementById('fc-' + field)?.classList.toggle('filled', selected.length > 0);
-    updateProgress();
-    showSaveBtn();
-  }
-
-  // ── TOGGLE SWITCH ──
-  const switchState = { aac:true, chat:true, logo:true, neuro:true, gps:false, mood:true };
-  function toggleSwitch(el, key) {
-    event.stopPropagation();
-    switchState[key] = !switchState[key];
-    el.classList.toggle('on', switchState[key]);
-    // Aggiorna badge funciones
-    updateFuncionesBadge();
-    showSaveBtn();
-  }
-
-  function updateFuncionesBadge() {
-    const badge = document.getElementById('badge-funciones');
-    if (!badge) return;
-    const activeCount = Object.values(switchState).filter(Boolean).length;
-    badge.className = 'badge-done';
-    badge.textContent = activeCount + ' activas';
-  }
-
-  // ── CUIDADOR 2 ──
-  function onCuidador2Input() {
-    const val = document.getElementById('inp-cuidador2').value.trim();
-    const badge = document.getElementById('badge-cuidador2');
-    if (val.length >= 2) {
-      fields.cuidador2 = val;
-      if (badge) { badge.className = 'badge-done'; badge.textContent = val; }
-    } else {
-      fields.cuidador2 = null;
-      if (badge) { badge.className = 'badge-todo'; badge.textContent = 'Añadir'; }
-    }
-    showSaveBtn();
-  }
-
-  // ── INFORMACIÓN PERSONAL ──
-  function onPersonalInput() {
-    const profession = document.getElementById('inp-profession').value.trim();
-    const birthplace = document.getElementById('inp-birthplace').value.trim();
-    const favoriteFood = document.getElementById('inp-favoriteFood').value.trim();
-
-    fields.personal = { profession, birthplace, favoriteFood };
-
-    const badge = document.getElementById('badge-personal');
-    if (profession || birthplace || favoriteFood) {
-      const count = [profession, birthplace, favoriteFood].filter(Boolean).length;
-      if (badge) { badge.className = 'badge-done'; badge.textContent = count + ' completos'; }
-      document.getElementById('fc-personal')?.classList.add('filled');
-    } else {
-      if (badge) { badge.className = 'badge-todo'; badge.textContent = 'Añadir'; }
-      document.getElementById('fc-personal')?.classList.remove('filled');
-    }
-    updateProgress();
-    showSaveBtn();
-  }
-
-  function showSaveBtn() {
-    document.getElementById('saveBtn').classList.add('show');
-  }
-
-  // ── SALVA ──
-  function saveProfile() {
-    closeAllEdits();
-    localStorage.setItem('parlia_profile', JSON.stringify(profile));
-    const extraData = {
-      ...fields,
-      switchState,
-      cuidador2Name: document.getElementById('inp-cuidador2').value.trim() || null,
-      personal: {
-        profession: document.getElementById('inp-profession').value.trim() || '',
-        birthplace: document.getElementById('inp-birthplace').value.trim() || '',
-        favoriteFood: document.getElementById('inp-favoriteFood').value.trim() || ''
-      }
-    };
-    localStorage.setItem('parlia_profile_extra', JSON.stringify(extraData));
-    const btn = document.getElementById('saveBtn');
-    btn.textContent = '✓ Guardado';
-    btn.style.background = 'linear-gradient(135deg,#16a34a,#0d9488)';
-    setTimeout(() => {
-      btn.textContent = 'Guardar cambios ✓';
-      btn.style.background = '';
-      btn.classList.remove('show');
-    }, 2000);
-    showToast('✓ Perfil actualizado');
-    updateProgress();
-  }
-
-  function showToast(msg) {
-    const t = document.getElementById('toast');
-    t.textContent = msg;
-    t.style.opacity='1'; t.style.transform='translateX(-50%) translateY(0)';
-    setTimeout(()=>{ t.style.opacity='0'; t.style.transform='translateX(-50%) translateY(16px)'; }, 2500);
-  }
-
-  // ── INIT ──
-  initProfile();
-
-  (function restoreExtra() {
-    if (!extra) return;
-    // Condicion (array)
-    const conds = Array.isArray(extra.condicion) ? extra.condicion
-      : (extra.condicion ? [extra.condicion] : []);
-    if (conds.length > 0) {
-      fields.condicion = conds;
-      document.querySelectorAll('#exp-condicion .chip').forEach(c => {
-        const m = c.getAttribute('onclick')?.match(/'([^']+)'\)$/);
-        if (m && conds.includes(m[1])) c.classList.add('selected');
-      });
-      const badge = document.getElementById('badge-condicion');
-      if (badge) {
-        badge.className = 'badge-done';
-        badge.textContent = conds.length === 1 ? conds[0] : conds.length + ' seleccionadas';
-      }
-      document.getElementById('fc-condicion')?.classList.add('filled');
-    }
-    // Movilidad, edad
-    ['movilidad','edad'].forEach(field => {
-      if (extra[field]) {
-        fields[field] = extra[field];
-        const badge = document.getElementById('badge-' + field);
-        if (badge) { badge.className = 'badge-done'; badge.textContent = extra[field]; }
-        document.getElementById('fc-' + field)?.classList.add('filled');
-        document.querySelectorAll('#exp-' + field + ' .chip').forEach(c => {
-          const m = c.getAttribute('onclick')?.match(/'([^']+)'\)$/);
-          if (m && m[1] === extra[field]) c.classList.add('selected');
-        });
-      }
-    });
-    // Hobbies, interests, activities, family (multi-select arrays)
-    ['hobbies','interests','activities','family'].forEach(field => {
-      const items = Array.isArray(extra[field]) ? extra[field] : [];
-      if (items.length > 0) {
-        fields[field] = items;
-        document.querySelectorAll('#exp-' + field + ' .chip').forEach(c => {
-          const m = c.getAttribute('onclick')?.match(/'([^']+)'\)$/);
-          if (m && items.includes(m[1])) c.classList.add('selected');
-        });
-        const badge = document.getElementById('badge-' + field);
-        if (badge) {
-          badge.className = 'badge-done';
-          badge.textContent = items.length === 1 ? items[0] : items.length + ' seleccionados';
-        }
-        document.getElementById('fc-' + field)?.classList.add('filled');
-      }
-    });
-    // Toggle
-    if (extra.switchState) {
-      Object.assign(switchState, extra.switchState);
-      Object.keys(switchState).forEach(k => {
-        document.querySelectorAll('[onclick*="toggleSwitch(this,\'' + k + '\')"]').forEach(el => {
-          el.classList.toggle('on', switchState[k]);
-        });
-      });
-    }
-    updateFuncionesBadge();
-    // Cuidador2
-    if (extra.cuidador2Name) {
-      fields.cuidador2 = extra.cuidador2Name;
-      document.getElementById('inp-cuidador2').value = extra.cuidador2Name;
-      const badge = document.getElementById('badge-cuidador2');
-      if (badge) { badge.className = 'badge-done'; badge.textContent = extra.cuidador2Name; }
-      document.getElementById('fc-cuidador2')?.classList.add('filled');
-    }
-    // Personal info
-    if (extra.personal) {
-      fields.personal = extra.personal;
-      if (extra.personal.profession) document.getElementById('inp-profession').value = extra.personal.profession;
-      if (extra.personal.birthplace) document.getElementById('inp-birthplace').value = extra.personal.birthplace;
-      if (extra.personal.favoriteFood) document.getElementById('inp-favoriteFood').value = extra.personal.favoriteFood;
-
-      const hasPersonal = extra.personal.profession || extra.personal.birthplace || extra.personal.favoriteFood;
-      if (hasPersonal) {
-        const count = [extra.personal.profession, extra.personal.birthplace, extra.personal.favoriteFood].filter(Boolean).length;
-        const badge = document.getElementById('badge-personal');
-        if (badge) { badge.className = 'badge-done'; badge.textContent = count + ' completos'; }
-        document.getElementById('fc-personal')?.classList.add('filled');
-      }
-    }
-    updateProgress();
-  })();
-
-</script>
+<script src="userData.js"></script>
+<script src="profileApp.js"></script>
 </body>
 </html>
