@@ -6,10 +6,10 @@
 <title>Parlia</title>
 <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <!-- Stili specifici di ogni pagina della home (?v= cache-bust su ogni deploy) -->
-<link rel="stylesheet" href="inicio.css?v=20260414f">
-<link rel="stylesheet" href="aac.css?v=20260414f">
-<link rel="stylesheet" href="rehab.css?v=20260414f">
-<link rel="stylesheet" href="perfil.css?v=20260414f">
+<link rel="stylesheet" href="inicio.css?v=20260414g">
+<link rel="stylesheet" href="aac.css?v=20260414g">
+<link rel="stylesheet" href="rehab.css?v=20260414g">
+<link rel="stylesheet" href="perfil.css?v=20260414g">
 <style>
 *, *::before, *::after { box-sizing: border-box !important; margin: 0; padding: 0; }
 
@@ -699,12 +699,14 @@ if ('scrollRestoration' in history) try { history.scrollRestoration = 'manual'; 
 // layout flex + scroll-snap del carosello ha le larghezze reali al primo paint
 // e non parte sfasato.
 (async function bootstrap(){
+  // Cache-bust anche sui partial HTML (query string forza il browser/SW a rifetchare)
+  const V = '20260414g';
   try {
     const [inicio, aac, rehab, perfil] = await Promise.all([
-      fetch('components/inicio.html').then(r => r.ok ? r.text() : Promise.reject(r.status)),
-      fetch('components/aac.html').then(r => r.ok ? r.text() : Promise.reject(r.status)),
-      fetch('components/rehab.html').then(r => r.ok ? r.text() : Promise.reject(r.status)),
-      fetch('components/perfil.html').then(r => r.ok ? r.text() : Promise.reject(r.status))
+      fetch('components/inicio.html?v=' + V, {cache: 'no-cache'}).then(r => r.ok ? r.text() : Promise.reject(r.status)),
+      fetch('components/aac.html?v=' + V,    {cache: 'no-cache'}).then(r => r.ok ? r.text() : Promise.reject(r.status)),
+      fetch('components/rehab.html?v=' + V,  {cache: 'no-cache'}).then(r => r.ok ? r.text() : Promise.reject(r.status)),
+      fetch('components/perfil.html?v=' + V, {cache: 'no-cache'}).then(r => r.ok ? r.text() : Promise.reject(r.status))
     ]);
     document.getElementById('page0').innerHTML = inicio;
     document.getElementById('page1').innerHTML = aac;
