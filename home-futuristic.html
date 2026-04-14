@@ -1,0 +1,752 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<title>Parlia — Home</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@300;400;500;600;700;800&family=DM+Sans:ital,wght@0,200;0,300;0,400;0,500;1,200&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --ink:     #2d2d35;
+  --muted:   #8e8e9a;
+  --soft:    #b8b8c8;
+  --glass:   rgba(255,255,255,0.72);
+  --glass-b: rgba(255,255,255,0.9);
+  --radius:  22px;
+}
+
+html, body {
+  height: 100%; overflow: hidden;
+  font-family: 'DM Sans', sans-serif;
+  background: #eef0f5;
+  color: var(--ink);
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ══ MESH ══ */
+.mesh {
+  position: fixed; inset: 0; z-index: 0;
+  background: #eef0f5;
+  overflow: hidden;
+}
+.mesh-blob {
+  position: absolute; border-radius: 50%;
+  filter: blur(80px); opacity: 0.65;
+  will-change: transform;
+}
+/* Pesca/corallo */
+.mb1 {
+  width: 75vw; height: 75vw;
+  top: -25vw; left: -20vw;
+  background: radial-gradient(circle, #93c5fd 0%, #2563eb 45%, #4f46e5 80%, transparent 100%);
+  animation: drift1 24s ease-in-out infinite;
+}
+/* Rosa cipria */
+.mb2 {
+  width: 65vw; height: 65vw;
+  bottom: -15vw; right: -15vw;
+  background: radial-gradient(circle, #ddd6fe 0%, #7c3aed 50%, transparent 100%);
+  animation: drift2 30s ease-in-out infinite;
+}
+/* Verde salvia */
+.mb3 {
+  width: 50vw; height: 50vw;
+  top: 40%; left: 25%;
+  background: radial-gradient(circle, #93c5fd 0%, #3b82f6 45%, transparent 100%);
+  animation: drift3 20s ease-in-out infinite;
+  opacity: 0.45;
+}
+/* Oro caldo */
+.mb4 {
+  width: 40vw; height: 40vw;
+  top: 10%; right: 5%;
+  background: radial-gradient(circle, #a5b4fc 0%, #6366f1 50%, transparent 100%);
+  animation: drift1 18s ease-in-out infinite reverse;
+  opacity: 0.35;
+}
+@keyframes drift1 { 0%,100%{transform:translate(0,0) scale(1)} 33%{transform:translate(6vw,8vw) scale(1.06)} 66%{transform:translate(-5vw,4vw) scale(0.96)} }
+@keyframes drift2 { 0%,100%{transform:translate(0,0) scale(1)} 33%{transform:translate(-8vw,-6vw) scale(1.08)} 66%{transform:translate(5vw,-3vw) scale(0.94)} }
+@keyframes drift3 { 0%,100%{transform:translate(0,0)} 50%{transform:translate(-6vw,5vw)} }
+
+/* ══ LAYOUT ══ */
+.app {
+  position: fixed; inset: 0; z-index: 1;
+  display: flex; flex-direction: column; align-items: center;
+  padding: 0 18px;
+  overflow-y: auto; overflow-x: hidden;
+  scrollbar-width: none; -webkit-overflow-scrolling: touch;
+}
+.app::-webkit-scrollbar { display: none; }
+
+/* ══ TOPBAR ══ */
+.topbar {
+  width: 100%; max-width: 480px;
+  display: flex; align-items: center;
+  padding: 52px 0 18px; gap: 10px; flex-shrink: 0;
+}
+.logo {
+  font-family: 'Syne', sans-serif;
+  font-size: 1.15rem; font-weight: 800;
+  color: #1e293b; letter-spacing: -0.5px; flex: 1;
+}
+.logo span { color: #64748b; font-weight: 500; }
+
+.sos-pill {
+  display: flex; align-items: center; gap: 5px;
+  background: rgba(0,0,0,.04); border: 1px solid rgba(0,0,0,.08);
+  border-radius: 100px; padding: 6px 12px;
+  cursor: pointer; transition: all .2s; -webkit-tap-highlight-color: transparent;
+}
+.sos-pill:active { background: rgba(239,68,68,.12); border-color: rgba(239,68,68,.3); transform: scale(.96); }
+.sos-dot { width: 5px; height: 5px; border-radius: 50%; background: #fca5a5; animation: sosPulse 2s ease-in-out infinite; }
+@keyframes sosPulse { 0%,100%{opacity:1} 50%{opacity:.3} }
+.sos-txt { font-size: .68rem; font-weight: 500; color: #94a3b8; letter-spacing: .5px; }
+
+.avatar {
+  width: 34px; height: 34px; border-radius: 50%;
+  background: linear-gradient(135deg, #2563eb, #7c3aed);
+  display: flex; align-items: center; justify-content: center;
+  font-family: 'Syne', sans-serif; font-size: .82rem; font-weight: 700;
+  color: white; flex-shrink: 0; cursor: pointer;
+  box-shadow: 0 2px 12px rgba(37,99,235,.25);
+}
+
+/* ══ METEO ══ */
+.meteo-glass {
+  width: 100%; max-width: 480px;
+  background: var(--glass);
+  backdrop-filter: blur(24px) saturate(1.8);
+  -webkit-backdrop-filter: blur(24px) saturate(1.8);
+  border: 1px solid var(--glass-b);
+  border-radius: var(--radius); padding: 14px 18px;
+  display: flex; align-items: center; gap: 14px;
+  margin-bottom: 20px; flex-shrink: 0;
+  box-shadow: 0 4px 24px rgba(0,0,0,.06), 0 1px 0 rgba(255,255,255,.9) inset;
+  animation: floatA 7s ease-in-out infinite;
+}
+@keyframes floatA { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-4px)} }
+.meteo-icon { font-size: 2rem; line-height: 1; }
+.meteo-info { flex: 1; }
+.meteo-temp {
+  font-family: 'Syne', sans-serif; font-size: 1.5rem; font-weight: 600;
+  color: var(--ink); line-height: 1;
+}
+.meteo-desc { font-size: .72rem; color: var(--muted); font-weight: 300; margin-top: 2px; }
+.meteo-right { text-align: right; }
+.meteo-loc { font-size: .68rem; font-weight: 500; color: var(--ink); }
+.meteo-extra { font-size: .62rem; color: var(--muted); margin-top: 2px; font-weight: 300; }
+
+/* ══ AI SECTION — LIQUID HALO ══ */
+.ai-section {
+  width: 100%; max-width: 480px;
+  display: flex; flex-direction: column; align-items: center;
+  margin-bottom: 20px; flex-shrink: 0; position: relative;
+}
+
+/* Canvas liquid wave */
+.halo-wrap {
+  position: relative; width: 100%; height: 140px;
+  display: flex; align-items: center; justify-content: center;
+  margin-bottom: 8px; cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+#haloCanvas {
+  position: absolute; inset: 0; width: 100%; height: 100%;
+  border-radius: 32px;
+}
+
+/* Halo anello sottile sopra il canvas */
+.halo-ring {
+  position: absolute;
+  width: 90px; height: 90px; border-radius: 50%;
+  border: 1.5px solid rgba(99,102,241,.3);
+  box-shadow: 0 0 20px rgba(99,102,241,.15), inset 0 0 20px rgba(99,102,241,.08);
+  animation: haloFloat 5s ease-in-out infinite;
+  pointer-events: none;
+  transition: box-shadow .4s ease, border-color .4s ease;
+}
+.halo-ring.touched {
+  border-color: rgba(99,102,241,.8);
+  box-shadow: 0 0 40px rgba(99,102,241,.45), 0 0 80px rgba(99,102,241,.18), inset 0 0 30px rgba(99,102,241,.1);
+  animation: haloFloat 5s ease-in-out infinite, haloExpand .6s ease-out;
+}
+@keyframes haloFloat {
+  0%,100% { transform: scale(1) translateY(0); }
+  50%      { transform: scale(1.04) translateY(-4px); }
+}
+@keyframes haloExpand {
+  0%   { transform: scale(1); opacity: 1; }
+  60%  { transform: scale(1.6); opacity: .3; }
+  100% { transform: scale(1); opacity: 1; }
+}
+
+/* Punto status al centro dell'halo */
+.halo-dot {
+  position: absolute;
+  width: 8px; height: 8px; border-radius: 50%;
+  background: #34d399;
+  box-shadow: 0 0 0 3px rgba(52,211,153,.15), 0 0 12px rgba(52,211,153,.4);
+  animation: dotPulse 2.5s ease-in-out infinite;
+}
+@keyframes dotPulse {
+  0%,100% { box-shadow: 0 0 0 3px rgba(52,211,153,.15), 0 0 12px rgba(52,211,153,.4); }
+  50%      { box-shadow: 0 0 0 7px rgba(52,211,153,.06), 0 0 20px rgba(52,211,153,.6); }
+}
+
+/* Messaggio AI */
+.ai-message { text-align: center; max-width: 320px; padding: 0 16px; }
+.ai-status-row {
+  display: flex; align-items: center; justify-content: center;
+  gap: 6px; margin-bottom: 10px;
+}
+.ai-online { width: 6px; height: 6px; border-radius: 50%; background: #34d399; box-shadow: 0 0 6px rgba(52,211,153,.6); animation: onlinePulse 2s infinite; }
+@keyframes onlinePulse { 0%,100%{opacity:1} 50%{opacity:.35} }
+.ai-name {
+  font-family: 'DM Sans', sans-serif;
+  font-size: .7rem; font-weight: 300; color: var(--muted);
+  letter-spacing: 1.5px; text-transform: uppercase;
+}
+
+.ai-text {
+  font-size: .98rem; font-weight: 300; line-height: 1.65;
+  color: var(--ink); min-height: 58px;
+}
+.ai-text .cursor {
+  display: inline-block; width: 2px; height: .85em;
+  background: #6366f1; vertical-align: text-bottom;
+  animation: blink .75s step-end infinite; margin-left: 1px;
+}
+@keyframes blink { 0%,100%{opacity:1} 50%{opacity:0} }
+
+.ai-chips {
+  display: flex; flex-wrap: wrap; justify-content: center;
+  gap: 8px; margin-top: 14px;
+}
+.ai-chip {
+  background: rgba(255,255,255,.7);
+  border: 1px solid rgba(0,0,0,.08);
+  border-radius: 100px; padding: 8px 16px;
+  font-size: .78rem; font-weight: 400; color: var(--ink);
+  cursor: pointer; transition: all .15s;
+  -webkit-tap-highlight-color: transparent;
+  box-shadow: 0 2px 8px rgba(0,0,0,.06);
+  animation: chipFadeUp .4s ease both;
+}
+.ai-chip:active { background: rgba(99,102,241,.15); border-color: rgba(99,102,241,.3); transform: scale(.96); }
+@keyframes chipFadeUp { from{opacity:0;transform:translateY(8px)} to{opacity:1;transform:none} }
+.ai-chip:nth-child(1){animation-delay:.05s} .ai-chip:nth-child(2){animation-delay:.1s}
+.ai-chip:nth-child(3){animation-delay:.15s} .ai-chip:nth-child(4){animation-delay:.2s}
+
+.tap-hint { font-size: .64rem; font-weight: 300; color: var(--muted); letter-spacing: .5px; margin-top: 4px; }
+
+/* ══ GLASS CARDS ══ */
+.cards-section {
+  width: 100%; max-width: 480px;
+  display: flex; flex-direction: column; gap: 12px;
+  margin-bottom: 32px; flex-shrink: 0;
+}
+
+.glass-card {
+  background: rgba(255,255,255,.72);
+  backdrop-filter: blur(28px) saturate(1.8);
+  -webkit-backdrop-filter: blur(28px) saturate(1.8);
+  border: 1px solid rgba(255,255,255,.9);
+  border-radius: var(--radius); padding: 18px 20px;
+  animation: floatB 9s ease-in-out infinite;
+  position: relative; overflow: hidden;
+  box-shadow:
+    0 4px 24px rgba(0,0,0,.07),
+    0 1px 0 rgba(255,255,255,.95) inset,
+    0 -1px 0 rgba(0,0,0,.03) inset;
+}
+.glass-card::before {
+  content: '';
+  position: absolute; top: 0; left: 20px; right: 20px; height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,.8), transparent);
+}
+@keyframes floatB { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-4px)} }
+.glass-card:nth-child(2) { animation-delay: -3s; }
+.glass-card:nth-child(3) { animation-delay: -6s; }
+
+.card-label {
+  font-size: .6rem; font-weight: 600; letter-spacing: 2px;
+  text-transform: uppercase; color: var(--muted);
+  margin-bottom: 12px; display: flex; align-items: center; gap: 6px;
+}
+.card-label-dot { width: 5px; height: 5px; border-radius: 50%; flex-shrink: 0; }
+
+/* Agenda */
+.agenda-scroll {
+  display: flex; gap: 10px; overflow-x: auto; scrollbar-width: none;
+  margin: 0 -4px; padding: 0 4px 2px;
+}
+.agenda-scroll::-webkit-scrollbar { display: none; }
+.agenda-item {
+  flex-shrink: 0; min-width: 112px;
+  background: rgba(255,255,255,.6); border: 1px solid rgba(0,0,0,.06);
+  border-radius: 16px; padding: 11px 13px;
+}
+.agenda-item.now {
+  background: linear-gradient(135deg, rgba(37,99,235,.1), rgba(79,70,229,.08));
+  border-color: rgba(99,102,241,.3);
+  box-shadow: 0 2px 12px rgba(99,102,241,.1);
+}
+.agenda-item.done { opacity: .45; }
+.ag-time { font-size: .62rem; font-weight: 500; color: var(--muted); margin-bottom: 4px; display: flex; align-items: center; gap: 5px; }
+.ag-now-badge { background: #2563eb; color: white; font-size: .48rem; font-weight: 800; border-radius: 20px; padding: 1px 6px; }
+.ag-name { font-size: .8rem; font-weight: 500; color: var(--ink); line-height: 1.25; }
+.ag-sub { font-size: .62rem; color: var(--muted); margin-top: 2px; font-weight: 300; }
+.ag-tag { display: inline-block; margin-top: 6px; font-size: .52rem; font-weight: 700; border-radius: 20px; padding: 2px 8px; }
+
+/* Obiettivo */
+.goal-body { display: flex; align-items: flex-start; gap: 14px; }
+.goal-icon { font-size: 1.5rem; line-height: 1; flex-shrink: 0; margin-top: 2px; }
+.goal-title { font-family: 'Syne', sans-serif; font-size: .92rem; font-weight: 600; color: var(--ink); line-height: 1.3; margin-bottom: 4px; }
+.goal-sub { font-size: .74rem; color: var(--muted); font-weight: 300; line-height: 1.5; }
+.goal-action {
+  display: inline-flex; align-items: center; gap: 5px; margin-top: 10px;
+  background: rgba(251,191,36,.18); border: 1px solid rgba(251,191,36,.35);
+  border-radius: 100px; padding: 5px 14px;
+  font-size: .7rem; font-weight: 600; color: #92400e;
+  cursor: pointer; transition: all .15s; -webkit-tap-highlight-color: transparent;
+}
+.goal-action:active { background: rgba(251,191,36,.3); transform: scale(.96); }
+
+/* Profilo */
+.profile-row { display: flex; align-items: center; gap: 12px; }
+.profile-avatar {
+  width: 44px; height: 44px; border-radius: 50%;
+  background: linear-gradient(135deg, #2563eb, #7c3aed);
+  display: flex; align-items: center; justify-content: center;
+  font-family: 'Syne', sans-serif; font-size: 1rem; font-weight: 700; color: white;
+  flex-shrink: 0; box-shadow: 0 4px 16px rgba(37,99,235,.3);
+}
+.profile-info { flex: 1; }
+.profile-name { font-family: 'Syne', sans-serif; font-size: .9rem; font-weight: 600; color: var(--ink); }
+.profile-pct { font-size: .72rem; color: var(--muted); font-weight: 300; margin-top: 2px; }
+.profile-btn {
+  font-size: .65rem; font-weight: 600; color: #4338ca;
+  background: rgba(99,102,241,.1); border: 1px solid rgba(99,102,241,.22);
+  border-radius: 100px; padding: 5px 12px; cursor: pointer;
+  -webkit-tap-highlight-color: transparent; transition: all .15s;
+}
+.profile-btn:active { background: rgba(99,102,241,.2); transform: scale(.96); }
+.profile-bar-bg { height: 4px; background: rgba(0,0,0,.06); border-radius: 4px; overflow: hidden; margin-top: 12px; }
+.profile-bar { height: 100%; border-radius: 4px; background: linear-gradient(90deg, #2563eb, #7c3aed); width: 70%; transition: width .6s ease; }
+
+/* ══ NAVBAR ══ */
+.nav {
+  position: fixed; bottom: 0; left: 0; right: 0; z-index: 20;
+  padding: 0 24px 28px; display: flex; justify-content: center;
+}
+.nav-inner {
+  display: flex; gap: 4px;
+  background: rgba(255,255,255,.75);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  border: 1px solid rgba(255,255,255,.95);
+  border-radius: 100px; padding: 6px;
+  box-shadow: 0 8px 32px rgba(0,0,0,.1), 0 1px 0 rgba(255,255,255,.9) inset;
+}
+.nav-btn {
+  display: flex; flex-direction: column; align-items: center; gap: 2px;
+  padding: 8px 18px; border-radius: 100px;
+  cursor: pointer; transition: all .2s; -webkit-tap-highlight-color: transparent;
+}
+.nav-btn.active { background: linear-gradient(135deg, #2563eb, #7c3aed); box-shadow: 0 4px 16px rgba(99,102,241,.35); }
+.nav-icon { font-size: 1.1rem; line-height: 1; }
+.nav-lbl { font-size: .5rem; font-weight: 600; color: var(--muted); letter-spacing: .5px; }
+.nav-btn.active .nav-lbl { color: white; }
+
+/* ══ FADE IN ══ */
+@keyframes fadeUp { from{opacity:0;transform:translateY(14px)} to{opacity:1;transform:none} }
+.topbar      { animation: fadeUp .5s ease .0s both; }
+.meteo-glass { animation: fadeUp .5s ease .1s both; }
+.ai-section  { animation: fadeUp .5s ease .2s both; }
+.cards-section .glass-card:nth-child(1) { animation: fadeUp .5s ease .3s both; }
+.cards-section .glass-card:nth-child(2) { animation: fadeUp .5s ease .4s both; }
+.cards-section .glass-card:nth-child(3) { animation: fadeUp .5s ease .5s both; }
+</style>
+</head>
+<body>
+
+<!-- ══ MESH ══ -->
+<div class="mesh">
+  <div class="mesh-blob mb1"></div>
+  <div class="mesh-blob mb2"></div>
+  <div class="mesh-blob mb3"></div>
+  <div class="mesh-blob mb4"></div>
+</div>
+
+<!-- ══ APP ══ -->
+<div class="app">
+
+  <!-- TOPBAR -->
+  <div class="topbar">
+    <div class="logo">Parlia<span>.app</span></div>
+    <div class="sos-pill" onclick="triggerSOS()">
+      <div class="sos-dot"></div>
+      <span class="sos-txt">SOS</span>
+    </div>
+    <div class="avatar" id="avatarBtn">L</div>
+  </div>
+
+  <!-- METEO -->
+  <div class="meteo-glass" id="meteoCard">
+    <div class="meteo-icon" id="meteoIcon">⛅</div>
+    <div class="meteo-info">
+      <div class="meteo-temp" id="meteoTemp">14°</div>
+      <div class="meteo-desc" id="meteoDesc">Nublado · Barcelona</div>
+    </div>
+    <div class="meteo-right">
+      <div class="meteo-loc" id="meteoLoc">Institut Guttmann</div>
+      <div class="meteo-extra" id="meteoTime">Miércoles · 20:15</div>
+    </div>
+  </div>
+
+  <!-- AI CORE -->
+  <div class="ai-section">
+
+    <div class="halo-wrap" id="haloWrap" onclick="haloClick()">
+      <canvas id="haloCanvas"></canvas>
+      <div class="halo-ring" id="haloRing"></div>
+      <div class="halo-dot"></div>
+    </div>
+
+    <!-- Messaggio -->
+    <div class="ai-message">
+      <div class="ai-status-row">
+        <div class="ai-online"></div>
+        <div class="ai-name">Parlia AI · Activo</div>
+      </div>
+      <div class="ai-text" id="aiText"></div>
+      <div class="ai-chips" id="aiChips" style="display:none"></div>
+      <div class="tap-hint" id="tapHint">Toca para hablar</div>
+    </div>
+
+  </div>
+
+  <!-- GLASS CARDS -->
+  <div class="cards-section">
+
+    <!-- Agenda -->
+    <div class="glass-card">
+      <div class="card-label">
+        <div class="card-label-dot" style="background:#4ade80;box-shadow:0 0 6px #4ade80"></div>
+        Agenda de hoy
+      </div>
+      <div class="agenda-scroll">
+        <div class="agenda-item done">
+          <div class="ag-time">09:00</div>
+          <div class="ag-name" style="text-decoration:line-through;opacity:.5">Fisioterapia</div>
+          <div class="ag-sub">Gimnasio Guttmann</div>
+          <div class="ag-tag" style="background:rgba(34,197,94,.15);color:#86efac">Rehab</div>
+        </div>
+        <div class="agenda-item done">
+          <div class="ag-time">11:00</div>
+          <div class="ag-name" style="text-decoration:line-through;opacity:.5">T. Ocupacional</div>
+          <div class="ag-sub">Sala 3 · planta 2</div>
+          <div class="ag-tag" style="background:rgba(167,139,250,.15);color:#c4b5fd">Terapia</div>
+        </div>
+        <div class="agenda-item now">
+          <div class="ag-time">13:00 <div class="ag-now-badge">AHORA</div></div>
+          <div class="ag-name">Logopedia</div>
+          <div class="ag-sub">Dra. Martínez</div>
+          <div class="ag-tag" style="background:rgba(99,102,241,.2);color:#a5b4fc">Voz</div>
+        </div>
+        <div class="agenda-item">
+          <div class="ag-time">15:00</div>
+          <div class="ag-name">Almuerzo</div>
+          <div class="ag-sub">Comedor P1</div>
+          <div class="ag-tag" style="background:rgba(251,191,36,.15);color:#fde68a">Descanso</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Obiettivo -->
+    <div class="glass-card">
+      <div class="card-label">
+        <div class="card-label-dot" style="background:#fbbf24;box-shadow:0 0 6px #fbbf24"></div>
+        Objetivo de hoy
+      </div>
+      <div class="goal-body">
+        <div class="goal-icon">🎯</div>
+        <div>
+          <div class="goal-title">Mejorar expresión verbal</div>
+          <div class="goal-sub">Practicar vocabulario y construcción de frases simples diarias.</div>
+          <div class="goal-action" onclick="startSession()">Iniciar sesión →</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Profilo -->
+    <div class="glass-card">
+      <div class="card-label">
+        <div class="card-label-dot" style="background:#818cf8;box-shadow:0 0 6px #818cf8"></div>
+        Tu perfil
+      </div>
+      <div class="profile-row">
+        <div class="profile-avatar">L</div>
+        <div class="profile-info">
+          <div class="profile-name">Laura</div>
+          <div class="profile-pct">Perfil al 70% completado</div>
+        </div>
+        <div class="profile-btn" onclick="goProfile()">Completar →</div>
+      </div>
+      <div class="profile-bar-bg">
+        <div class="profile-bar"></div>
+      </div>
+    </div>
+
+  </div>
+
+  <div style="height: 100px"></div>
+
+</div><!-- /app -->
+
+<!-- ══ NAVBAR ══ -->
+<div class="nav">
+  <div class="nav-inner">
+    <div class="nav-btn active" onclick="goTo(0)">
+      <div class="nav-icon">🏠</div>
+      <div class="nav-lbl">INICIO</div>
+    </div>
+    <div class="nav-btn" onclick="goTo(1)">
+      <div class="nav-icon">🗣️</div>
+      <div class="nav-lbl">AAC</div>
+    </div>
+    <div class="nav-btn" onclick="goTo(2)">
+      <div class="nav-icon">🧠</div>
+      <div class="nav-lbl">REHAB</div>
+    </div>
+    <div class="nav-btn" onclick="goTo(3)">
+      <div class="nav-icon">👤</div>
+      <div class="nav-lbl">PERFIL</div>
+    </div>
+  </div>
+</div>
+
+<script>
+// ══ OROLOGIO & METEO ══
+function updateClock() {
+  const now = new Date();
+  const days = ['Domingo','Lunes','Martes','Miércoles','Jueves','Viernes','Sábado'];
+  const h = now.getHours().toString().padStart(2,'0');
+  const m = now.getMinutes().toString().padStart(2,'0');
+  document.getElementById('meteoTime').textContent = `${days[now.getDay()]} · ${h}:${m}`;
+}
+updateClock();
+setInterval(updateClock, 30000);
+
+// ══ MESSAGGI AI ══
+const GREETINGS = [
+  { h:[6,12],  msg: 'Buenos días, Laura. ¿Lista para empezar el día? 🌅', chips:['Sí, estoy lista','Aún cansada','¿Qué toca hoy?'] },
+  { h:[12,15], msg: 'Buenas tardes. ¿Cómo fue la sesión de esta mañana?', chips:['Muy bien','Regular','Difícil','Estoy cansada'] },
+  { h:[15,20], msg: 'Por la tarde todo en calma. ¿Cómo te sientes ahora?', chips:['Bien 😊','Dolorida','Motivada','Quiero descansar'] },
+  { h:[20,24], msg: 'Buenas noches Laura. ¡Excelente trabajo hoy! Completaste todas tus sesiones. ¿Cómo te sientes?', chips:['Cansada','Bien pero dolorida','Muy motivada','Quiero relajarme'] },
+  { h:[0,6],   msg: 'Parece que es tarde. Descansa bien — mañana sigue el trabajo.', chips:['Buenas noches 🌙','No puedo dormir','¿Mañana qué toca?'] },
+];
+
+function getGreeting() {
+  const h = new Date().getHours();
+  return GREETINGS.find(g => h >= g.h[0] && h < g.h[1]) || GREETINGS[3];
+}
+
+// Typewriter
+function typewrite(el, text, speed=28, cb) {
+  el.innerHTML = '';
+  let i = 0;
+  const cursor = document.createElement('span');
+  cursor.className = 'cursor';
+  const tick = () => {
+    if (i < text.length) {
+      el.textContent = text.slice(0,++i);
+      el.appendChild(cursor);
+      setTimeout(tick, speed);
+    } else {
+      el.textContent = text;
+      if (cb) cb();
+    }
+  };
+  tick();
+}
+
+function showChips(chips) {
+  const container = document.getElementById('aiChips');
+  container.innerHTML = '';
+  container.style.display = 'flex';
+  chips.forEach((c,i) => {
+    const el = document.createElement('div');
+    el.className = 'ai-chip';
+    el.style.animationDelay = (i * .07) + 's';
+    el.textContent = c;
+    el.onclick = () => chipSelected(el, c);
+    container.appendChild(el);
+  });
+  document.getElementById('tapHint').style.opacity = '0';
+}
+
+function chipSelected(el, text) {
+  // Segna chip selezionato
+  document.querySelectorAll('.ai-chip').forEach(c => c.style.opacity = '.3');
+  el.style.opacity = '1';
+  el.style.background = 'rgba(99,102,241,.3)';
+  el.style.borderColor = 'rgba(99,102,241,.5)';
+  // Dopo un momento risposta AI
+  setTimeout(() => {
+    document.getElementById('aiChips').style.display = 'none';
+    document.getElementById('tapHint').style.opacity = '0.6';
+    const reply = getReply(text);
+    typewrite(document.getElementById('aiText'), reply, 22);
+  }, 600);
+}
+
+function getReply(chip) {
+  const map = {
+    'Sí, estoy lista': '¡Perfecto! Tienes logopedia a las 13:00 con la Dra. Martínez. ¡Ánimo! 💪',
+    'Aún cansada': 'Tómatelo con calma. No hace falta empezar corriendo — ve a tu ritmo. 🌿',
+    'Cansada': 'Es normal después de un día tan completo. Descansa y mañana seguimos. 🌙',
+    'Bien pero dolorida': 'Eso es señal de que trabajaste duro. Avisa a tu cuidador si necesitas algo.',
+    'Muy motivada': '¡Me encanta escuchar eso! Ese espíritu es tu mejor herramienta. 🚀',
+    'Quiero relajarme': 'Mereces un descanso. ¿Quieres que ponga algo tranquilo de fondo?',
+  };
+  return map[chip] || '¡Gracias por contarme! Estoy aquí si necesitas algo más. 🤍';
+}
+
+// Init
+window.addEventListener('load', () => {
+  const g = getGreeting();
+  setTimeout(() => {
+    typewrite(document.getElementById('aiText'), g.msg, 28, () => {
+      setTimeout(() => showChips(g.chips), 400);
+    });
+  }, 800);
+});
+
+// ══ LIQUID WAVE CANVAS ══
+(function() {
+  const canvas = document.getElementById('haloCanvas');
+  const ctx = canvas.getContext('2d');
+  let W, H, waves, raf;
+  let energy = 0; // 0=calmo, 1=attivo
+
+  function resize() {
+    W = canvas.offsetWidth;
+    H = canvas.offsetHeight;
+    canvas.width = W * devicePixelRatio;
+    canvas.height = H * devicePixelRatio;
+    ctx.scale(devicePixelRatio, devicePixelRatio);
+  }
+
+  waves = [
+    { amp: 18, freq: 0.016, speed: 0.014, phase: 0,   color: 'rgba(37,99,235,',  alpha: 0.32 },
+    { amp: 12, freq: 0.024, speed: 0.020, phase: 2.1, color: 'rgba(79,70,229,',  alpha: 0.26 },
+    { amp: 22, freq: 0.011, speed: 0.009, phase: 4.2, color: 'rgba(99,102,241,', alpha: 0.20 },
+    { amp: 8,  freq: 0.030, speed: 0.026, phase: 1.0, color: 'rgba(124,58,237,', alpha: 0.18 },
+    { amp: 14, freq: 0.014, speed: 0.011, phase: 3.3, color: 'rgba(59,130,246,', alpha: 0.24 },
+    { amp: 6,  freq: 0.038, speed: 0.030, phase: 5.1, color: 'rgba(139,92,246,', alpha: 0.14 },
+  ];
+
+  function draw(ts) {
+    ctx.clearRect(0, 0, W, H);
+
+    waves.forEach((w, i) => {
+      w.phase += w.speed * (1 + energy * 2);
+      const amp = w.amp * (1 + energy * 1.2);
+
+      const pts = [];
+      for (let x = 0; x <= W; x += 2) {
+        const y = H / 2
+          + Math.sin(x * w.freq + w.phase) * amp
+          + Math.sin(x * w.freq * 0.6 + w.phase * 0.8) * amp * 0.35
+          + Math.sin(x * w.freq * 1.4 + w.phase * 1.2) * amp * 0.15;
+        pts.push({ x, y });
+      }
+
+      // Fill verso il basso
+      ctx.beginPath();
+      pts.forEach((p, j) => j === 0 ? ctx.moveTo(p.x, p.y) : ctx.lineTo(p.x, p.y));
+      ctx.lineTo(W, H); ctx.lineTo(0, H); ctx.closePath();
+      const grad = ctx.createLinearGradient(0, H/2 - amp*1.5, 0, H);
+      grad.addColorStop(0, w.color + (w.alpha * (1 + energy * 0.7)) + ')');
+      grad.addColorStop(0.6, w.color + (w.alpha * 0.4) + ')');
+      grad.addColorStop(1, w.color + '0)');
+      ctx.fillStyle = grad;
+      ctx.fill();
+
+      // Stroke luminoso sulla cresta
+      if (i % 2 === 0) {
+        ctx.beginPath();
+        pts.forEach((p, j) => j === 0 ? ctx.moveTo(p.x, p.y) : ctx.lineTo(p.x, p.y));
+        ctx.strokeStyle = w.color + Math.min(0.55, w.alpha * 1.8 * (1 + energy * 0.5)) + ')';
+        ctx.lineWidth = 1.2;
+        ctx.stroke();
+      }
+    });
+
+    if (energy > 0) energy = Math.max(0, energy - 0.006);
+    raf = requestAnimationFrame(draw);
+  }
+
+  window.addEventListener('load', () => {
+    resize();
+    requestAnimationFrame(draw);
+  });
+  window.addEventListener('resize', resize);
+
+  window.setWaveEnergy = (v) => { energy = v; };
+})();
+
+// ══ HALO CLICK ══
+let haloClicked = false;
+function haloClick() {
+  // Attiva onde
+  window.setWaveEnergy && window.setWaveEnergy(1);
+
+  // Halo reazione
+  const ring = document.getElementById('haloRing');
+  ring.classList.remove('touched');
+  void ring.offsetWidth;
+  ring.classList.add('touched');
+  setTimeout(() => ring.classList.remove('touched'), 700);
+
+  if (!haloClicked) {
+    haloClicked = true;
+    document.getElementById('tapHint').style.opacity = '0';
+    document.getElementById('aiChips').style.display = 'none';
+    typewrite(document.getElementById('aiText'), '¡Hola Laura! Estoy aquí. Toca un chip para responder o desliza para ver tu agenda. 🌿', 24, () => {
+      setTimeout(() => { const g = getGreeting(); showChips(g.chips); }, 500);
+    });
+  } else {
+    const g = getGreeting();
+    showChips(g.chips);
+    document.getElementById('tapHint').style.opacity = '0';
+  }
+}
+
+// ══ SOS ══
+function triggerSOS() {
+  const pill = document.querySelector('.sos-pill');
+  pill.style.background = 'rgba(239,68,68,.4)';
+  pill.style.borderColor = '#ef4444';
+  setTimeout(() => {
+    pill.style.background = '';
+    pill.style.borderColor = '';
+  }, 1000);
+  // In produzione: invia notifica push al cuidador
+  typewrite(document.getElementById('aiText'), '🚨 Alerta enviada a Luca. Estará contigo enseguida.', 22);
+  document.getElementById('aiChips').style.display = 'none';
+}
+
+// ══ NAV ══
+function goTo(i) {
+  document.querySelectorAll('.nav-btn').forEach((b,j) => b.classList.toggle('active', i===j));
+}
+function goProfile() { goTo(3); }
+function startSession() { goTo(2); }
+</script>
+</body>
+</html>
