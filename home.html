@@ -824,17 +824,24 @@ function goTo(idx){
 
 // Aggiorna curPage + nav attivi quando l'utente fa swipe manuale (senza chiamare goTo)
 let _scrollRaf = null;
-// _pushingHistory è TRUE:
-//  • durante la smooth-scroll programmatica di goTo() / popstate (scrollTo animato)
-//    → il listener di scroll deve IGNORARE tutto il moto intermedio, altrimenti
-//      pusherebbe history per ogni idx attraversato (es. 0→1→2 pusha page1 spurio)
-//  • durante popstate, per non ripushare lo stato a cui stiamo navigando
+// _pushingHistory è TRUE durante la smooth-scroll programmatica di goTo() o popstate
+// (per NON pushare voci spurie mentre il carosello anima attraverso idx intermedi).
 let _pushingHistory = false;
+
+// Pusha uno stato solo se NON è uguale a quello corrente in history — protezione
+// finale contro qualsiasi ri-push duplicato, indipendentemente dal timing.
+function _safePushPage(idx){
+  const cur = history.state;
+  if (cur && cur.inApp && cur.page === idx) return; // già su questo stato
+  try { window.history.pushState({inApp:true, page:idx}, '', window.location.href); } catch(e){}
+}
+
 wrap.addEventListener('scroll', () => {
   if (_scrollRaf) return;
-  if (_pushingHistory) return; // ignora lo scroll programmatico
+  if (_pushingHistory) return;
   _scrollRaf = requestAnimationFrame(() => {
     _scrollRaf = null;
+    if (_pushingHistory) return; // ricontrolla: il flag può essere cambiato tra lo schedule e l'esecuzione
     const w = _pageWidth();
     const idx = Math.round(wrap.scrollLeft / w);
     if (idx !== curPage && idx >= 0 && idx <= 3) {
@@ -842,9 +849,7 @@ wrap.addEventListener('scroll', () => {
       document.querySelectorAll('.nav-item').forEach((el,i) => el.classList.toggle('active', i===idx));
       document.querySelectorAll('.nav-dot').forEach((d,i) => d.classList.toggle('active', i===idx));
       hideHint();
-      // Push history solo per lo swipe UTENTE (qui _pushingHistory è già false):
-      // il back del telefono fa Perfil→Rehab→AAC→Inicio→Onboarding.
-      try { window.history.pushState({inApp:true, page:idx}, '', window.location.href); } catch(e){}
+      _safePushPage(idx);
     }
   });
 });
@@ -1939,11 +1944,9 @@ window.addEventListener('load', () => {
 // goTo pusha history e blocca il listener di scroll durante la smooth-scroll
 // (altrimenti il listener pusherebbe voci spurie per ogni idx intermedio).
 const _origGoTo = goTo;
-const SMOOTH_SCROLL_MS = 450;
+const SMOOTH_SCROLL_MS = 500;
 goTo = function(idx){
-  if (idx !== curPage && !_pushingHistory) {
-    try { window.history.pushState({inApp:true, page:idx}, '', window.location.href); } catch(e){}
-  }
+  if (idx !== curPage && !_pushingHistory) _safePushPage(idx);
   _pushingHistory = true;
   _origGoTo(idx);
   setTimeout(() => { _pushingHistory = false; }, SMOOTH_SCROLL_MS);
