@@ -6,10 +6,10 @@
 <title>Parlia</title>
 <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <!-- Stili specifici di ogni pagina della home (?v= cache-bust su ogni deploy) -->
-<link rel="stylesheet" href="inicio.css?v=20260414e">
-<link rel="stylesheet" href="aac.css?v=20260414e">
-<link rel="stylesheet" href="rehab.css?v=20260414e">
-<link rel="stylesheet" href="perfil.css?v=20260414e">
+<link rel="stylesheet" href="inicio.css?v=20260414f">
+<link rel="stylesheet" href="aac.css?v=20260414f">
+<link rel="stylesheet" href="rehab.css?v=20260414f">
+<link rel="stylesheet" href="perfil.css?v=20260414f">
 <style>
 *, *::before, *::after { box-sizing: border-box !important; margin: 0; padding: 0; }
 
@@ -70,18 +70,6 @@ html, body {
 }
 .logo-text span { color: var(--blue); }
 .beta-badge { font-size: 0.52rem; font-weight: 800; background: var(--blue-light); color: var(--blue); border-radius: 20px; padding: 2px 7px; vertical-align: middle; letter-spacing: .04em; }
-
-/* Meteo pill */
-.meteo-pill {
-  display: flex; align-items: center; gap: 5px;
-  background: var(--card); border: 1.5px solid var(--border);
-  border-radius: 20px; padding: 5px 10px;
-  cursor: pointer; transition: all .15s; flex-shrink: 0;
-  -webkit-tap-highlight-color: transparent;
-}
-.meteo-pill:active { transform: scale(0.96); background: var(--blue-light); border-color: var(--blue); }
-.pill-icon { font-size: 1rem; line-height: 1; }
-.pill-temp { font-size: 0.75rem; font-weight: 800; color: var(--ink); }
 
 .avatar {
   width: 32px; height: 32px; border-radius: 50%;
@@ -512,10 +500,7 @@ html, body {
     <svg width="18" height="18" viewBox="0 0 60 60" fill="none"><path d="M6 14C6 10.69 8.69 8 12 8H48C51.31 8 54 10.69 54 14V38C54 41.31 51.31 44 48 44H34L24 55V44H12C8.69 44 6 41.31 6 38V14Z" fill="white" fill-opacity=".2" stroke="white" stroke-opacity=".6" stroke-width="2"/><rect x="14" y="22" width="5" height="14" rx="2.5" fill="white" opacity=".9"/><rect x="23" y="16" width="5" height="20" rx="2.5" fill="white"/><rect x="32" y="19" width="5" height="17" rx="2.5" fill="white" opacity=".95"/><rect x="41" y="23" width="5" height="13" rx="2.5" fill="white" opacity=".85"/></svg>
   </div>
   <div class="logo-text">Parlia<span>.app</span> <span class="beta-badge">BETA</span></div>
-  <div class="meteo-pill" id="meteoPill" onclick="openMeteo()">
-    <div class="pill-icon" id="pillIcon">⏳</div>
-    <div class="pill-temp" id="pillTemp">—°</div>
-  </div>
+  <div style="flex:1"></div>
   <div class="settings-btn" onclick="toggleSettings()">⚙️</div>
   <div class="sos-pill" onclick="openSOS()">🆘</div>
 </div>
@@ -1928,23 +1913,21 @@ async function loadMeteo() {
     const desc = WX_ES[code] || 'Despejado';
     const sceneType = _wxSceneType(code, hour);
 
-    // Pill in topbar
-    document.getElementById('pillTemp').textContent = `${temp}°`;
-    // Aggiorna icona pill con mini sky gradient
-    const pillEl = document.getElementById('meteoPill');
-    pillEl.style.background = WX_SCENE_SKY[sceneType] || WX_SCENE_SKY.sunny;
-    pillEl.style.border = 'none';
-    document.getElementById('pillIcon').style.display = 'none';
-    document.getElementById('pillTemp').style.color = 'white';
-    // Aggiungi descrizione breve alla pill
-    let pillDescEl = document.getElementById('pillDesc');
-    if (!pillDescEl) {
-      pillDescEl = document.createElement('div');
-      pillDescEl.id = 'pillDesc';
-      pillDescEl.style.cssText = 'font-size:0.62rem;font-weight:600;color:rgba(255,255,255,.8);max-width:70px;overflow:hidden;white-space:nowrap;text-overflow:ellipsis';
-      pillEl.appendChild(pillDescEl);
+    // Widget meteo sotto il tutorial (se presente)
+    const ICON_MAP = { sunny:'☀️', sunset:'🌇', night:'🌙', partcloud:'⛅', cloudy:'☁️', rainy:'🌧️', snowy:'❄️', stormy:'⛈️', foggy:'🌫️' };
+    const mw = document.getElementById('meteoWidget');
+    if (mw) {
+      mw.classList.add('has-sky');
+      mw.style.background = WX_SCENE_SKY[sceneType] || WX_SCENE_SKY.sunny;
+      const mwTemp = document.getElementById('mwTemp');
+      const mwDesc = document.getElementById('mwDesc');
+      const mwIcon = document.getElementById('mwIcon');
+      const mwLoc  = document.getElementById('mwLoc');
+      if (mwTemp) mwTemp.textContent = `${temp}°`;
+      if (mwDesc) mwDesc.textContent = `${desc} · sensación ${feels}°`;
+      if (mwIcon) mwIcon.textContent = ICON_MAP[sceneType] || '⛅';
+      if (mwLoc)  mwLoc.textContent  = locName;
     }
-    pillDescEl.textContent = desc;
 
     // Scena animata
     _buildWxScene(sceneType);
@@ -1962,7 +1945,10 @@ async function loadMeteo() {
 
     window._meteoCtx = `Tiempo: ${temp}°C, ${desc}.`;
   } catch(e) {
-    document.getElementById('pillTemp').textContent = '—°';
+    const mwTemp = document.getElementById('mwTemp');
+    const mwDesc = document.getElementById('mwDesc');
+    if (mwTemp) mwTemp.textContent = '—°';
+    if (mwDesc) mwDesc.textContent = 'Sin conexión';
   }
 }
 function openMeteo() { document.getElementById('meteoOverlay').classList.add('open'); }

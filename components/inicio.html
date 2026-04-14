@@ -3,11 +3,24 @@
      Obiettivo rimane per ora; verrà spostato su Rehab in un commit successivo. -->
 
 <!-- Tutorial widget -->
-<a href="tutorial.html" id="tutorialWidget" class="tutorial-widget" style="text-decoration:none;display:flex;align-items:center;gap:10px;padding:10px 14px;margin:0 0 12px;border-radius:14px;background:linear-gradient(135deg,#7c3aed,#6366f1);box-shadow:0 2px 12px rgba(99,102,241,.3);-webkit-tap-highlight-color:transparent;">
+<a href="tutorial.html" id="tutorialWidget" class="tutorial-widget" style="text-decoration:none;display:flex;align-items:center;gap:10px;padding:10px 14px;margin:0 0 10px;border-radius:14px;background:linear-gradient(135deg,#7c3aed,#6366f1);box-shadow:0 2px 12px rgba(99,102,241,.3);-webkit-tap-highlight-color:transparent;">
   <span style="font-size:1.3rem;line-height:1;">🎓</span>
   <span style="font-size:0.82rem;font-weight:700;color:white;flex:1;">Descubre Parlia.app</span>
   <span style="font-size:0.75rem;font-weight:600;color:rgba(255,255,255,.7);">Ver tutorial →</span>
 </a>
+
+<!-- Meteo widget (clicca per popup visivo) -->
+<div class="meteo-widget" id="meteoWidget" onclick="openMeteo()">
+  <div class="meteo-widget-icon" id="mwIcon">⏳</div>
+  <div class="meteo-widget-body">
+    <div class="meteo-widget-temp" id="mwTemp">—°</div>
+    <div class="meteo-widget-desc" id="mwDesc">Cargando clima…</div>
+  </div>
+  <div class="meteo-widget-right">
+    <div class="meteo-widget-loc" id="mwLoc">Institut Guttmann</div>
+    <div class="meteo-widget-hint">Toca para más detalles →</div>
+  </div>
+</div>
 
 <!-- Parlia AI CORE · contiene saluto, chat, chips E l'agenda (fusa dentro) -->
 <div class="ai-core-wrap">

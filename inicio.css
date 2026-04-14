@@ -2,6 +2,36 @@
    INICIO · stili specifici della pagina 0 della home
    ────────────────────────────────────────────────── */
 
+/* ── METEO WIDGET (sotto il tutorial, apre popup al click) ── */
+.meteo-widget {
+  display: flex; align-items: center; gap: 12px;
+  padding: 12px 14px; margin: 0 0 12px;
+  border-radius: 16px;
+  background: var(--card);
+  border: 1.5px solid var(--border);
+  box-shadow: var(--shadow);
+  cursor: pointer; -webkit-tap-highlight-color: transparent;
+  transition: all .18s;
+  /* Sfondo dinamico sovrascritto da loadMeteo() in base alla scena */
+}
+.meteo-widget:active { transform: scale(.985); }
+.meteo-widget.has-sky { border-color: transparent; color: white; box-shadow: 0 4px 20px rgba(37,99,235,.35); }
+.meteo-widget-icon { font-size: 1.8rem; line-height: 1; flex-shrink: 0; }
+.meteo-widget-body { flex: 1; min-width: 0; }
+.meteo-widget-temp {
+  font-family: 'Bricolage Grotesque', sans-serif;
+  font-size: 1.3rem; font-weight: 800; line-height: 1;
+  letter-spacing: -0.02em;
+}
+.meteo-widget.has-sky .meteo-widget-temp { color: white; }
+.meteo-widget-desc { font-size: .7rem; font-weight: 600; margin-top: 2px; color: var(--muted); }
+.meteo-widget.has-sky .meteo-widget-desc { color: rgba(255,255,255,.85); }
+.meteo-widget-right { text-align: right; flex-shrink: 0; }
+.meteo-widget-loc { font-size: .66rem; font-weight: 700; color: var(--ink); }
+.meteo-widget.has-sky .meteo-widget-loc { color: white; }
+.meteo-widget-hint { font-size: .56rem; font-weight: 500; margin-top: 2px; color: var(--muted); letter-spacing: .03em; }
+.meteo-widget.has-sky .meteo-widget-hint { color: rgba(255,255,255,.7); }
+
 /* ══════════════════════════════════════════════════════════════
    AI CORE · "orbita fluttuante" centrale della home
    ══════════════════════════════════════════════════════════════ */
