@@ -131,14 +131,17 @@
 .ai-session-pill-label { opacity: .72; letter-spacing: .05em; text-transform: uppercase; font-size: .55rem; }
 .ai-session-pill-value { font-weight: 800; }
 
-/* ── AGENDA STRIP (orbit) ── */
+/* ── AGENDA STRIP (orbit del core AI) ── */
 .agenda-strip {
-  display: flex; align-items: center; gap: 8px;
-  margin: 10px 0 0; padding: 0;
+  margin: 6px 0 0;
+  padding: 0;
+  /* Margini negativi per estendere lo scroll oltre il padding della .page — peek al bordo */
+  margin-left: -14px; margin-right: -14px;
 }
 .agenda-strip .agenda-scroll {
   display: flex; gap: 7px; overflow-x: auto; scrollbar-width: none;
-  flex: 1; padding: 2px 0;
+  padding: 2px 14px 2px 14px;
+  align-items: stretch;
 }
 .agenda-strip .agenda-scroll::-webkit-scrollbar { display: none; }
 .agenda-strip .agenda-card {
@@ -149,13 +152,16 @@
 .agenda-strip .agenda-card.now { background: var(--blue-light); border-color: #bfdbfe; }
 .agenda-strip .agenda-card.done { opacity: .45; }
 .agenda-strip .agenda-card.reminder { background: #fefce8; border-color: #fde68a; }
-.agenda-strip-add {
-  flex-shrink: 0; font-size: .64rem; font-weight: 800; color: var(--blue);
-  background: var(--blue-light); border: 1px solid #bfdbfe;
-  border-radius: 100px; padding: 6px 11px; cursor: pointer;
+/* Chip "+ Recordatorio" in coda allo scroll, scorre con le card */
+.agenda-strip .agenda-add-chip {
+  flex-shrink: 0; display: flex; align-items: center; justify-content: center;
+  font-size: .64rem; font-weight: 800; color: var(--blue);
+  background: var(--blue-light); border: 1px dashed #bfdbfe;
+  border-radius: 12px; padding: 0 14px; cursor: pointer;
   white-space: nowrap; -webkit-tap-highlight-color: transparent; transition: transform .15s;
+  min-width: 102px;
 }
-.agenda-strip-add:active { transform: scale(.96); }
+.agenda-strip .agenda-add-chip:active { transform: scale(.96); background: var(--blue); color: white; }
 
 /* Agenda notte/weekend (riutilizza .agenda-sleep ma senza header) */
 .agenda-sleep {

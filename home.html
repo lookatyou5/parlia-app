@@ -1043,6 +1043,9 @@ function buildAgenda() {
     </div>`;
   }).join('');
 
+  // Chip "+ Recordatorio" sempre presente in coda allo scroll
+  const addChip = `<div class="agenda-add-chip" onclick="openReminderModal()">+ Recordatorio</div>`;
+
   if (isNight) {
     scroll.innerHTML = `
       <div class="agenda-sleep">
@@ -1052,7 +1055,7 @@ function buildAgenda() {
           <div class="agenda-sleep-text">Los compromisos se reanudan a las 6:00</div>
         </div>
       </div>
-      ${reminders}`;
+      ${reminders}${addChip}`;
     document.getElementById('nextSession').textContent = 'Agenda activa a partir de las 6:00';
     return;
   }
@@ -1067,7 +1070,7 @@ function buildAgenda() {
           <div class="agenda-sleep-text">Sin compromisos programados hoy</div>
         </div>
       </div>
-      ${reminders}`;
+      ${reminders}${addChip}`;
     document.getElementById('nextSession').textContent = `Descanso el ${dayName} 🌿`;
     return;
   }
@@ -1085,7 +1088,7 @@ function buildAgenda() {
     </div>`;
   }).join('');
 
-  scroll.innerHTML = sessionCards + reminders;
+  scroll.innerHTML = sessionCards + reminders + addChip;
 
   const idx = SESSIONS.findIndex(s => { const[sh,sm]=s.time.split(':').map(Number); return cur<=s.end; });
   if (idx>0) setTimeout(() => {
