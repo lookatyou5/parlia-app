@@ -527,11 +527,11 @@ function applyFocus(widgetId){
     const fitsInView=target.offsetHeight<=visibleH;
     let desiredScroll;
     if(fitsInView){
-      // Center widget in visible area above tour card
-      desiredScroll=targetTop-(visibleH-target.offsetHeight)/2;
+      // Position widget in upper third of visible area for breathing room above the tour card
+      desiredScroll=targetTop-Math.max(12,(visibleH-target.offsetHeight)/3);
     } else {
       // Widget bigger than viewport: show top with small margin so avatar/header is visible
-      desiredScroll=targetTop-16;
+      desiredScroll=targetTop-12;
     }
     scrollArea.scrollTo({top:Math.max(0,desiredScroll),behavior:'smooth'});
   },150);
