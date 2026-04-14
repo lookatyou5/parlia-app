@@ -807,39 +807,56 @@ function _closeSettingsOutside(e) {
 }
 
 // ── CAROUSEL (scroll nativo con scroll-snap — come profile.html) ──
-// Nessun calcolo di transform, nessun touchhandler custom. Il browser gestisce tutto.
+// Il browser gestisce il drag fisico, noi sincronizziamo: curPage + history.
 let curPage = 0;
 const wrap = document.getElementById('pagesWrap');
-const track = document.getElementById('track'); // mantenuto per retrocompat di altri selettori
+const track = document.getElementById('track'); // mantenuto per retrocompat
 
 function _pageWidth(){ return wrap.clientWidth || window.innerWidth; }
 
-function goTo(idx){
+// Flag attivi durante una smooth-scroll programmatica (goTo/popstate):
+// evitano che il listener di scroll reagisca ai valori intermedi.
+let _programmaticScroll = false;
+// Flag attivo durante popstate: evita il loop pushState→popstate→pushState.
+let _fromPopstate = false;
+
+function goTo(idx, pushHistory = true){
+  if (idx === curPage || idx < 0 || idx > 3) return;
+  _programmaticScroll = true;
   curPage = idx;
   wrap.scrollTo({ left: idx * _pageWidth(), behavior: 'smooth' });
   document.querySelectorAll('.nav-item').forEach((el,i) => el.classList.toggle('active', i===idx));
   document.querySelectorAll('.nav-dot').forEach((d,i) => d.classList.toggle('active', i===idx));
   hideHint();
+  if (pushHistory) {
+    try { history.pushState({ page: idx }, ''); } catch(e){}
+  }
+  setTimeout(() => { _programmaticScroll = false; }, 500);
 }
 
-// Aggiorna curPage + nav attivi quando l'utente fa swipe manuale (senza chiamare goTo)
+// Ascolta lo scroll per aggiornare curPage + nav attivi + pushState QUANDO
+// è lo SWIPE dell'utente (non durante una smooth-scroll programmatica).
 let _scrollRaf = null;
 wrap.addEventListener('scroll', () => {
   if (_scrollRaf) return;
+  if (_programmaticScroll) return;
   _scrollRaf = requestAnimationFrame(() => {
     _scrollRaf = null;
-    const w = _pageWidth();
-    const idx = Math.round(wrap.scrollLeft / w);
+    if (_programmaticScroll) return;
+    const idx = Math.round(wrap.scrollLeft / _pageWidth());
     if (idx !== curPage && idx >= 0 && idx <= 3) {
       curPage = idx;
       document.querySelectorAll('.nav-item').forEach((el,i) => el.classList.toggle('active', i===idx));
       document.querySelectorAll('.nav-dot').forEach((d,i) => d.classList.toggle('active', i===idx));
       hideHint();
+      if (!_fromPopstate) {
+        try { history.pushState({ page: idx }, ''); } catch(e){}
+      }
     }
   });
 });
 
-// Se si fa swipe oltre page 0, torna all'onboarding (comportamento pre-esistente)
+// Se si fa swipe oltre page 0, torna all'onboarding
 let _overscrollCheck = null;
 wrap.addEventListener('touchend', () => {
   clearTimeout(_overscrollCheck);
@@ -848,12 +865,12 @@ wrap.addEventListener('touchend', () => {
   }, 80);
 }, {passive:true});
 
-// Riallineo il carosello alla pagina corrente su resize/rotazione
+// Riallineo al resize/rotazione
 window.addEventListener('resize', () => {
   wrap.scrollTo({ left: curPage * _pageWidth(), behavior: 'auto' });
 });
 
-// Al ritorno (bfcache, visibility, pageshow) risincronizza senza animazione
+// Risincronizza al ritorno (bfcache, visibility, pageshow)
 function _resyncCarousel(){
   wrap.scrollTo({ left: curPage * _pageWidth(), behavior: 'auto' });
 }
@@ -1896,17 +1913,9 @@ function init() {
 }
 init();
 
-// History management — back gesture SPAZIALE.
-// Non tracciamo la cronologia dei click: la history contiene SEMPRE 2 voci fisse
-// [sentinel, buffer]. Quando l'utente fa back, popstate scatta e noi navighiamo
-// una pagina a sinistra nel carosello, poi ripushiamo il buffer. Quando il
-// carosello è già su pagina 0, il back esce verso l'onboarding.
-if (window.location.hash || window.location.search) {
-  window.history.replaceState({inApp: true, sentinel: true}, '', window.location.pathname);
-} else {
-  window.history.replaceState({inApp: true, sentinel: true}, '', window.location.href);
-}
-window.history.pushState({inApp: true, buffer: true}, '', window.location.href);
+// Stato iniziale: sostituisce l'entry corrente con {page: 0}
+// così ogni successivo back del telefono si ferma sulle entry che noi pushiamo.
+try { history.replaceState({ page: 0 }, ''); } catch(e){}
 
 // Forza il carosello sulla pagina 0 al load — scroll-snap nativo, nessun calcolo
 curPage = 0;
@@ -1926,40 +1935,22 @@ window.addEventListener('load', () => {
   setTimeout(_forceResetToPage0, 150);
 });
 
-// Back gesture SPAZIALE: ogni back = una pagina a sinistra del carosello.
-// Non serve wrappare goTo — cambia solo lo stato visivo, non la history.
-
-// Guard contro popstate spuri durante il boot (iOS Safari)
+// Intercetta il back del telefono: invece di chiudere la app, naviga alla
+// pagina salvata nello stato. La chiamata a goTo passa pushHistory=false per
+// NON ricreare un pushState (eviterebbe il loop popstate→push→popstate…).
+// Quando arriviamo al bottom della history (nessuno stato Parlia) lasciamo
+// che il browser gestisca il back normalmente (chiusura app o navigazione).
 let _popstateReady = false;
-setTimeout(() => { _popstateReady = true; }, 600);
-
-// Ri-popola il buffer di history — deferito di un tick perché alcuni browser
-// (specie mobile) non registrano un pushState sincrono dentro un popstate handler.
-function _rearmBuffer(){
-  setTimeout(() => {
-    try { window.history.pushState({inApp:true, buffer:true}, '', window.location.href); } catch(err){}
-  }, 0);
-}
+setTimeout(() => { _popstateReady = true; }, 500);
 
 window.addEventListener('popstate', (e) => {
   if (!_popstateReady) return;
-
-  if (curPage > 0) {
-    // Spatial back: un passo a sinistra nel carosello
-    goTo(curPage - 1);
-    _rearmBuffer();
-  } else {
-    // Già su Inicio → esci verso l'onboarding (fase test)
-    window.location.replace('/index.html');
+  if (e.state && typeof e.state.page !== 'undefined') {
+    _fromPopstate = true;
+    goTo(e.state.page, false);
+    setTimeout(() => { _fromPopstate = false; }, 520);
   }
-});
-
-// Protezione extra: se il browser per qualche motivo "buca" il buffer senza far
-// scattare il popstate handler, ripristiniamo comunque lo stato quando la
-// pagina ridiventa visibile (es. ritorno da bfcache).
-window.addEventListener('pageshow', () => {
-  // Se non siamo più sul buffer, rimettilo
-  if (!history.state || !history.state.buffer) _rearmBuffer();
+  // else: browser default (esce verso onboarding/sistema)
 });
 
 // Espone le funzioni chiamate dagli onclick="..." nell'HTML (dopo il wrap in runApp
