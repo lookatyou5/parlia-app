@@ -1933,18 +1933,33 @@ window.addEventListener('load', () => {
 let _popstateReady = false;
 setTimeout(() => { _popstateReady = true; }, 600);
 
+// Ri-popola il buffer di history — deferito di un tick perché alcuni browser
+// (specie mobile) non registrano un pushState sincrono dentro un popstate handler.
+function _rearmBuffer(){
+  setTimeout(() => {
+    try { window.history.pushState({inApp:true, buffer:true}, '', window.location.href); } catch(err){}
+  }, 0);
+}
+
 window.addEventListener('popstate', (e) => {
   if (!_popstateReady) return;
 
   if (curPage > 0) {
     // Spatial back: un passo a sinistra nel carosello
     goTo(curPage - 1);
-    // Ripristina il buffer in history così il prossimo back continua a funzionare
-    try { window.history.pushState({inApp:true, buffer:true}, '', window.location.href); } catch(err){}
+    _rearmBuffer();
   } else {
     // Già su Inicio → esci verso l'onboarding (fase test)
     window.location.replace('/index.html');
   }
+});
+
+// Protezione extra: se il browser per qualche motivo "buca" il buffer senza far
+// scattare il popstate handler, ripristiniamo comunque lo stato quando la
+// pagina ridiventa visibile (es. ritorno da bfcache).
+window.addEventListener('pageshow', () => {
+  // Se non siamo più sul buffer, rimettilo
+  if (!history.state || !history.state.buffer) _rearmBuffer();
 });
 
 // Espone le funzioni chiamate dagli onclick="..." nell'HTML (dopo il wrap in runApp
