@@ -1,0 +1,41 @@
+<!-- AAC · contenuto della pagina 1 della home (Comunicador AAC) -->
+
+<div>
+  <div class="page-title">Comunicador AAC</div>
+  <div class="page-sub">Toca una frase para hablar</div>
+</div>
+
+<div class="aac-hero" id="aacHero">
+  <div class="aac-hero-bars">
+    <div class="aac-bar"></div><div class="aac-bar"></div>
+    <div class="aac-bar"></div><div class="aac-bar"></div>
+    <div class="aac-bar"></div>
+  </div>
+  <div style="flex:1">
+    <div class="aac-hero-label" id="aacLabel">Última frase</div>
+    <div class="aac-hero-frase empty" id="aacFrase">Toca un botón para hablar…</div>
+  </div>
+  <div class="aac-replay" onclick="replayLast()">🔊</div>
+</div>
+
+<!-- Categorie principali -->
+<div class="cat-scroll" id="catScroll"></div>
+
+<!-- Sottocategorie -->
+<div class="subcat-scroll" id="subcatScroll"></div>
+
+<!-- AI Suggerimenti -->
+<div class="ai-sec-header">
+  <div class="ai-sec-label">Sugerencias IA</div>
+  <div class="ai-sec-tag">✨ AI</div>
+</div>
+<div class="ai-suggestions" id="aiSuggestions">
+  <div class="ai-loading-row">
+    <div class="ai-loading-dots"><span></span><span></span><span></span></div>
+    <div class="ai-loading-txt">Generando…</div>
+  </div>
+</div>
+
+<!-- Frasi rapide -->
+<div class="frases-section-label">Frases rápidas</div>
+<div class="frases-grid" id="frasiGrid"></div>

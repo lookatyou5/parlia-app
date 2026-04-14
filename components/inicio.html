@@ -1,0 +1,49 @@
+<!-- Inicio · contenuto della pagina 0 della home -->
+
+<!-- Tutorial widget -->
+<a href="tutorial.html" id="tutorialWidget" class="tutorial-widget" style="text-decoration:none;display:flex;align-items:center;gap:10px;padding:10px 14px;margin:0 0 12px;border-radius:14px;background:linear-gradient(135deg,#7c3aed,#6366f1);box-shadow:0 2px 12px rgba(99,102,241,.3);-webkit-tap-highlight-color:transparent;">
+  <span style="font-size:1.3rem;line-height:1;">🎓</span>
+  <span style="font-size:0.82rem;font-weight:700;color:white;flex:1;">Descubre Parlia.app</span>
+  <span style="font-size:0.75rem;font-weight:600;color:rgba(255,255,255,.7);">Ver tutorial →</span>
+</a>
+
+<!-- AI Hero con chat / notte -->
+<div id="aiHeroWrap">
+  <!-- Viene generato da JS in base all'ora -->
+</div>
+
+<!-- Agenda -->
+<div class="agenda-wrap">
+  <div class="agenda-hdr">
+    <div class="agenda-hdr-title">
+      <div class="agenda-dot"></div>
+      Agenda de hoy
+    </div>
+    <div style="font-size:0.65rem;font-weight:700;color:var(--blue);cursor:pointer;-webkit-tap-highlight-color:transparent" onclick="openReminderModal()">+ Recordatorio</div>
+  </div>
+  <div class="agenda-scroll" id="agendaScroll"></div>
+</div>
+
+<!-- Obiettivo -->
+<div class="goal-card">
+  <div class="goal-badge">🎯 Objetivo de hoy</div>
+  <div id="goalBody">
+    <span class="skel" style="height:14px;width:85%;margin-bottom:6px"></span>
+    <span class="skel" style="height:12px;width:65%"></span>
+  </div>
+</div>
+
+<!-- Profilo -->
+<div class="profile-card" onclick="goTo(3)">
+  <div class="profile-top">
+    <div class="profile-icon">👤</div>
+    <div style="flex:1">
+      <div class="profile-title" id="profileTitle">Perfil al 50%</div>
+      <div class="profile-sub" id="profileSub">Añade más info para personalizar la IA</div>
+    </div>
+    <div class="profile-btn" id="profileBtn">Completar →</div>
+  </div>
+  <div class="profile-bar-bg">
+    <div class="profile-bar" id="profileBar" style="width:50%"></div>
+  </div>
+</div>
