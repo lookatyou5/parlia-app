@@ -824,24 +824,27 @@ function goTo(idx){
 
 // Aggiorna curPage + nav attivi quando l'utente fa swipe manuale (senza chiamare goTo)
 let _scrollRaf = null;
-let _pushingHistory = false; // vero solo durante popstate, per evitare loop
+// _pushingHistory è TRUE:
+//  • durante la smooth-scroll programmatica di goTo() / popstate (scrollTo animato)
+//    → il listener di scroll deve IGNORARE tutto il moto intermedio, altrimenti
+//      pusherebbe history per ogni idx attraversato (es. 0→1→2 pusha page1 spurio)
+//  • durante popstate, per non ripushare lo stato a cui stiamo navigando
+let _pushingHistory = false;
 wrap.addEventListener('scroll', () => {
   if (_scrollRaf) return;
+  if (_pushingHistory) return; // ignora lo scroll programmatico
   _scrollRaf = requestAnimationFrame(() => {
     _scrollRaf = null;
     const w = _pageWidth();
     const idx = Math.round(wrap.scrollLeft / w);
     if (idx !== curPage && idx >= 0 && idx <= 3) {
-      const prev = curPage;
       curPage = idx;
       document.querySelectorAll('.nav-item').forEach((el,i) => el.classList.toggle('active', i===idx));
       document.querySelectorAll('.nav-dot').forEach((d,i) => d.classList.toggle('active', i===idx));
       hideHint();
-      // Push history: ogni cambio pagina (swipe o goTo) aggiunge uno stack,
-      // così il back del telefono fa Perfil→Rehab→AAC→Inicio→Onboarding.
-      if (!_pushingHistory && idx !== prev) {
-        try { window.history.pushState({inApp:true, page:idx}, '', window.location.href); } catch(e){}
-      }
+      // Push history solo per lo swipe UTENTE (qui _pushingHistory è già false):
+      // il back del telefono fa Perfil→Rehab→AAC→Inicio→Onboarding.
+      try { window.history.pushState({inApp:true, page:idx}, '', window.location.href); } catch(e){}
     }
   });
 });
@@ -1933,13 +1936,17 @@ window.addEventListener('load', () => {
 });
 
 // Back gesture = una pagina indietro nel carosello.
-// goTo pusha history (il listener di scroll fa lo stesso per gli swipe manuali).
+// goTo pusha history e blocca il listener di scroll durante la smooth-scroll
+// (altrimenti il listener pusherebbe voci spurie per ogni idx intermedio).
 const _origGoTo = goTo;
+const SMOOTH_SCROLL_MS = 450;
 goTo = function(idx){
   if (idx !== curPage && !_pushingHistory) {
     try { window.history.pushState({inApp:true, page:idx}, '', window.location.href); } catch(e){}
   }
+  _pushingHistory = true;
   _origGoTo(idx);
+  setTimeout(() => { _pushingHistory = false; }, SMOOTH_SCROLL_MS);
 };
 
 // Guard contro popstate spuri durante il boot (iOS Safari)
@@ -1958,10 +1965,11 @@ window.addEventListener('popstate', (e) => {
     window.location.replace('/index.html');
     return;
   }
-  // Allinea il carosello alla pagina dello stato (senza ripushare history)
+  // Allinea il carosello alla pagina dello stato senza ripushare history
+  // e senza far intervenire il listener di scroll durante la smooth-scroll
   _pushingHistory = true;
   _origGoTo(e.state.page);
-  setTimeout(() => { _pushingHistory = false; }, 80);
+  setTimeout(() => { _pushingHistory = false; }, SMOOTH_SCROLL_MS);
 });
 
 // Espone le funzioni chiamate dagli onclick="..." nell'HTML (dopo il wrap in runApp
