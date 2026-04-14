@@ -4,12 +4,12 @@
      collidono con quelli di altre pagine. -->
 <div class="fut-home">
 
-  <!-- METEO -->
-  <div class="fut-meteo-glass" id="futMeteoCard">
-    <div class="fut-meteo-icon" id="futMeteoIcon">⛅</div>
+  <!-- METEO (cliccabile → apre il popup esistente) -->
+  <div class="fut-meteo-glass" id="futMeteoCard" onclick="openMeteo()">
+    <div class="fut-meteo-icon" id="futMeteoIcon">⏳</div>
     <div class="fut-meteo-info">
-      <div class="fut-meteo-temp" id="futMeteoTemp">14°</div>
-      <div class="fut-meteo-desc" id="futMeteoDesc">Nublado · Barcelona</div>
+      <div class="fut-meteo-temp" id="futMeteoTemp">—°</div>
+      <div class="fut-meteo-desc" id="futMeteoDesc">Cargando…</div>
     </div>
     <div class="fut-meteo-right">
       <div class="fut-meteo-loc" id="futMeteoLoc">Institut Guttmann</div>
