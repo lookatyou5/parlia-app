@@ -11,13 +11,31 @@ Parlia è una PWA (app web progressiva) per comunicazione aumentativa (AAC) dest
 ## File principali
 - `index.html` — router (manda sempre a onboarding.html)
 - `onboarding.html` — onboarding a step con animazioni
-- `home.html` — app principale con 4 pagine a swipe (Inicio / AAC / Rehab / Yo)
-- `profile.html` — schermata profilo
+- `home.html` — app principale con 4 pagine a swipe (Inicio / AAC / Rehab / Perfil)
+- `profile.html` — **profilo unificato** (datos personales + memoria AI + funciones)
+- `profileApp.js` — logica della pagina profilo (config-driven, modal unico)
+- `userData.js` — data layer condiviso `parlia_user_data` con migrazione legacy
+- `memoriaAI.html` — redirect a `profile.html` (mantiene compat con bookmark)
 - `comunicador.html` — comunicador AAC standalone
 - `tutorial.html` — tutorial interattivo standalone con tour guidato
 - `roadmap.html` — roadmap interna (accessibile da ⚙️ nella home)
 - `manifest.json` — PWA manifest (start_url: /)
 - `sw.js` — service worker
+
+## Profilo unificato (parlia_user_data)
+Schema centralizzato in localStorage, gestito da `userData.js`:
+```
+{
+  personal:  { userName, gender, age, condicion[], movilidad, caregiverName, caregiver2Name },
+  memory:    { hobbies[], musica, comida, interests[], family[], profession, birthplace, notas },
+  functions: { aac, chat, logo, neuro, gps, mood },
+  stats:     { opens, last_open, favorite_hours[], last_mood, last_mood_date }
+}
+```
+- Al primo load migra automaticamente da `parlia_profile`, `parlia_profile_extra`, `parlia_memory`
+- `ParliaUser.save()` mantiene le chiavi legacy sincronizzate (backward compat con codice esistente di home.html)
+- `profile.html` edita ogni campo tramite **modal unico** (text / textarea / chip single / chip multi / lista CSV)
+- `home.html` legge `_ud = ParliaUser.get()` e costruisce il system prompt AI includendo: edad, condición, hobbies, música, comida, intereses, familia, profesión, lugar de origen, tono/preferencias — tutto con sync immediato appena si salva nel profilo.
 
 ## Tech stack
 - HTML/CSS/JS puro, niente framework
