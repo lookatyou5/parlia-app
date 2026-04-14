@@ -496,6 +496,21 @@ html, body {
 .yo-row-label { flex: 1; font-size: 0.85rem; font-weight: 700; color: var(--ink); }
 .yo-row-value { font-size: 0.73rem; font-weight: 600; color: var(--muted); }
 .yo-row-arrow { font-size: 0.9rem; color: var(--muted); margin-left: 4px; }
+/* Summary card (non-clickable) */
+.yo-summary { background: var(--card); border: 1.5px solid var(--border); border-radius: 14px; padding: 4px 14px; box-shadow: var(--shadow); }
+.yo-info { display: flex; align-items: center; gap: 12px; padding: 11px 0; border-bottom: 1px solid var(--border); }
+.yo-info:last-child { border-bottom: none; }
+.yo-info-icon { font-size: 1.1rem; width: 26px; text-align: center; flex-shrink: 0; }
+.yo-info-label { flex: 1; font-size: 0.78rem; font-weight: 700; color: var(--ink); }
+.yo-info-value { font-size: 0.73rem; font-weight: 700; color: var(--muted); max-width: 55%; text-align: right; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.yo-info-value.empty { color: #9ca3af; font-weight: 500; font-style: italic; }
+/* CTA button */
+.yo-cta { display: flex; align-items: center; gap: 12px; background: linear-gradient(135deg,#2563eb,#6366f1); border: none; border-radius: 14px; padding: 14px 16px; cursor: pointer; -webkit-tap-highlight-color: transparent; box-shadow: 0 4px 14px rgba(37,99,235,.3); transition: transform .15s; width: 100%; }
+.yo-cta:active { transform: scale(.98); }
+.yo-cta-icon { font-size: 1.2rem; }
+.yo-cta-label { flex: 1; text-align: left; font-family: 'Bricolage Grotesque', sans-serif; font-size: .9rem; font-weight: 800; color: white; }
+.yo-cta-sub { font-size: .65rem; font-weight: 600; color: rgba(255,255,255,.8); margin-top: 1px; }
+.yo-cta-arrow { color: white; font-size: 1.1rem; }
 
 /* ── METEO POPUP ── */
 .meteo-overlay {
@@ -1020,41 +1035,46 @@ html, body {
         </div>
       </div>
 
-      <div class="yo-rows">
-        <div class="yo-row" onclick="window.location.href='profile.html'">
-          <div class="yo-row-icon">👤</div>
-          <div class="yo-row-label">Datos personales</div>
-          <div class="yo-row-value" id="yoPersonal">María</div>
-          <div class="yo-row-arrow">›</div>
+      <!-- Resumen visual (solo lectura) -->
+      <div class="yo-summary">
+        <div class="yo-info">
+          <div class="yo-info-icon">👤</div>
+          <div class="yo-info-label">Datos personales</div>
+          <div class="yo-info-value" id="yoPersonal">—</div>
         </div>
-        <div class="yo-row" onclick="window.location.href='profile.html'">
-          <div class="yo-row-icon">🏥</div>
-          <div class="yo-row-label">Condición</div>
-          <div class="yo-row-value" id="yoCondicion">Sin definir</div>
-          <div class="yo-row-arrow">›</div>
+        <div class="yo-info">
+          <div class="yo-info-icon">🏥</div>
+          <div class="yo-info-label">Condición</div>
+          <div class="yo-info-value" id="yoCondicion">—</div>
         </div>
-        <div class="yo-row" onclick="window.location.href='profile.html'">
-          <div class="yo-row-icon">🤝</div>
-          <div class="yo-row-label">Cuidador principal</div>
-          <div class="yo-row-value" id="yoCuidador">—</div>
-          <div class="yo-row-arrow">›</div>
+        <div class="yo-info">
+          <div class="yo-info-icon">🤝</div>
+          <div class="yo-info-label">Cuidador principal</div>
+          <div class="yo-info-value" id="yoCuidador">—</div>
         </div>
-        <div class="yo-row" onclick="window.location.href='profile.html'">
-          <div class="yo-row-icon">⚙️</div>
-          <div class="yo-row-label">Funciones activas</div>
-          <div class="yo-row-value">AAC · Rehab</div>
-          <div class="yo-row-arrow">›</div>
+        <div class="yo-info">
+          <div class="yo-info-icon">🧠</div>
+          <div class="yo-info-label">Memoria AI</div>
+          <div class="yo-info-value" id="yoMemoria">—</div>
+        </div>
+        <div class="yo-info">
+          <div class="yo-info-icon">⚙️</div>
+          <div class="yo-info-label">Funciones activas</div>
+          <div class="yo-info-value" id="yoFunciones">—</div>
         </div>
       </div>
 
-      <div class="yo-row" onclick="window.location.href='profile.html'" style="margin-top:8px">
-          <div class="yo-row-icon">👤</div>
-          <div class="yo-row-label">Mi perfil</div>
-          <div class="yo-row-value" style="font-size:.65rem;color:var(--blue)">Datos + memoria AI</div>
-          <div class="yo-row-arrow">›</div>
+      <!-- CTA unico para editar -->
+      <button class="yo-cta" onclick="window.location.href='profile.html'" style="margin-top:4px">
+        <div class="yo-cta-icon">✏️</div>
+        <div style="flex:1;text-align:left">
+          <div class="yo-cta-label">Editar mi perfil</div>
+          <div class="yo-cta-sub">Datos personales + memoria AI</div>
         </div>
+        <div class="yo-cta-arrow">›</div>
+      </button>
 
-      <div class="yo-row" onclick="window.location.href='tutorial.html'">
+      <div class="yo-row" onclick="window.location.href='tutorial.html'" style="margin-top:4px">
           <div class="yo-row-icon">🎓</div>
           <div class="yo-row-label">Tutorial de la app</div>
           <div class="yo-row-arrow">›</div>
@@ -1379,17 +1399,28 @@ function hideHint() {
 
 // ── PROFILO ──
 function initProfile() {
-  const n = profile.userName || 'María';
+  const ud = ParliaUser.get();
+  const p = ud.personal, mem = ud.memory, fn = ud.functions;
+  const n = p.userName || 'María';
+  const setVal = (id, val, emptyHint) => {
+    const el = document.getElementById(id);
+    el.textContent = val || emptyHint;
+    el.classList.toggle('empty', !val);
+  };
   document.getElementById('yoAvatar').textContent = n.charAt(0).toUpperCase();
   document.getElementById('yoName').textContent = n;
-  document.getElementById('yoPersonal').textContent = n;
-  document.getElementById('yoCuidador').textContent = profile.caregiverName || '—';
-  const extra = JSON.parse(localStorage.getItem('parlia_profile_extra') || '{}');
-  const condicion = extra.condicion || profile.condicion;
-  if (condicion) {
-    const val = Array.isArray(condicion) ? condicion[0] : condicion;
-    document.getElementById('yoCondicion').textContent = val;
-  }
+  setVal('yoPersonal', n, '—');
+  setVal('yoCuidador', p.caregiverName, 'Sin definir');
+  const cond = p.condicion && p.condicion.length ? p.condicion.join(', ') : '';
+  setVal('yoCondicion', cond, 'Sin definir');
+  // Memoria AI: conteggio campi valorizzati
+  const memFields = [mem.hobbies.length, mem.musica, mem.comida, mem.interests.length, mem.family.length, mem.profession, mem.birthplace, mem.notas];
+  const memDone = memFields.filter(v => v && (typeof v !== 'number' || v > 0)).length;
+  setVal('yoMemoria', memDone ? `${memDone} de ${memFields.length} campos` : '', 'Sin personalizar');
+  // Funciones activas (solo quelle ON)
+  const labelsFn = {aac:'AAC', chat:'Chat', logo:'Logo', neuro:'Neuro', gps:'GPS', mood:'Ánimo'};
+  const on = Object.keys(fn).filter(k => fn[k]).map(k => labelsFn[k]).filter(Boolean);
+  setVal('yoFunciones', on.length ? on.join(' · ') : '', 'Ninguna');
   updateProgress();
 }
 
