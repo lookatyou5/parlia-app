@@ -204,6 +204,34 @@ html,body { height:100%; overflow:hidden; font-family:'Plus Jakarta Sans',sans-s
 .popup-title { font-family:'Bricolage Grotesque',sans-serif; font-size:1.1rem; font-weight:800; color:var(--ink); margin-bottom:8px; }
 .popup-body { font-size:.86rem; color:var(--muted); line-height:1.65; margin-bottom:20px; }
 .popup-close { width:100%; padding:13px; background:var(--ink); color:white; border:none; border-radius:100px; font-family:'Plus Jakarta Sans',sans-serif; font-size:.9rem; font-weight:700; cursor:pointer; -webkit-tap-highlight-color:transparent; }
+
+/* ── Override compatti per i widget del tour: rimpiccioliscono altezza senza toccare la home ── */
+#w-ai .ai-core-wrap { padding: 8px 0 2px; }
+#w-ai .ai-hero { border-radius: 24px; }
+#w-ai .ai-hero-inner { padding: 14px 14px 12px; }
+#w-ai .ai-header { margin-bottom: 8px; }
+#w-ai .ai-orb { width: 36px; height: 36px; }
+#w-ai .ai-session-pill { margin-bottom: 8px; padding: 3px 9px 3px 4px; font-size: .58rem; }
+#w-ai .bubble-ai { padding: 6px 10px; font-size: .78rem; line-height: 1.4; max-width: 100%; }
+#w-ai .ai-chips { gap: 5px; margin-top: 8px; }
+#w-ai .ai-chip { padding: 5px 11px; font-size: .68rem; }
+#w-ai .ai-agenda-divider { margin: 10px 0 7px; }
+#w-ai .agenda-scroll { gap: 6px; margin: 0 -14px; padding: 0 14px 2px; }
+#w-ai .agenda-card { min-width: 92px; padding: 6px 9px; }
+#w-ai .agenda-card .ac-time { font-size: .54rem; }
+#w-ai .agenda-card .ac-label { font-size: .68rem; }
+#w-ai .agenda-card .ac-sub { font-size: .52rem; }
+#w-ai .agenda-add-chip { min-width: 92px; font-size: .56rem; padding: 0 10px; }
+#w-ai .ai-orbit-ring-1, #w-ai .ai-orbit-ring-2 { display: none; }
+
+#w-rehab .goal-card { padding: 10px 14px; margin-bottom: 8px !important; }
+#w-rehab .goal-badge { margin-bottom: 5px; font-size: .54rem; }
+#w-rehab .goal-title { font-size: .85rem; margin-bottom: 2px; }
+#w-rehab .goal-sub { font-size: .68rem; line-height: 1.35; }
+#w-rehab [id^="rehab-"] { padding: 10px 12px !important; }
+#w-rehab [id^="rehab-"] > div:first-child { width: 38px !important; height: 38px !important; font-size: 1.1rem !important; }
+#w-rehab [id^="rehab-"] > div:nth-child(2) > div:first-child { font-size: .8rem !important; }
+#w-rehab [id^="rehab-"] > div:nth-child(2) > div:last-child { font-size: .65rem !important; }
 </style>
 </head>
 <body>
