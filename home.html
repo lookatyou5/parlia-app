@@ -807,35 +807,53 @@ function _closeSettingsOutside(e) {
 }
 
 // ── CAROUSEL (scroll nativo con scroll-snap — come profile.html) ──
-// Il browser gestisce il drag fisico, noi sincronizziamo: curPage + history.
+// Il browser gestisce il drag fisico; noi sincronizziamo curPage + nav + history.
+// History management lineare: al massimo 2 voci — [{page:0}, {page:currentIdx}].
 let curPage = 0;
 const wrap = document.getElementById('pagesWrap');
 const track = document.getElementById('track'); // mantenuto per retrocompat
 
 function _pageWidth(){ return wrap.clientWidth || window.innerWidth; }
 
-// Flag attivi durante una smooth-scroll programmatica (goTo/popstate):
-// evitano che il listener di scroll reagisca ai valori intermedi.
+// Flag attivo durante smooth-scroll programmatica di goTo(): evita che il
+// listener di scroll reagisca ai frame intermedi.
 let _programmaticScroll = false;
-// Flag attivo durante popstate: evita il loop pushState→popstate→pushState.
+// Flag attivo durante un popstate: evita cicli (popstate → scroll listener → push).
 let _fromPopstate = false;
 
-function goTo(idx, pushHistory = true){
+// Aggiorna nav bar + history in modo lineare.
+// Regola: manteniamo sempre max 2 voci di history (home + pagina corrente).
+//  • se si va a Inicio: replaceState({page:0})
+//  • se si lascia Inicio per la prima volta: pushState({page:idx})
+//  • se si cambia tra sezioni non-Inicio: replaceState({page:idx})
+// In questo modo, da qualsiasi pagina, un solo back porta a Inicio; da Inicio
+// un solo back chiude l'app (history vuota).
+function _syncNavAndHistory(idx, fromBack){
+  document.querySelectorAll('.nav-item').forEach((el,i) => el.classList.toggle('active', i===idx));
+  document.querySelectorAll('.nav-dot').forEach((d,i) => d.classList.toggle('active', i===idx));
+  hideHint();
+  if (fromBack) return; // durante popstate non tocchiamo la history
+  const cur = history.state;
+  const curIdx = (cur && typeof cur.page !== 'undefined') ? cur.page : 0;
+  if (idx === 0) {
+    if (curIdx !== 0) { try { history.replaceState({page:0}, ''); } catch(e){} }
+  } else if (curIdx === 0) {
+    try { history.pushState({page:idx}, ''); } catch(e){}
+  } else if (curIdx !== idx) {
+    try { history.replaceState({page:idx}, ''); } catch(e){}
+  }
+}
+
+function goTo(idx, fromBack = false){
   if (idx === curPage || idx < 0 || idx > 3) return;
   _programmaticScroll = true;
   curPage = idx;
   wrap.scrollTo({ left: idx * _pageWidth(), behavior: 'smooth' });
-  document.querySelectorAll('.nav-item').forEach((el,i) => el.classList.toggle('active', i===idx));
-  document.querySelectorAll('.nav-dot').forEach((d,i) => d.classList.toggle('active', i===idx));
-  hideHint();
-  if (pushHistory) {
-    try { history.pushState({ page: idx }, ''); } catch(e){}
-  }
+  _syncNavAndHistory(idx, fromBack);
   setTimeout(() => { _programmaticScroll = false; }, 500);
 }
 
-// Ascolta lo scroll per aggiornare curPage + nav attivi + pushState QUANDO
-// è lo SWIPE dell'utente (non durante una smooth-scroll programmatica).
+// Ascolta lo swipe utente: aggiorna curPage + nav + history (senza scrollTo).
 let _scrollRaf = null;
 wrap.addEventListener('scroll', () => {
   if (_scrollRaf) return;
@@ -846,17 +864,12 @@ wrap.addEventListener('scroll', () => {
     const idx = Math.round(wrap.scrollLeft / _pageWidth());
     if (idx !== curPage && idx >= 0 && idx <= 3) {
       curPage = idx;
-      document.querySelectorAll('.nav-item').forEach((el,i) => el.classList.toggle('active', i===idx));
-      document.querySelectorAll('.nav-dot').forEach((d,i) => d.classList.toggle('active', i===idx));
-      hideHint();
-      if (!_fromPopstate) {
-        try { history.pushState({ page: idx }, ''); } catch(e){}
-      }
+      _syncNavAndHistory(idx, _fromPopstate);
     }
   });
 });
 
-// Se si fa swipe oltre page 0, torna all'onboarding
+// Overscroll left dalla pagina 0 → torna all'onboarding tramite history
 let _overscrollCheck = null;
 wrap.addEventListener('touchend', () => {
   clearTimeout(_overscrollCheck);
@@ -1913,8 +1926,8 @@ function init() {
 }
 init();
 
-// Stato iniziale: sostituisce l'entry corrente con {page: 0}
-// così ogni successivo back del telefono si ferma sulle entry che noi pushiamo.
+// Stato iniziale: sostituisce l'entry corrente con {page: 0}.
+// La history conterrà al massimo 2 voci: questa + una pushata quando si lascia Inicio.
 try { history.replaceState({ page: 0 }, ''); } catch(e){}
 
 // Forza il carosello sulla pagina 0 al load — scroll-snap nativo, nessun calcolo
@@ -1935,22 +1948,21 @@ window.addEventListener('load', () => {
   setTimeout(_forceResetToPage0, 150);
 });
 
-// Intercetta il back del telefono: invece di chiudere la app, naviga alla
-// pagina salvata nello stato. La chiamata a goTo passa pushHistory=false per
-// NON ricreare un pushState (eviterebbe il loop popstate→push→popstate…).
-// Quando arriviamo al bottom della history (nessuno stato Parlia) lasciamo
-// che il browser gestisca il back normalmente (chiusura app o navigazione).
+// Intercetta il back del telefono.
+// Regola lineare:
+//   • Se siamo su AAC/Rehab/Perfil → back porta SEMPRE a Inicio (senza aggiungere stati).
+//   • Se siamo su Inicio → back lascia chiudere l'app (browser default).
 let _popstateReady = false;
 setTimeout(() => { _popstateReady = true; }, 500);
 
 window.addEventListener('popstate', (e) => {
   if (!_popstateReady) return;
-  if (e.state && typeof e.state.page !== 'undefined') {
+  if (curPage > 0) {
     _fromPopstate = true;
-    goTo(e.state.page, false);
+    goTo(0, true); // fromBack=true → non modifica history
     setTimeout(() => { _fromPopstate = false; }, 520);
   }
-  // else: browser default (esce verso onboarding/sistema)
+  // else: curPage===0, browser default (chiusura app)
 });
 
 // Espone le funzioni chiamate dagli onclick="..." nell'HTML (dopo il wrap in runApp
