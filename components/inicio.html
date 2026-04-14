@@ -1,4 +1,6 @@
-<!-- Inicio · contenuto della pagina 0 della home -->
+<!-- Inicio · Parlia AI come core della home.
+     L'agenda è fusa come strip sotto il core (più "orbita" che card separata).
+     Obiettivo rimane per ora; verrà spostato su Rehab in un commit successivo. -->
 
 <!-- Tutorial widget -->
 <a href="tutorial.html" id="tutorialWidget" class="tutorial-widget" style="text-decoration:none;display:flex;align-items:center;gap:10px;padding:10px 14px;margin:0 0 12px;border-radius:14px;background:linear-gradient(135deg,#7c3aed,#6366f1);box-shadow:0 2px 12px rgba(99,102,241,.3);-webkit-tap-highlight-color:transparent;">
@@ -7,21 +9,15 @@
   <span style="font-size:0.75rem;font-weight:600;color:rgba(255,255,255,.7);">Ver tutorial →</span>
 </a>
 
-<!-- AI Hero con chat / notte -->
-<div id="aiHeroWrap">
-  <!-- Viene generato da JS in base all'ora -->
-</div>
+<!-- Parlia AI CORE (generato da initAIHero) + agenda orbit -->
+<div class="ai-core-wrap">
+  <div id="aiHeroWrap"></div>
 
-<!-- Agenda -->
-<div class="agenda-wrap">
-  <div class="agenda-hdr">
-    <div class="agenda-hdr-title">
-      <div class="agenda-dot"></div>
-      Agenda de hoy
-    </div>
-    <div style="font-size:0.65rem;font-weight:700;color:var(--blue);cursor:pointer;-webkit-tap-highlight-color:transparent" onclick="openReminderModal()">+ Recordatorio</div>
+  <!-- Agenda · strip scrollabile, "orbita" del core AI -->
+  <div class="agenda-strip">
+    <div class="agenda-scroll" id="agendaScroll"></div>
+    <div class="agenda-strip-add" onclick="openReminderModal()">+ Recordatorio</div>
   </div>
-  <div class="agenda-scroll" id="agendaScroll"></div>
 </div>
 
 <!-- Obiettivo -->

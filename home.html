@@ -1097,6 +1097,8 @@ function buildAgenda() {
   document.getElementById('nextSession').textContent = next
     ? `${next.label} a las ${next.time} · ${next.sub}`
     : 'Todas las sesiones completadas 🎉';
+  // Ripropaga il context all'AI core (session pill nel hero)
+  try { _updateSessionPill(); } catch(e){}
 }
 
 // ── PROMEMORIA ──
@@ -1429,6 +1431,11 @@ function initAIHero() {
             </div>
             <div class="ai-tts-btn" id="ttsBtn" onclick="toggleTTS()">🔇</div>
           </div>
+          <div class="ai-session-pill" id="aiSessionPill" style="display:none">
+            <span class="ai-session-pill-dot"></span>
+            <span class="ai-session-pill-emoji" id="aiSessionPillEmoji">📅</span>
+            <span><span class="ai-session-pill-label" id="aiSessionPillLabel">Ahora</span> · <span class="ai-session-pill-value" id="aiSessionPillValue">—</span></span>
+          </div>
           <div class="ctx-badge" id="ctxBadge">
             <div class="ctx-dot" id="ctxDot"></div>
             <span id="ctxTxt"></span>
@@ -1437,6 +1444,37 @@ function initAIHero() {
           <div class="ai-chips" id="aiChips"></div>
         </div>
       </div>`;
+    _updateSessionPill();
+  }
+}
+
+// Aggiorna la pill di sessione dentro il core AI in base all'agenda corrente.
+// Chiamata da initAIHero + buildAgenda (auto-refresh ogni minuto via _ticker).
+function _updateSessionPill(){
+  const pill  = document.getElementById('aiSessionPill');
+  const emoji = document.getElementById('aiSessionPillEmoji');
+  const label = document.getElementById('aiSessionPillLabel');
+  const value = document.getElementById('aiSessionPillValue');
+  if (!pill || !emoji || !label || !value) return;
+  const ctx = (typeof _getCtx === 'function') ? _getCtx() : null;
+  if (!ctx) { pill.style.display = 'none'; return; }
+  let shown = null;
+  if (ctx.now) {
+    shown = { tag:'AHORA',    emoji: ctx.now.emoji || '⏱️',  text: ctx.now.label };
+  } else if (ctx.soon) {
+    shown = { tag:'PRÓXIMO',  emoji: ctx.soon.emoji || '⏰', text: `${ctx.soon.label} · ${ctx.soon.time}` };
+  } else if (ctx.next) {
+    shown = { tag:'DESPUÉS',  emoji: ctx.next.emoji || '📅', text: `${ctx.next.label} · ${ctx.next.time}` };
+  } else if (ctx.done) {
+    shown = { tag:'HECHO',    emoji: '✅',                    text: ctx.done.label };
+  }
+  if (shown) {
+    emoji.textContent = shown.emoji;
+    label.textContent = shown.tag;
+    value.textContent = shown.text;
+    pill.style.display = 'inline-flex';
+  } else {
+    pill.style.display = 'none';
   }
 }
 const _sessions=[
