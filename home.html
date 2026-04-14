@@ -5,11 +5,11 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
 <title>Parlia</title>
 <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-<!-- Stili specifici di ogni pagina della home -->
-<link rel="stylesheet" href="inicio.css">
-<link rel="stylesheet" href="aac.css">
-<link rel="stylesheet" href="rehab.css">
-<link rel="stylesheet" href="perfil.css">
+<!-- Stili specifici di ogni pagina della home (?v= cache-bust su ogni deploy) -->
+<link rel="stylesheet" href="inicio.css?v=20260414c">
+<link rel="stylesheet" href="aac.css?v=20260414c">
+<link rel="stylesheet" href="rehab.css?v=20260414c">
+<link rel="stylesheet" href="perfil.css?v=20260414c">
 <style>
 *, *::before, *::after { box-sizing: border-box !important; margin: 0; padding: 0; }
 
@@ -503,6 +503,8 @@ html, body {
 </style>
 </head>
 <body>
+<!-- BUILD MARKER (temporaneo) — se vedi il pallino verde in alto a sx = build f0f41fa (merge AI+agenda core) è attivo -->
+<div style="position:fixed;top:4px;left:4px;z-index:9999;width:10px;height:10px;border-radius:50%;background:#22c55e;box-shadow:0 0 8px #22c55e;pointer-events:none;" title="build f0f41fa"></div>
 
 <div class="mesh"><div class="blob blob1"></div><div class="blob blob2"></div></div>
 
