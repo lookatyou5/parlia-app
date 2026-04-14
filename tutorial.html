@@ -25,7 +25,7 @@ html,body { height:100%; overflow:hidden; font-family:'Plus Jakarta Sans',sans-s
 .logo-text { font-family:'Bricolage Grotesque',sans-serif; font-size:1rem; font-weight:800; flex:1; color:var(--ink); }
 .logo-text span { color:var(--blue); }
 .beta-badge { font-size:.52rem; font-weight:800; background:var(--blue-light); color:var(--blue); border-radius:20px; padding:2px 7px; }
-.scroll-area { position:fixed; top:var(--top-h); bottom:0; left:0; right:0; overflow-y:auto; overflow-x:hidden; -webkit-overflow-scrolling:touch; scrollbar-width:none; z-index:1; }
+.scroll-area { position:fixed; top:var(--top-h); bottom:0; left:0; right:0; overflow-y:auto; overflow-x:hidden; -webkit-overflow-scrolling:touch; scrollbar-width:none; z-index:1; overscroll-behavior:contain; }
 .scroll-area::-webkit-scrollbar { display:none; }
 .content { padding:14px 14px 24px; display:flex; flex-direction:column; gap:12px; }
 .nav { position:fixed; bottom:0; left:0; right:0; z-index:100; height:var(--nav-h); background:rgba(255,255,255,.96); backdrop-filter:blur(12px); border-top:1px solid var(--border); display:flex; align-items:flex-start; padding:8px 4px 0; }
@@ -149,28 +149,30 @@ html,body { height:100%; overflow:hidden; font-family:'Plus Jakarta Sans',sans-s
 .btn-next.last { background:linear-gradient(135deg,#16a34a,#0d9488); }
 
 /* Focus ring sull'elemento evidenziato */
-/* Tour: widget non attivi diventano opachi */
+/* Tour: widget non attivi diventano opachi — senza blur (evita ripaint pesanti) */
 .tour-dimmed {
-  opacity: .12;
-  filter: blur(1px) brightness(.5);
+  opacity: .1;
   pointer-events: none;
-  transition: opacity .4s ease, filter .4s ease;
+  transition: opacity .35s cubic-bezier(.4,0,.2,1);
 }
 /* Widget attivo: bordo luminoso, nessun cambio di opacità */
 .tour-focus {
   outline: 3px solid #6366f1 !important;
   outline-offset: 5px !important;
   box-shadow: 0 0 0 10px rgba(99,102,241,.15), 0 8px 32px rgba(0,0,0,.15) !important;
-  transition: outline .3s, box-shadow .3s;
+  transition: outline .3s cubic-bezier(.4,0,.2,1), box-shadow .3s cubic-bezier(.4,0,.2,1);
+  will-change: transform, box-shadow;
+  transform: translateZ(0);
 }
 /* Anche intro header e btn tour si scuriscono durante il tour */
 .tour-active #tour-intro,
 .tour-active #tourStartBtn {
-  opacity: .12;
-  filter: blur(1px) brightness(.5);
+  opacity: .1;
   pointer-events: none;
-  transition: opacity .4s ease, filter .4s ease;
+  transition: opacity .35s cubic-bezier(.4,0,.2,1);
 }
+/* Durante una transizione del tour, metti in pausa le animazioni (glow, swipe) */
+.tour-scrolling .tour-dimmed * { animation-play-state: paused !important; }
 
 /* INITIAL SPOTLIGHT on tour button */
 .initial-dimmed {
@@ -508,6 +510,7 @@ function buildDots(){
   TOUR.forEach((_,i)=>{ const d=document.createElement('div'); d.className='tour-dot'+(i===tourStep?' active':''); tDots.appendChild(d); });
 }
 
+let _scrollTimer=null;
 function applyFocus(widgetId){
   document.querySelectorAll('.tour-focus').forEach(el=>el.classList.remove('tour-focus'));
   document.querySelectorAll('.tour-dimmed').forEach(el=>el.classList.remove('tour-dimmed'));
@@ -517,7 +520,13 @@ function applyFocus(widgetId){
   ['w-ai','w-agenda','w-aac','w-rehab','w-perfil'].forEach(id=>{ if(id!==widgetId){ const el=document.getElementById(id); if(el) el.classList.add('tour-dimmed'); } });
   // Scurisci anche intro, btn tour e CTA
   ['tour-intro','tourStartBtn','w-cta'].forEach(id=>{ const el=document.getElementById(id); if(el) el.classList.add('tour-dimmed'); });
-  setTimeout(()=>{
+
+  // Pausa animazioni durante lo scroll per evitare jank
+  document.body.classList.add('tour-scrolling');
+  if(_scrollTimer) clearTimeout(_scrollTimer);
+
+  // Calcola e avvia lo scroll al prossimo frame (sincronizzato col paint del focus)
+  requestAnimationFrame(()=>{
     const scrollArea=document.getElementById('scrollArea');
     const tourCardH=240;
     const scrollAreaRect=scrollArea.getBoundingClientRect();
@@ -527,14 +536,29 @@ function applyFocus(widgetId){
     const fitsInView=target.offsetHeight<=visibleH;
     let desiredScroll;
     if(fitsInView){
-      // Position widget in upper third of visible area for breathing room above the tour card
       desiredScroll=targetTop-Math.max(12,(visibleH-target.offsetHeight)/3);
     } else {
-      // Widget bigger than viewport: show top with small margin so avatar/header is visible
       desiredScroll=targetTop-12;
     }
-    scrollArea.scrollTo({top:Math.max(0,desiredScroll),behavior:'smooth'});
-  },150);
+    smoothScrollTo(scrollArea, Math.max(0,desiredScroll), 520);
+    // Riprende le animazioni dopo lo scroll
+    _scrollTimer=setTimeout(()=>document.body.classList.remove('tour-scrolling'), 560);
+  });
+}
+
+// Scroll fluido custom con easing cubic (più smooth di behavior:'smooth' su mobile)
+function smoothScrollTo(el, to, duration){
+  const start=el.scrollTop;
+  const delta=to-start;
+  if(Math.abs(delta)<1){ return; }
+  const startTime=performance.now();
+  const ease=t=>1-Math.pow(1-t,3); // easeOutCubic
+  function step(now){
+    const t=Math.min(1,(now-startTime)/duration);
+    el.scrollTop=start+delta*ease(t);
+    if(t<1) requestAnimationFrame(step);
+  }
+  requestAnimationFrame(step);
 }
 
 function updateText(step,cb){
@@ -606,6 +630,8 @@ if('speechSynthesis' in window){ speechSynthesis.getVoices(); speechSynthesis.on
 
 // Rehab cards highlight animation
 let _animTimers=[];
+// true quando una transizione del tour è in corso (scroll/focus) — le animazioni saltano i tick
+const _animPaused=()=>document.body.classList.contains('tour-scrolling');
 
 // AI chips highlight animation
 (function aiChipsGlow(){
@@ -613,6 +639,7 @@ let _animTimers=[];
   const colors=['rgba(251,191,36,.5)','rgba(96,165,250,.5)','rgba(74,222,128,.5)','rgba(244,114,182,.5)'];
   let i=0;
   function highlight(){
+    if(_animPaused()) return;
     chips.forEach(c=>{ c.style.background=''; c.style.borderColor=''; c.style.boxShadow=''; c.style.transform=''; });
     const c=chips[i];
     c.style.background=colors[i];
@@ -632,6 +659,7 @@ let _animTimers=[];
   ];
   let i=0;
   function highlight(){
+    if(_animPaused()) return;
     cards.forEach(c=>{
       const el=document.getElementById(c.id);
       el.style.borderColor=''; el.style.boxShadow='var(--shadow)'; el.style.transform=''; el.style.background='var(--card)';
@@ -677,6 +705,7 @@ function aacFlash(){
   ];
   let i=0;
   function highlight(){
+    if(_animPaused()) return;
     rows.forEach(r=>{
       const el=document.getElementById(r.id);
       el.style.borderColor=''; el.style.boxShadow=''; el.style.transform=''; el.style.background='var(--card)';
@@ -699,6 +728,7 @@ function aacFlash(){
   if(!s) return;
   let forward=true;
   _animTimers.push(setInterval(()=>{
+    if(_animPaused()) return;
     if(forward){
       s.scrollTo({left:s.scrollWidth,behavior:'smooth'});
     } else {
