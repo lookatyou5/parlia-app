@@ -336,64 +336,36 @@ html,body { height:100%; overflow:hidden; font-family:'Plus Jakarta Sans',sans-s
     </div>
   </div>
 
-  <!-- WIDGET 4: PERFIL -->
+  <!-- WIDGET 4: PERFIL (tutorial preview, snello) -->
   <div id="w-perfil">
-    <div style="display:flex;align-items:center;gap:10px;padding:2px 0 6px">
-      <div style="width:42px;height:42px;border-radius:50%;background:linear-gradient(135deg,#2563eb,#6366f1);display:flex;align-items:center;justify-content:center;font-size:1.1rem;font-weight:800;color:white;box-shadow:0 3px 14px rgba(37,99,235,.3);flex-shrink:0">L</div>
+    <div style="display:flex;align-items:center;gap:10px;padding:2px 0 10px">
+      <div style="width:44px;height:44px;border-radius:50%;background:linear-gradient(135deg,#2563eb,#6366f1);display:flex;align-items:center;justify-content:center;font-size:1.15rem;font-weight:800;color:white;box-shadow:0 3px 14px rgba(37,99,235,.3);flex-shrink:0">L</div>
       <div>
-        <div style="font-family:'Bricolage Grotesque',sans-serif;font-size:.95rem;font-weight:800;color:var(--ink)">Laura</div>
-        <div style="font-size:.65rem;font-weight:600;color:var(--muted)">Institut Guttmann · Barcelona</div>
+        <div style="font-family:'Bricolage Grotesque',sans-serif;font-size:1rem;font-weight:800;color:var(--ink)">Laura</div>
+        <div style="font-size:.66rem;font-weight:600;color:var(--muted)">Institut Guttmann · Barcelona</div>
       </div>
     </div>
-    <div style="background:var(--card);border:1.5px solid var(--border);border-radius:12px;padding:8px 12px;box-shadow:var(--shadow);margin-bottom:6px">
-      <div style="font-size:.66rem;font-weight:800;color:var(--ink);display:flex;justify-content:space-between;margin-bottom:4px">
-        <span>Perfil completado</span>
-        <span style="color:var(--blue)">70%</span>
-      </div>
-      <div style="background:var(--border);border-radius:20px;height:5px;overflow:hidden">
-        <div style="height:100%;width:70%;border-radius:20px;background:linear-gradient(90deg,var(--blue),var(--indigo))"></div>
-      </div>
+
+    <!-- Mini-preview della "Memoria AI" (stile hero rosa del vero profilo) -->
+    <div id="perfil-intereses" style="position:relative;background:linear-gradient(135deg,#7c3aed 0%,#db2777 60%,#ec4899 100%);border-radius:14px;padding:14px 16px;color:white;overflow:hidden;box-shadow:0 6px 22px rgba(124,58,237,.28);margin-bottom:8px">
+      <div style="position:absolute;top:-40px;right:-40px;width:120px;height:120px;border-radius:50%;background:radial-gradient(circle,rgba(255,255,255,.3),transparent 70%);pointer-events:none"></div>
+      <div style="display:inline-block;font-size:.55rem;font-weight:800;letter-spacing:.12em;background:rgba(255,255,255,.22);padding:3px 9px;border-radius:20px;margin-bottom:8px">💙 EL CORAZÓN DE PARLIA AI</div>
+      <div style="font-family:'Bricolage Grotesque',sans-serif;font-size:1.05rem;font-weight:800;line-height:1.15;margin-bottom:6px">Cuéntale a Parlia quién eres</div>
+      <div style="font-size:.68rem;font-weight:500;color:rgba(255,255,255,.85);line-height:1.45">Hobbies, música, familia, tono de conversación…</div>
     </div>
-    <!-- Summary card: info read-only, stile home.html .yo-summary -->
-    <div style="background:var(--card);border:1.5px solid var(--border);border-radius:12px;padding:2px 11px;box-shadow:var(--shadow);margin-bottom:6px">
-      <div id="perfil-datos" style="display:flex;align-items:center;gap:10px;padding:7px 0;border-bottom:1px solid var(--border);transition:border-color .4s,box-shadow .4s,background .4s,transform .3s">
-        <div style="font-size:.92rem;width:20px;text-align:center">👤</div>
-        <div style="flex:1;font-size:.75rem;font-weight:700;color:var(--ink)">Datos personales</div>
-        <div style="font-size:.66rem;font-weight:700;color:var(--muted)">Laura</div>
-      </div>
-      <div id="perfil-cond" style="display:flex;align-items:center;gap:10px;padding:7px 0;border-bottom:1px solid var(--border);transition:border-color .4s,box-shadow .4s,background .4s,transform .3s">
-        <div style="font-size:.92rem;width:20px;text-align:center">🏥</div>
-        <div style="flex:1;font-size:.75rem;font-weight:700;color:var(--ink)">Condición</div>
-        <div style="font-size:.66rem;font-weight:700;color:var(--muted)">Afasia</div>
-      </div>
-      <div id="perfil-cuid" style="display:flex;align-items:center;gap:10px;padding:7px 0;border-bottom:1px solid var(--border);transition:border-color .4s,box-shadow .4s,background .4s,transform .3s">
-        <div style="font-size:.92rem;width:20px;text-align:center">🤝</div>
-        <div style="flex:1;font-size:.75rem;font-weight:700;color:var(--ink)">Cuidador principal</div>
-        <div style="font-size:.66rem;font-weight:700;color:var(--muted)">Luca</div>
-      </div>
-      <div id="perfil-intereses" style="display:flex;align-items:center;gap:10px;padding:7px 0;border-bottom:1px solid var(--border);transition:border-color .4s,box-shadow .4s,background .4s,transform .3s">
-        <div style="font-size:.92rem;width:20px;text-align:center">🧠</div>
-        <div style="flex:1;font-size:.75rem;font-weight:700;color:var(--ink)">Memoria AI</div>
-        <div style="font-size:.66rem;font-weight:700;color:#db2777">5 de 8 campos</div>
-      </div>
-      <div id="perfil-fn" style="display:flex;align-items:center;gap:10px;padding:7px 0;transition:border-color .4s,box-shadow .4s,background .4s,transform .3s">
-        <div style="font-size:.92rem;width:20px;text-align:center">⚙️</div>
-        <div style="flex:1;font-size:.75rem;font-weight:700;color:var(--ink)">Funciones activas</div>
-        <div style="font-size:.66rem;font-weight:700;color:var(--muted)">AAC · Rehab</div>
-      </div>
-    </div>
+
     <!-- CTA -->
-    <div style="display:flex;align-items:center;gap:10px;background:linear-gradient(135deg,#2563eb,#6366f1);border-radius:12px;padding:11px 14px;box-shadow:0 4px 14px rgba(37,99,235,.3)">
-      <div style="font-size:1rem">✏️</div>
+    <div style="display:flex;align-items:center;gap:10px;background:linear-gradient(135deg,#2563eb,#6366f1);border-radius:12px;padding:12px 14px;box-shadow:0 4px 14px rgba(37,99,235,.3)">
+      <div style="font-size:1.05rem">✏️</div>
       <div style="flex:1">
-        <div style="font-family:'Bricolage Grotesque',sans-serif;font-size:.82rem;font-weight:800;color:white">Editar mi perfil</div>
-        <div style="font-size:.6rem;font-weight:600;color:rgba(255,255,255,.8);margin-top:1px">Datos personales + memoria AI</div>
+        <div style="font-family:'Bricolage Grotesque',sans-serif;font-size:.85rem;font-weight:800;color:white">Editar mi perfil</div>
+        <div style="font-size:.62rem;font-weight:600;color:rgba(255,255,255,.8);margin-top:1px">Datos + memoria AI</div>
       </div>
-      <div style="color:white;font-size:1rem">›</div>
+      <div style="color:white;font-size:1.05rem">›</div>
     </div>
-    <div class="hs-wrap" style="margin-top:6px;gap:6px">
+
+    <div class="hs-wrap" style="margin-top:8px;gap:6px">
       <div class="hs-btn" onclick="openPopup('perfil-memoria')" style="border-color:#f9a8d4;background:linear-gradient(135deg,#fdf2f8,#fff)"><div class="hs-badge" style="background:linear-gradient(135deg,#db2777,#ec4899)">i</div><span class="hs-label" style="color:#9d174d">Memoria AI · lo más importante</span></div>
-      <div class="hs-btn" onclick="openPopup('perfil-funciones')"><div class="hs-badge">i</div><span class="hs-label">Funciones</span></div>
     </div>
   </div>
 
@@ -706,39 +678,21 @@ function aacFlash(){
 
 // Perfil rows highlight animation
 (function perfilGlow(){
-  // Memoria AI sta sempre evidenziato (è il focus principale); le altre righe fanno un pulse sequenziale leggero
-  const rows=[
-    {id:'perfil-datos', bg:'#eff6ff'},
-    {id:'perfil-cond',  bg:'#f0fdf4'},
-    {id:'perfil-cuid',  bg:'#f5f3ff'},
-    {id:'perfil-fn',    bg:'#fef3c7'}
-  ];
-  const memEl=document.getElementById('perfil-intereses');
-  if(memEl){
-    memEl.style.background='linear-gradient(90deg,#fdf2f8,#fce7f3)';
-    memEl.style.borderRadius='8px';
-    memEl.style.margin='2px -4px';
-    memEl.style.padding='7px 4px';
-    memEl.style.boxShadow='0 0 0 2px rgba(219,39,119,.35), 0 4px 12px rgba(219,39,119,.18)';
-  }
-  let i=0;
-  function highlight(){
+  // Pulse leggero sul Memoria AI hero (unico elemento del widget Perfil da evidenziare)
+  const el=document.getElementById('perfil-intereses');
+  if(!el) return;
+  let up=true;
+  function pulse(){
     if(_animPaused()) return;
-    rows.forEach(r=>{
-      const el=document.getElementById(r.id);
-      if(!el) return;
-      el.style.background=''; el.style.transform='';
-    });
-    const r=rows[i];
-    const el=document.getElementById(r.id);
-    if(el){
-      el.style.background=r.bg;
-      el.style.transform='scale(1.02)';
-    }
-    i=(i+1)%rows.length;
+    el.style.transform = up ? 'scale(1.02)' : 'scale(1)';
+    el.style.boxShadow = up
+      ? '0 8px 28px rgba(219,39,119,.38)'
+      : '0 6px 22px rgba(124,58,237,.28)';
+    up = !up;
   }
-  highlight();
-  _animTimers.push(setInterval(highlight,1100));
+  el.style.transition='transform .6s cubic-bezier(.4,0,.2,1), box-shadow .6s';
+  pulse();
+  _animTimers.push(setInterval(pulse,1400));
 })();
 
 // Agenda auto-swipe animation
