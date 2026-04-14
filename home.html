@@ -1048,15 +1048,9 @@ html, body {
       </div>
 
       <div class="yo-row" onclick="window.location.href='profile.html'" style="margin-top:8px">
-          <div class="yo-row-icon">✏️</div>
-          <div class="yo-row-label">Editar perfil</div>
-          <div class="yo-row-arrow">›</div>
-        </div>
-
-      <div class="yo-row" onclick="window.location.href='memoriaAI.html'">
-          <div class="yo-row-icon">🧠</div>
-          <div class="yo-row-label">Mi Memoria AI</div>
-          <div class="yo-row-value" style="font-size:.65rem;color:var(--blue)">Personalizar</div>
+          <div class="yo-row-icon">👤</div>
+          <div class="yo-row-label">Mi perfil</div>
+          <div class="yo-row-value" style="font-size:.65rem;color:var(--blue)">Datos + memoria AI</div>
           <div class="yo-row-arrow">›</div>
         </div>
 
@@ -1174,33 +1168,45 @@ html, body {
 
 <div id="toast"></div>
 
+<script src="userData.js"></script>
 <script>
 const PROXY = 'https://voci-ai-proxy.luca-peltrini.workers.dev/v1/messages';
-const profile = JSON.parse(localStorage.getItem('parlia_profile') || '{"userName":"María","caregiverName":"Carlos","condicion":""}');
 
-// ── PARLIA MEMORY ──
-const _mem = JSON.parse(localStorage.getItem('parlia_memory') || 'null') || {
-  user_profile: { hobbies:[], musica:'', comida:'', notas:'' },
-  interaction_stats: { opens:0, last_open:'', favorite_hours:[] },
-  mood_log: { last_mood:'', last_mood_date:'' }
+// ── UNIFIED USER DATA ──
+const _ud = ParliaUser.get();
+const profile = {
+  userName: _ud.personal.userName || 'María',
+  caregiverName: _ud.personal.caregiverName || 'Carlos',
+  condicion: (_ud.personal.condicion && _ud.personal.condicion[0]) || ''
+};
+
+// ── LEGACY _mem VIEW (backed by _ud) ──
+// Kept for backward-compat with existing home.html code that reads/writes _mem.
+// Mutations flow into _ud and are persisted via _saveMemory().
+const _mem = {
+  user_profile: _ud.memory,
+  interaction_stats: {
+    get opens()         { return _ud.stats.opens; },
+    set opens(v)        { _ud.stats.opens = v; },
+    get last_open()     { return _ud.stats.last_open; },
+    set last_open(v)    { _ud.stats.last_open = v; },
+    get favorite_hours(){ return _ud.stats.favorite_hours; }
+  },
+  mood_log: {
+    get last_mood()       { return _ud.stats.last_mood; },
+    set last_mood(v)      { _ud.stats.last_mood = v; },
+    get last_mood_date()  { return _ud.stats.last_mood_date; },
+    set last_mood_date(v) { _ud.stats.last_mood_date = v; }
+  }
 };
 // Track this visit
-_mem.interaction_stats.opens++;
+_mem.interaction_stats.opens = _mem.interaction_stats.opens + 1;
 _mem.interaction_stats.last_open = new Date().toISOString();
 const hArr = _mem.interaction_stats.favorite_hours;
 hArr.push(new Date().getHours());
 if(hArr.length>30) hArr.splice(0,hArr.length-30);
-localStorage.setItem('parlia_memory',JSON.stringify(_mem));
-function _saveMemory(){ localStorage.setItem('parlia_memory',JSON.stringify(_mem)); }
-// Sync profile_extra data into memory
-(function syncProfileToMemory(){
-  const extra=JSON.parse(localStorage.getItem('parlia_profile_extra')||'{}');
-  if(extra.hobbies&&extra.hobbies.length) _mem.user_profile.hobbies=extra.hobbies;
-  if(extra.personal){
-    if(extra.personal.favoriteFood) _mem.user_profile.comida=extra.personal.favoriteFood;
-  }
-  _saveMemory();
-})();
+function _saveMemory(){ ParliaUser.save(_ud); }
+_saveMemory();
 
 // ── SETTINGS ──
 // SOS
@@ -1886,13 +1892,19 @@ function _buildSystem(ctx) {
   if (ctx.allDone.length===_sessions.length) lines.push(`Ha completado TODAS las sesiones del día.`);
   if (ctx.next&&!ctx.soon) lines.push(`Próxima sesión: ${ctx.next.label} a las ${ctx.next.time}.`);
   if (window._meteoCtx) lines.push(window._meteoCtx);
-  // Memory context injection
-  const mp=_mem.user_profile;
+  // Memory context injection (from unified parlia_user_data)
+  const mp=_ud.memory, pers=_ud.personal;
   const memLines=[];
+  if(pers.age) memLines.push(`Edad: ${pers.age}.`);
+  if(pers.condicion&&pers.condicion.length) memLines.push(`Condición: ${pers.condicion.join(', ')}.`);
   if(mp.hobbies&&mp.hobbies.length) memLines.push(`Hobbies: ${mp.hobbies.join(', ')}.`);
   if(mp.musica) memLines.push(`Música favorita: ${mp.musica}.`);
   if(mp.comida) memLines.push(`Comida favorita: ${mp.comida}.`);
-  if(mp.notas) memLines.push(`Notas personales: ${mp.notas}.`);
+  if(mp.interests&&mp.interests.length) memLines.push(`Intereses: ${mp.interests.join(', ')}.`);
+  if(mp.family&&mp.family.length) memLines.push(`Familia/mascotas: ${mp.family.join(', ')}.`);
+  if(mp.profession) memLines.push(`Profesión: ${mp.profession}.`);
+  if(mp.birthplace) memLines.push(`Lugar de origen: ${mp.birthplace}.`);
+  if(mp.notas) memLines.push(`Tono y preferencias de conversación: ${mp.notas}.`);
   if(_mem.mood_log.last_mood) memLines.push(`Último estado de ánimo: "${_mem.mood_log.last_mood}" (${_mem.mood_log.last_mood_date}).`);
   if(_mem.interaction_stats.opens>1) memLines.push(`Ha abierto la app ${_mem.interaction_stats.opens} veces.`);
   if(memLines.length) lines.push(`\nCONOCIMIENTO PERSONAL del usuario (úsalo de forma natural, no recites la lista):\n${memLines.join(' ')}`);
@@ -1916,7 +1928,16 @@ async function _sendMsg(userText) {
     }
     if(mp.musica) variants.push(`Salúdame y menciona música (sabes que me gusta ${mp.musica}).`);
     if(mp.comida) variants.push(`Salúdame y comenta algo ligero sobre comida (me gusta ${mp.comida}).`);
-    if(mp.notas) variants.push(`Salúdame teniendo en cuenta mis notas personales, sin recitarlas.`);
+    if(mp.family&&mp.family.length){
+      const f=mp.family[Math.floor(Math.random()*mp.family.length)];
+      variants.push(`Salúdame y pregúntame por ${f}.`);
+    }
+    if(mp.interests&&mp.interests.length){
+      const it=mp.interests[Math.floor(Math.random()*mp.interests.length)];
+      variants.push(`Salúdame y comparte una curiosidad sobre ${it}.`);
+    }
+    if(mp.birthplace) variants.push(`Salúdame y menciona algo cálido sobre ${mp.birthplace}.`);
+    if(mp.notas) variants.push(`Salúdame teniendo en cuenta mis preferencias de conversación (sin recitarlas).`);
     variants.push(`Salúdame y pregúntame cómo me siento hoy.`);
     variants.push(`Salúdame y cuéntame una curiosidad breve o un pensamiento positivo.`);
     variants.push(`Salúdame y pregúntame qué planes tengo hoy.`);
