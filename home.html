@@ -6,10 +6,10 @@
 <title>Parlia</title>
 <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <!-- Stili specifici di ogni pagina della home (?v= cache-bust su ogni deploy) -->
-<link rel="stylesheet" href="inicio.css?v=20260414g">
-<link rel="stylesheet" href="aac.css?v=20260414g">
-<link rel="stylesheet" href="rehab.css?v=20260414g">
-<link rel="stylesheet" href="perfil.css?v=20260414g">
+<link rel="stylesheet" href="inicio.css?v=20260414h">
+<link rel="stylesheet" href="aac.css?v=20260414h">
+<link rel="stylesheet" href="rehab.css?v=20260414h">
+<link rel="stylesheet" href="perfil.css?v=20260414h">
 <style>
 *, *::before, *::after { box-sizing: border-box !important; margin: 0; padding: 0; }
 
@@ -211,33 +211,57 @@ html, body {
 .ptr-spin { animation: ptrSpin .7s linear infinite; display: inline-block; }
 @keyframes ptrSpin { to { transform: rotate(360deg); } }
 
-/* ── METEO POPUP ── */
+/* ── METEO POPUP (centrato con backdrop sbiadito/sfocato) ── */
 .meteo-overlay {
   position: fixed; inset: 0; z-index: 200;
-  opacity: 0; pointer-events: none; transition: opacity .3s ease;
+  display: flex; align-items: center; justify-content: center;
+  padding: 20px;
+  background: rgba(10,15,40,0);
+  backdrop-filter: blur(0px);
+  -webkit-backdrop-filter: blur(0px);
+  opacity: 0; pointer-events: none;
+  transition: opacity .3s ease, background .3s ease, backdrop-filter .3s ease, -webkit-backdrop-filter .3s ease;
 }
-.meteo-overlay.open { opacity: 1; pointer-events: all; }
+.meteo-overlay.open {
+  opacity: 1; pointer-events: all;
+  background: rgba(10,15,40,.5);
+  backdrop-filter: blur(10px) saturate(1.2);
+  -webkit-backdrop-filter: blur(10px) saturate(1.2);
+}
 .meteo-popup {
-  position: absolute;
-  top: calc(var(--top-h) + 8px);
-  right: 14px;
-  width: min(300px, calc(100vw - 28px));
-  background: rgba(10,12,28,.9);
-  backdrop-filter: blur(20px) saturate(160%);
-  -webkit-backdrop-filter: blur(20px) saturate(160%);
-  border-radius: 24px;
-  border: 1.5px solid rgba(255,255,255,.1);
-  box-shadow: 0 24px 60px rgba(0,0,0,.45), 0 4px 16px rgba(0,0,0,.3), 0 0 0 0.5px rgba(255,255,255,.06);
+  position: relative;
+  width: 100%; max-width: 340px;
+  background: rgba(10,12,28,.92);
+  backdrop-filter: blur(24px) saturate(160%);
+  -webkit-backdrop-filter: blur(24px) saturate(160%);
+  border-radius: 28px;
+  border: 1.5px solid rgba(255,255,255,.12);
+  box-shadow:
+    0 24px 80px rgba(0,0,0,.55),
+    0 8px 24px rgba(0,0,0,.35),
+    0 1px 0 rgba(255,255,255,.08) inset;
   overflow: hidden;
-  transform: scale(.88) translateY(-12px);
-  transform-origin: top right;
+  transform: scale(.92) translateY(20px);
   opacity: 0;
-  transition: all .3s cubic-bezier(.4,0,.2,1);
+  transition: transform .35s cubic-bezier(.34,1.56,.64,1), opacity .3s ease;
 }
 .meteo-overlay.open .meteo-popup {
   transform: scale(1) translateY(0);
   opacity: 1;
 }
+/* Close button ✕ in alto a destra */
+.wx-close {
+  position: absolute; top: 10px; right: 10px; z-index: 10;
+  width: 32px; height: 32px; border-radius: 50%;
+  background: rgba(255,255,255,.14);
+  border: 1px solid rgba(255,255,255,.2);
+  display: flex; align-items: center; justify-content: center;
+  color: white; font-size: 1rem; cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  transition: all .15s;
+  backdrop-filter: blur(8px);
+}
+.wx-close:active { transform: scale(.9); background: rgba(255,255,255,.22); }
 
 .wx-sky {
   width: 100%; height: 150px;
@@ -622,7 +646,8 @@ html, body {
 
 <!-- METEO POPUP -->
 <div class="meteo-overlay" id="meteoOverlay" onclick="closeMeteo(event)">
-  <div class="meteo-popup" id="meteoPopup">
+  <div class="meteo-popup" id="meteoPopup" onclick="event.stopPropagation()">
+    <div class="wx-close" onclick="closeMeteoBtn()" aria-label="Cerrar">✕</div>
     <div class="wx-sky" id="wxSky">
       <canvas id="wxCanvas" style="position:absolute;inset:0;width:100%;height:100%;display:block;"></canvas>
       <div class="wx-rain-layer" id="wxRain"></div>
@@ -1954,6 +1979,7 @@ async function loadMeteo() {
   }
 }
 function openMeteo() { document.getElementById('meteoOverlay').classList.add('open'); }
+function closeMeteoBtn() { document.getElementById('meteoOverlay').classList.remove('open'); }
 function closeMeteo(e) { if(e.target===document.getElementById('meteoOverlay')) document.getElementById('meteoOverlay').classList.remove('open'); }
 
 
@@ -2032,7 +2058,7 @@ Object.assign(window, {
   openReminderModal, closeReminderOutside, saveReminder, deleteReminder,
   openSOS, closeSOS, speakSOS,
   toggleSettings, closeSettings,
-  openMeteo, closeMeteo,
+  openMeteo, closeMeteo, closeMeteoBtn,
   replayLast, selCat, selSub, tapFrase, toggleTTS
 });
 
