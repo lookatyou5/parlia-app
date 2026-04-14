@@ -1,0 +1,112 @@
+<!-- Inicio · variante "futuristica"
+     Contenuto della pagina 0 quando USE_FUTURISTIC_INICIO è true.
+     Wrappato in .fut-home così gli stili in inicio-futuristic.css non
+     collidono con quelli di altre pagine. -->
+<div class="fut-home">
+
+  <!-- METEO -->
+  <div class="fut-meteo-glass" id="futMeteoCard">
+    <div class="fut-meteo-icon" id="futMeteoIcon">⛅</div>
+    <div class="fut-meteo-info">
+      <div class="fut-meteo-temp" id="futMeteoTemp">14°</div>
+      <div class="fut-meteo-desc" id="futMeteoDesc">Nublado · Barcelona</div>
+    </div>
+    <div class="fut-meteo-right">
+      <div class="fut-meteo-loc" id="futMeteoLoc">Institut Guttmann</div>
+      <div class="fut-meteo-extra" id="futMeteoTime">—</div>
+    </div>
+  </div>
+
+  <!-- AI CORE -->
+  <div class="fut-ai-section">
+    <div class="fut-halo-wrap" id="futHaloWrap">
+      <canvas id="futHaloCanvas"></canvas>
+      <div class="fut-halo-ring" id="futHaloRing"></div>
+      <div class="fut-halo-dot"></div>
+    </div>
+    <div class="fut-ai-message">
+      <div class="fut-ai-status-row">
+        <div class="fut-ai-online"></div>
+        <div class="fut-ai-name">Parlia AI · Activo</div>
+      </div>
+      <div class="fut-ai-text" id="futAiText"></div>
+      <div class="fut-ai-chips" id="futAiChips" style="display:none"></div>
+      <div class="fut-tap-hint" id="futTapHint">Toca para hablar</div>
+    </div>
+  </div>
+
+  <!-- GLASS CARDS -->
+  <div class="fut-cards-section">
+
+    <!-- Agenda -->
+    <div class="fut-glass-card">
+      <div class="fut-card-label">
+        <div class="fut-card-label-dot" style="background:#4ade80;box-shadow:0 0 6px #4ade80"></div>
+        Agenda de hoy
+      </div>
+      <div class="fut-agenda-scroll">
+        <div class="fut-agenda-item done">
+          <div class="fut-ag-time">09:00</div>
+          <div class="fut-ag-name" style="text-decoration:line-through;opacity:.5">Fisioterapia</div>
+          <div class="fut-ag-sub">Gimnasio Guttmann</div>
+          <div class="fut-ag-tag" style="background:rgba(34,197,94,.15);color:#86efac">Rehab</div>
+        </div>
+        <div class="fut-agenda-item done">
+          <div class="fut-ag-time">11:00</div>
+          <div class="fut-ag-name" style="text-decoration:line-through;opacity:.5">T. Ocupacional</div>
+          <div class="fut-ag-sub">Sala 3 · planta 2</div>
+          <div class="fut-ag-tag" style="background:rgba(167,139,250,.15);color:#c4b5fd">Terapia</div>
+        </div>
+        <div class="fut-agenda-item now">
+          <div class="fut-ag-time">13:00 <div class="fut-ag-now-badge">AHORA</div></div>
+          <div class="fut-ag-name">Logopedia</div>
+          <div class="fut-ag-sub">Dra. Martínez</div>
+          <div class="fut-ag-tag" style="background:rgba(99,102,241,.2);color:#a5b4fc">Voz</div>
+        </div>
+        <div class="fut-agenda-item">
+          <div class="fut-ag-time">15:00</div>
+          <div class="fut-ag-name">Almuerzo</div>
+          <div class="fut-ag-sub">Comedor P1</div>
+          <div class="fut-ag-tag" style="background:rgba(251,191,36,.15);color:#fde68a">Descanso</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Obiettivo -->
+    <div class="fut-glass-card">
+      <div class="fut-card-label">
+        <div class="fut-card-label-dot" style="background:#fbbf24;box-shadow:0 0 6px #fbbf24"></div>
+        Objetivo de hoy
+      </div>
+      <div class="fut-goal-body">
+        <div class="fut-goal-icon">🎯</div>
+        <div>
+          <div class="fut-goal-title">Mejorar expresión verbal</div>
+          <div class="fut-goal-sub">Practicar vocabulario y construcción de frases simples diarias.</div>
+          <div class="fut-goal-action" onclick="goTo(2)">Iniciar sesión →</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Profilo -->
+    <div class="fut-glass-card">
+      <div class="fut-card-label">
+        <div class="fut-card-label-dot" style="background:#818cf8;box-shadow:0 0 6px #818cf8"></div>
+        Tu perfil
+      </div>
+      <div class="fut-profile-row">
+        <div class="fut-profile-avatar">L</div>
+        <div class="fut-profile-info">
+          <div class="fut-profile-name">Laura</div>
+          <div class="fut-profile-pct">Perfil al 70% completado</div>
+        </div>
+        <div class="fut-profile-btn" onclick="window.location.href='profile.html'">Completar →</div>
+      </div>
+      <div class="fut-profile-bar-bg">
+        <div class="fut-profile-bar"></div>
+      </div>
+    </div>
+
+  </div>
+
+</div>

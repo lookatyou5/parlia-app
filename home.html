@@ -5,6 +5,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
 <title>Parlia</title>
 <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<!-- Font per la variante "futuristic" di Inicio (caricati qui, leggeri) -->
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
 <!-- Stili specifici di ogni pagina della home -->
 <link rel="stylesheet" href="inicio.css">
 <link rel="stylesheet" href="aac.css">
@@ -713,10 +715,18 @@ if ('scrollRestoration' in history) try { history.scrollRestoration = 'manual'; 
 // Lo swipe e il tutorial partono SOLO dopo che il DOM è popolato: così il
 // layout flex + scroll-snap del carosello ha le larghezze reali al primo paint
 // e non parte sfasato.
+// ── TOGGLE DI TEST ──
+// Metti a true per vedere la variante "futuristic" della pagina Inicio
+// (hero liquid halo + glass cards). Il resto del carosello resta invariato.
+const USE_FUTURISTIC_INICIO = true;
+
 (async function bootstrap(){
+  const inicioSrc = USE_FUTURISTIC_INICIO
+    ? 'components/inicio-futuristic.html'
+    : 'components/inicio.html';
   try {
     const [inicio, aac, rehab, perfil] = await Promise.all([
-      fetch('components/inicio.html').then(r => r.ok ? r.text() : Promise.reject(r.status)),
+      fetch(inicioSrc).then(r => r.ok ? r.text() : Promise.reject(r.status)),
       fetch('components/aac.html').then(r => r.ok ? r.text() : Promise.reject(r.status)),
       fetch('components/rehab.html').then(r => r.ok ? r.text() : Promise.reject(r.status)),
       fetch('components/perfil.html').then(r => r.ok ? r.text() : Promise.reject(r.status))
@@ -728,6 +738,27 @@ if ('scrollRestoration' in history) try { history.scrollRestoration = 'manual'; 
   } catch(err){
     console.error('[parlia] partials load failed:', err);
   }
+
+  // Carica asset della variante futuristic solo se necessario
+  if (USE_FUTURISTIC_INICIO) {
+    if (!document.getElementById('fut-inicio-css')) {
+      const link = document.createElement('link');
+      link.id = 'fut-inicio-css';
+      link.rel = 'stylesheet';
+      link.href = 'inicio-futuristic.css';
+      document.head.appendChild(link);
+    }
+    if (!document.getElementById('fut-inicio-js')) {
+      const s = document.createElement('script');
+      s.id = 'fut-inicio-js';
+      s.src = 'inicio-futuristic.js';
+      s.onload = () => { try { window.initFuturisticInicio && window.initFuturisticInicio(); } catch(e){ console.error(e); } };
+      document.body.appendChild(s);
+    } else {
+      try { window.initFuturisticInicio && window.initFuturisticInicio(); } catch(e){}
+    }
+  }
+
   // Due rAF: garantiscono layout+paint completo prima di lanciare l'app.
   // Senza questo il carosello potrebbe partire con scrollLeft su una posizione stale.
   requestAnimationFrame(() => requestAnimationFrame(() => {
