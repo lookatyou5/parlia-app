@@ -280,15 +280,3 @@
 .profile-bar-bg { background: var(--border); border-radius: 20px; height: 6px; overflow: hidden; }
 .profile-bar { height: 100%; border-radius: 20px; background: linear-gradient(90deg, var(--blue), var(--indigo)); transition: width .6s ease; }
 
-/* Obiettivo del giorno */
-.goal-card {
-  border-radius: var(--radius); padding: 15px 16px;
-  background: linear-gradient(135deg,#fefce8,#fef9c3);
-  border: 1.5px solid #fde68a;
-  box-shadow: 0 2px 12px rgba(234,179,8,.1); flex-shrink: 0;
-}
-.goal-badge { display: inline-flex; align-items: center; gap: 5px; font-size: 0.58rem; font-weight: 800; text-transform: uppercase; letter-spacing: .06em; background: #fde047; color: #713f12; border-radius: 20px; padding: 2px 8px; margin-bottom: 8px; }
-.goal-title { font-family: 'Bricolage Grotesque', sans-serif; font-size: 0.95rem; font-weight: 800; color: #1c1917; line-height: 1.35; }
-.goal-sub { font-size: 0.75rem; font-weight: 600; color: #78716c; margin-top: 4px; line-height: 1.4; }
-.goal-action { margin-top: 10px; display: inline-flex; align-items: center; gap: 5px; background: #fbbf24; color: #1c1917; font-size: 0.72rem; font-weight: 800; border-radius: 20px; padding: 5px 12px; cursor: pointer; -webkit-tap-highlight-color: transparent; }
-.goal-action:active { transform: scale(0.96); }
