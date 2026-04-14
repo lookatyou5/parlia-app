@@ -243,13 +243,14 @@
 /* Glass cards semi-trasparenti su sfondo gradient */
 .ai-hero-inner .agenda-card {
   flex-shrink: 0;
-  background: rgba(255,255,255,.12);
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
+  background: rgba(255,255,255,.14);
+  /* Rimosso backdrop-filter qui: è un costo enorme × N cards e il contrasto
+     funziona comunque grazie al tint bianco semi-trasparente sul gradient */
   border: 1px solid rgba(255,255,255,.2);
   border-radius: 14px; padding: 8px 11px; min-width: 108px;
   box-shadow: 0 2px 8px rgba(0,0,0,.08);
   color: white;
+  transform: translateZ(0);
 }
 .ai-hero-inner .agenda-card.now {
   background: linear-gradient(135deg, rgba(255,255,255,.22), rgba(167,139,250,.25));

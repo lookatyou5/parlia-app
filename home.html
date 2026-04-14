@@ -6,10 +6,10 @@
 <title>Parlia</title>
 <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <!-- Stili specifici di ogni pagina della home (?v= cache-bust su ogni deploy) -->
-<link rel="stylesheet" href="inicio.css?v=20260414h">
-<link rel="stylesheet" href="aac.css?v=20260414h">
-<link rel="stylesheet" href="rehab.css?v=20260414h">
-<link rel="stylesheet" href="perfil.css?v=20260414h">
+<link rel="stylesheet" href="inicio.css?v=20260414i">
+<link rel="stylesheet" href="aac.css?v=20260414i">
+<link rel="stylesheet" href="rehab.css?v=20260414i">
+<link rel="stylesheet" href="perfil.css?v=20260414i">
 <style>
 *, *::before, *::after { box-sizing: border-box !important; margin: 0; padding: 0; }
 
@@ -97,6 +97,8 @@ html, body {
   height: 100%;
   width: max-content;
   margin: 0 !important; padding: 0 !important;
+  will-change: scroll-position;
+  transform: translateZ(0); /* compositor layer — scroll fluido */
 }
 .page {
   width: 100vw !important; min-width: 100vw !important; max-width: 100vw !important;
@@ -109,8 +111,31 @@ html, body {
   display: flex; flex-direction: column; gap: 12px;
   scroll-snap-align: start;
   scroll-snap-stop: always;
+  /* Isolamento del rendering: il browser salta reflow/paint fuori dalla pagina */
+  contain: layout paint style;
+  transform: translateZ(0);
+  backface-visibility: hidden;
 }
 .page::-webkit-scrollbar { display: none; }
+/* Durante lo swipe/scroll tra pagine, mettiamo in pausa tutte le animazioni
+   costose (gradient animati, orbit rings, glow) → i 60/120 FPS restano per il
+   gesto, non li mangiano le animazioni decorative. */
+body.is-scrolling .ai-hero,
+body.is-scrolling .ai-core-wrap,
+body.is-scrolling .ai-core-wrap::before,
+body.is-scrolling .ai-orbit-ring,
+body.is-scrolling .ai-orb-core,
+body.is-scrolling .ai-orb-halo,
+body.is-scrolling .ai-bar,
+body.is-scrolling .meteo-widget,
+body.is-scrolling .agenda-card,
+body.is-scrolling .blob { animation-play-state: paused !important; }
+/* Rimuove temporaneamente il costoso backdrop-filter durante lo scroll */
+body.is-scrolling .ai-hero-inner .agenda-card,
+body.is-scrolling .meteo-widget {
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
 .page::-webkit-scrollbar { display: none; }
 
 /* ── NAV ── */
@@ -867,7 +892,18 @@ function goTo(idx, fromBack = false){
 
 // Ascolta lo swipe utente: aggiorna curPage + nav + history (senza scrollTo).
 let _scrollRaf = null;
+// Durante lo scroll, attiva body.is-scrolling → il CSS mette in pausa le
+// animazioni pesanti così la GPU non ha competizione con il gesto di swipe.
+// Tolti i 180ms dopo l'ultimo evento di scroll, quando il movimento si ferma.
+let _scrollIdleTimer = null;
 wrap.addEventListener('scroll', () => {
+  if (!document.body.classList.contains('is-scrolling')) {
+    document.body.classList.add('is-scrolling');
+  }
+  clearTimeout(_scrollIdleTimer);
+  _scrollIdleTimer = setTimeout(() => {
+    document.body.classList.remove('is-scrolling');
+  }, 180);
   if (_scrollRaf) return;
   if (_programmaticScroll) return;
   _scrollRaf = requestAnimationFrame(() => {
