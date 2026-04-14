@@ -47,6 +47,25 @@ html,body{height:100%;font-family:'Plus Jakarta Sans',sans-serif;background:var(
 .sec-title{font-family:'Bricolage Grotesque',sans-serif;font-size:.95rem;font-weight:800;color:var(--ink);display:flex;align-items:center;gap:8px;}
 .sec-sub{font-size:.72rem;color:var(--muted);font-weight:500;margin-top:3px;line-height:1.45;}
 
+/* Memory hero — sezione speciale "Memoria e intereses" */
+.memory-hero{position:relative;background:linear-gradient(135deg,#7c3aed 0%,#db2777 50%,#ec4899 100%);border-radius:var(--radius);padding:20px 20px 18px;color:white;overflow:hidden;box-shadow:0 8px 28px rgba(124,58,237,.28);}
+.mh-glow{position:absolute;top:-60px;right:-60px;width:180px;height:180px;border-radius:50%;background:radial-gradient(circle,rgba(255,255,255,.3),transparent 70%);pointer-events:none;}
+.mh-badge{display:inline-block;font-size:.58rem;font-weight:800;letter-spacing:.12em;background:rgba(255,255,255,.22);padding:4px 10px;border-radius:20px;margin-bottom:10px;backdrop-filter:blur(6px);}
+.mh-title{font-family:'Bricolage Grotesque',sans-serif;font-size:1.5rem;font-weight:800;line-height:1.08;letter-spacing:-0.02em;margin-bottom:8px;}
+.mh-sub{font-size:.76rem;font-weight:500;color:rgba(255,255,255,.88);line-height:1.5;margin-bottom:14px;}
+.mh-stats{background:rgba(255,255,255,.14);border:1px solid rgba(255,255,255,.2);border-radius:12px;padding:10px 12px;backdrop-filter:blur(8px);}
+.mh-stat-row{display:flex;justify-content:space-between;align-items:center;font-size:.72rem;font-weight:700;margin-bottom:6px;}
+.mh-stat-pct{font-family:'Bricolage Grotesque',sans-serif;font-size:.9rem;font-weight:800;}
+.mh-bar-wrap{background:rgba(255,255,255,.22);border-radius:20px;height:6px;overflow:hidden;}
+.mh-bar{height:100%;border-radius:20px;background:linear-gradient(90deg,#fde68a,#fbbf24);transition:width .6s cubic-bezier(.4,0,.2,1);}
+
+/* Memory group styling: bordo distintivo e righe con tap evidenziato */
+.memory-group{border:1.5px solid #f9a8d4;box-shadow:0 4px 20px rgba(219,39,119,.1);}
+.memory-group .row:active{background:var(--pink-light);}
+.memory-group .row-title{font-weight:800;}
+.memory-group .row-value.empty{color:var(--pink);font-weight:700;}
+.memory-group .row-value.empty::before{content:'➕ ';}
+
 /* Group card */
 .group{background:var(--card);border:1.5px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow);overflow:hidden;}
 .row{display:flex;align-items:center;gap:12px;padding:12px 14px;cursor:pointer;-webkit-tap-highlight-color:transparent;transition:background .15s;border-bottom:1px solid var(--border);}
@@ -133,12 +152,21 @@ textarea.minput{resize:none;min-height:96px;}
   </div>
   <div class="group" id="g-personal"></div>
 
-  <!-- GRUPPO 2: MEMORIA E INTERESES -->
-  <div class="sec-head">
-    <div class="sec-title">🧠 Memoria e intereses</div>
-    <div class="sec-sub">Lo que Parlia AI recuerda sobre ti para hablarte de forma única y humana.</div>
+  <!-- GRUPPO 2: MEMORIA E INTERESES (hero) -->
+  <div class="memory-hero">
+    <div class="mh-glow"></div>
+    <div class="mh-badge">💙 EL CORAZÓN DE PARLIA AI</div>
+    <div class="mh-title">Cuéntale a Parlia<br>quién eres</div>
+    <div class="mh-sub">Cuanto más comparta contigo, más humanas y cercanas serán sus conversaciones cada día. Todo se guarda solo en tu dispositivo.</div>
+    <div class="mh-stats">
+      <div class="mh-stat-row">
+        <span id="memStatText">Memoria al 0%</span>
+        <span id="memStatPct" class="mh-stat-pct">0%</span>
+      </div>
+      <div class="mh-bar-wrap"><div class="mh-bar" id="memBar" style="width:0%"></div></div>
+    </div>
   </div>
-  <div class="group" id="g-memory"></div>
+  <div class="group memory-group" id="g-memory"></div>
 
   <!-- GRUPPO 3: FUNCIONES -->
   <div class="sec-head">

@@ -1425,13 +1425,8 @@ function initProfile() {
 }
 
 function updateProgress() {
-  const extra = JSON.parse(localStorage.getItem('parlia_profile_extra') || '{}');
-  let done = 3;
-  const conds = Array.isArray(extra.condicion) ? extra.condicion : (extra.condicion ? [extra.condicion] : []);
-  if (conds.length > 0) done++;
-  if (extra.movilidad) done++;
-  if (extra.edad) done++;
-  const pct = Math.round((done/6)*100);
+  const c = ParliaUser.count(ParliaUser.get());
+  const pct = c.pct;
   document.getElementById('profileBar').style.width = pct+'%';
   document.getElementById('yoProgressBar').style.width = pct+'%';
   document.getElementById('yoProgressPct').textContent = pct+'%';

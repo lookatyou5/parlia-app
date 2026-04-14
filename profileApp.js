@@ -107,6 +107,22 @@
     document.getElementById('pcPct').textContent = c.pct >= 100
       ? 'Parlia AI te conoce muy bien.'
       : `${c.done} de ${c.total} campos — cuanto más completes, más personal será Parlia AI.`;
+    // Memory hero progress (solo campi della sezione memoria)
+    const m = data.memory;
+    const memFields = [m.hobbies.length, m.musica, m.comida, m.interests.length, m.family.length, m.profession, m.birthplace, m.notas];
+    const memDone = memFields.filter(v => v && (typeof v !== 'number' || v > 0)).length;
+    const memPct = Math.round(memDone / memFields.length * 100);
+    const memBar = document.getElementById('memBar');
+    const memPctEl = document.getElementById('memStatPct');
+    const memTxt = document.getElementById('memStatText');
+    if(memBar) memBar.style.width = memPct + '%';
+    if(memPctEl) memPctEl.textContent = memPct + '%';
+    if(memTxt){
+      if(memPct === 0) memTxt.textContent = 'Aún no has contado nada 💭';
+      else if(memPct < 50) memTxt.textContent = `${memDone} de ${memFields.length} campos · sigue contando`;
+      else if(memPct < 100) memTxt.textContent = `${memDone} de ${memFields.length} campos · ¡vas genial!`;
+      else memTxt.textContent = '¡Memoria completa! Parlia te conoce 💙';
+    }
   }
 
   // ── Modal ─────────────────────────────────────────────────────────────────
