@@ -1,0 +1,2423 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<title>Parlia</title>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { box-sizing: border-box !important; margin: 0; padding: 0; }
+
+html, body {
+  width: 100vw; max-width: 100vw;
+  height: 100%;
+  overflow-x: hidden !important; overflow-y: hidden;
+  position: relative;
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  background: var(--bg); color: var(--ink);
+  -webkit-font-smoothing: antialiased;
+}
+
+:root {
+  --bg: #f5f6fa;
+  --card: #ffffff;
+  --ink: #0f0f10;
+  --muted: #6b7280;
+  --border: #e5e7eb;
+  --blue: #2563eb;
+  --blue-light: #eff6ff;
+  --violet: #7c3aed;
+  --violet-light: #f5f3ff;
+  --indigo: #6366f1;
+  --teal: #0d9488;
+  --teal-light: #f0fdfa;
+  --radius: 20px;
+  --shadow: 0 2px 12px rgba(0,0,0,0.06), 0 1px 3px rgba(0,0,0,0.04);
+  --shadow-lg: 0 8px 32px rgba(37,99,235,0.12), 0 2px 8px rgba(0,0,0,0.06);
+  --nav-h: 80px;
+  --top-h: 56px;
+}
+
+/* ── MESH ── */
+.mesh { position: fixed; inset: 0; z-index: 0; pointer-events: none; overflow: hidden; }
+.blob { position: absolute; border-radius: 50%; filter: blur(80px); opacity: 0.45; }
+.blob1 { width:360px; height:360px; top:-100px; right:-80px; background:radial-gradient(circle,#bfdbfe,#ddd6fe); animation:blobF 10s ease-in-out infinite; }
+.blob2 { width:260px; height:260px; bottom:60px; left:-60px; background:radial-gradient(circle,#99f6e4,#a5f3fc); animation:blobF 14s ease-in-out infinite reverse; }
+@keyframes blobF { 0%,100%{transform:translate(0,0)} 33%{transform:translate(-15px,12px)} 66%{transform:translate(8px,-18px)} }
+
+/* ── TOPBAR ── */
+.topbar {
+  position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+  height: var(--top-h);
+  background: rgba(245,246,250,0.92);
+  backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+  border-bottom: 1px solid var(--border);
+  display: flex; align-items: center; padding: 0 16px; gap: 10px;
+}
+.logo-mark {
+  width: 30px; height: 30px; border-radius: 10px;
+  background: linear-gradient(135deg, #2563eb, #6366f1);
+  display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+}
+.logo-text {
+  font-family: 'Bricolage Grotesque', sans-serif;
+  font-size: 1rem; font-weight: 800; flex: 1; color: var(--ink);
+}
+.logo-text span { color: var(--blue); }
+.beta-badge { font-size: 0.52rem; font-weight: 800; background: var(--blue-light); color: var(--blue); border-radius: 20px; padding: 2px 7px; vertical-align: middle; letter-spacing: .04em; }
+
+/* Meteo pill */
+.meteo-pill {
+  display: flex; align-items: center; gap: 5px;
+  background: var(--card); border: 1.5px solid var(--border);
+  border-radius: 20px; padding: 5px 10px;
+  cursor: pointer; transition: all .15s; flex-shrink: 0;
+  -webkit-tap-highlight-color: transparent;
+}
+.meteo-pill:active { transform: scale(0.96); background: var(--blue-light); border-color: var(--blue); }
+.pill-icon { font-size: 1rem; line-height: 1; }
+.pill-temp { font-size: 0.75rem; font-weight: 800; color: var(--ink); }
+
+.avatar {
+  width: 32px; height: 32px; border-radius: 50%;
+  background: linear-gradient(135deg, #2563eb, #6366f1);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 0.78rem; font-weight: 800; color: white; flex-shrink: 0;
+}
+
+/* ── SWIPE: scroll nativo con scroll-snap (robusto come profile.html) ── */
+.pages-wrap {
+  position: fixed;
+  top: var(--top-h); bottom: var(--nav-h);
+  left: 0; right: 0;
+  overflow-x: auto; overflow-y: hidden;
+  -webkit-overflow-scrolling: touch;
+  scroll-snap-type: x mandatory;
+  scroll-behavior: smooth;
+  scrollbar-width: none;
+  z-index: 1;
+  overscroll-behavior-x: contain;
+}
+.pages-wrap::-webkit-scrollbar { display: none; }
+.pages-track {
+  display: flex;
+  height: 100%;
+  width: max-content;
+  margin: 0 !important; padding: 0 !important;
+}
+.page {
+  width: 100vw !important; min-width: 100vw !important; max-width: 100vw !important;
+  margin: 0 !important;
+  height: 100%; flex-shrink: 0;
+  overflow-y: auto; overflow-x: hidden !important;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+  padding: 14px 14px 10px;
+  display: flex; flex-direction: column; gap: 12px;
+  scroll-snap-align: start;
+  scroll-snap-stop: always;
+}
+.page::-webkit-scrollbar { display: none; }
+.page::-webkit-scrollbar { display: none; }
+
+/* ── NAV ── */
+.nav {
+  position: fixed; bottom: 0; left: 0; right: 0; z-index: 100;
+  height: var(--nav-h);
+  background: rgba(255,255,255,0.96);
+  backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+  border-top: 1px solid var(--border);
+  display: flex; align-items: flex-start; padding: 8px 4px 0;
+}
+.nav-copyright { position: absolute; bottom: 3px; left: 0; right: 0; text-align: center; font-size: 0.56rem; color: #c4c4c4; font-weight: 600; letter-spacing: .02em; pointer-events: none; }
+.nav-item {
+  flex: 1; display: flex; flex-direction: column; align-items: center; gap: 3px;
+  cursor: pointer; padding: 5px 4px; border-radius: 14px;
+  transition: all .18s; -webkit-tap-highlight-color: transparent;
+}
+.nav-item:active { background: var(--blue-light); }
+.nav-icon {
+  width: 38px; height: 38px; border-radius: 12px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 1.15rem; transition: all .2s;
+}
+.nav-item.active .nav-icon {
+  background: linear-gradient(135deg, #2563eb, #6366f1);
+  box-shadow: 0 4px 12px rgba(37,99,235,0.3);
+}
+.nav-lbl { font-size: 0.52rem; font-weight: 700; color: var(--muted); letter-spacing: .03em; transition: color .2s; }
+.nav-item.active .nav-lbl { color: var(--blue); }
+
+/* Dot indicatori */
+.nav-dots {
+  position: fixed; bottom: calc(var(--nav-h) - 5px); left: 50%; transform: translateX(-50%);
+  display: flex; gap: 4px; z-index: 101;
+}
+.nav-dot { width: 4px; height: 4px; border-radius: 50%; background: var(--border); transition: all .25s; }
+.nav-dot.active { width: 16px; border-radius: 4px; background: var(--blue); }
+
+/* Swipe hint */
+.swipe-hint {
+  position: fixed; bottom: calc(var(--nav-h) + 14px);
+  left: 50%; transform: translateX(-50%);
+  background: rgba(15,15,16,0.82); backdrop-filter: blur(8px);
+  color: white; border-radius: 20px; padding: 8px 16px;
+  display: flex; align-items: center; gap: 8px;
+  font-size: 0.75rem; font-weight: 700;
+  z-index: 150; pointer-events: none;
+  opacity: 0; transition: opacity .4s; white-space: nowrap;
+}
+.swipe-hint.show { opacity: 1; }
+.swipe-arrows { animation: swipeAnim 1.4s ease-in-out infinite; }
+@keyframes swipeAnim { 0%,100%{transform:translateX(0);opacity:.5} 50%{transform:translateX(6px);opacity:1} }
+
+/* ── PAGE 1: INICIO ── */
+.ai-hero {
+  border-radius: var(--radius); overflow: hidden; position: relative;
+  background: linear-gradient(135deg,#1e3a8a 0%,#2d5be3 55%,#4f46e5 100%);
+  box-shadow: var(--shadow-lg); flex-shrink: 0;
+}
+.ai-hero-grid {
+  position: absolute; inset: 0; pointer-events: none;
+  background-image: linear-gradient(rgba(255,255,255,.04) 1px,transparent 1px),
+    linear-gradient(90deg,rgba(255,255,255,.04) 1px,transparent 1px);
+  background-size: 24px 24px;
+}
+.ai-hero-inner { padding: 16px; position: relative; z-index: 2; }
+.ai-header { display: flex; align-items: center; gap: 8px; margin-bottom: 10px; }
+.ai-avatar-box {
+  width: 36px; height: 36px; border-radius: 12px;
+  background: rgba(255,255,255,.15); border: 1.5px solid rgba(255,255,255,.25);
+  display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+}
+.ai-bars { display: flex; align-items: center; gap: 2px; }
+.ai-bar { width: 2px; border-radius: 2px; background: white; }
+.ai-bar:nth-child(1){height:8px;animation:barA 1.2s ease-in-out infinite 0s}
+.ai-bar:nth-child(2){height:14px;animation:barA 1.2s ease-in-out infinite .12s}
+.ai-bar:nth-child(3){height:18px;animation:barA 1.2s ease-in-out infinite .24s}
+.ai-bar:nth-child(4){height:12px;animation:barA 1.2s ease-in-out infinite .36s}
+.ai-bar:nth-child(5){height:8px;animation:barA 1.2s ease-in-out infinite .48s}
+@keyframes barA { 0%,100%{transform:scaleY(.3);opacity:.4} 50%{transform:scaleY(1);opacity:1} }
+.ai-meta { flex: 1; }
+.ai-name-lbl { font-size: 0.72rem; font-weight: 800; color: white; }
+.ai-status { display: flex; align-items: center; gap: 4px; }
+.ai-online { width: 6px; height: 6px; border-radius: 50%; background: #4ade80; box-shadow: 0 0 0 2px rgba(74,222,128,.2); }
+.ai-status-txt { font-size: 0.6rem; font-weight: 600; color: rgba(255,255,255,.6); }
+.ai-tts-btn {
+  width: 30px; height: 30px; border-radius: 9px; flex-shrink: 0;
+  background: rgba(255,255,255,.1); border: 1px solid rgba(255,255,255,.2);
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer; font-size: 0.9rem; -webkit-tap-highlight-color: transparent; transition: all .2s;
+}
+.ctx-badge {
+  display: none; align-items: center; gap: 5px;
+  background: rgba(255,255,255,.1); border: 1px solid rgba(255,255,255,.18);
+  border-radius: 20px; padding: 4px 10px; margin-bottom: 10px;
+  font-size: 0.63rem; font-weight: 700; color: rgba(255,255,255,.85);
+}
+.ctx-dot { width: 5px; height: 5px; border-radius: 50%; flex-shrink: 0; }
+.chat-thread {
+  display: flex; flex-direction: column; gap: 8px;
+  margin-bottom: 10px; max-height: 160px; overflow-y: auto; scrollbar-width: none;
+}
+.chat-thread::-webkit-scrollbar { display: none; }
+.bubble-user {
+  align-self: flex-end;
+  background: rgba(255,255,255,.15); border: 1px solid rgba(255,255,255,.2);
+  border-radius: 16px 16px 4px 16px;
+  padding: 7px 12px; font-size: 0.81rem; font-weight: 600; color: white;
+  max-width: 85%; animation: fadeUpB .25s ease both;
+}
+.bubble-ai {
+  align-self: flex-start;
+  background: rgba(255,255,255,.08); border-radius: 4px 16px 16px 16px;
+  padding: 8px 12px; font-size: 0.88rem; font-weight: 500;
+  color: rgba(255,255,255,.92); line-height: 1.55; max-width: 92%;
+  animation: fadeUpB .25s ease both;
+}
+@keyframes fadeUpB { from{opacity:0;transform:translateY(6px)} to{opacity:1;transform:none} }
+.cursor-blink { display: inline-block; width: 2px; height: .9em; background: rgba(255,255,255,.8); vertical-align: text-bottom; animation: blinkAnim .75s step-end infinite; margin-left: 1px; }
+@keyframes blinkAnim { 0%,100%{opacity:1} 50%{opacity:0} }
+.typing-dots { display: flex; gap: 4px; align-items: center; padding: 4px 0; }
+.typing-dots span { width: 6px; height: 6px; border-radius: 50%; background: rgba(255,255,255,.6); animation: tdot 1.1s ease-in-out infinite; }
+.typing-dots span:nth-child(2){animation-delay:.18s} .typing-dots span:nth-child(3){animation-delay:.36s}
+@keyframes tdot { 0%,100%{opacity:.3;transform:scale(.7)} 50%{opacity:1;transform:scale(1)} }
+.chip-skel { height: 32px; border-radius: 20px; background: rgba(255,255,255,.08); animation: skelP 1.2s ease-in-out infinite; }
+@keyframes skelP { 0%,100%{opacity:.3} 50%{opacity:.7} }
+.ai-chips { display: flex; flex-wrap: wrap; gap: 7px; }
+.ai-chip {
+  background: rgba(255,255,255,.1); border: 1px solid rgba(255,255,255,.2);
+  border-radius: 20px; padding: 7px 13px;
+  font-size: 0.75rem; font-weight: 700; color: white;
+  cursor: pointer; transition: all .15s; -webkit-tap-highlight-color: transparent;
+  animation: fadeUpB .3s ease both;
+}
+.ai-chip:active { background: rgba(255,255,255,.22); transform: scale(0.96); }
+.ai-chip.cta { background: rgba(255,255,255,.18); border-color: rgba(255,255,255,.35); font-weight: 700; }
+
+/* Agenda */
+.agenda-wrap {
+  background: var(--card); border: 1.5px solid var(--border);
+  border-radius: var(--radius); overflow: hidden; box-shadow: var(--shadow); flex-shrink: 0;
+}
+.agenda-hdr {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 12px 14px 8px;
+}
+.agenda-hdr-title { font-size: 0.72rem; font-weight: 800; color: var(--ink); display: flex; align-items: center; gap: 6px; }
+.agenda-dot { width: 7px; height: 7px; border-radius: 50%; background: #22c55e; box-shadow: 0 0 0 3px rgba(34,197,94,.2); }
+.agenda-scroll { display: flex; gap: 8px; padding: 0 14px 14px; overflow-x: auto; scrollbar-width: none; }
+.agenda-scroll::-webkit-scrollbar { display: none; }
+.agenda-card { flex-shrink: 0; background: var(--bg); border-radius: 14px; border: 1.5px solid var(--border); padding: 10px 12px; min-width: 115px; }
+.agenda-card.now { background: var(--blue-light); border-color: #bfdbfe; }
+.agenda-card.done { opacity: .5; }
+.agenda-card.reminder { background: #fefce8; border-color: #fde68a; min-width: 105px; }
+.agenda-add-btn {
+  flex-shrink: 0; width: 44px; height: 44px; border-radius: 14px;
+  background: var(--bg); border: 1.5px dashed var(--border);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 1.2rem; cursor: pointer; color: var(--muted);
+  transition: all .15s; -webkit-tap-highlight-color: transparent;
+  align-self: center;
+}
+.agenda-add-btn:active { background: var(--blue-light); border-color: var(--blue); color: var(--blue); }
+
+/* Agenda notte/weekend */
+.agenda-sleep {
+  display: flex; align-items: center; gap: 12px;
+  padding: 12px 14px 14px;
+}
+.agenda-sleep-icon { font-size: 1.6rem; flex-shrink: 0; }
+.agenda-sleep-text { font-size: 0.75rem; font-weight: 600; color: var(--muted); line-height: 1.4; }
+.agenda-sleep-title { font-size: 0.85rem; font-weight: 800; color: var(--ink); margin-bottom: 2px; }
+
+/* Modal promemoria */
+.reminder-overlay {
+  position: fixed; inset: 0; z-index: 200;
+  background: rgba(0,0,0,.5); backdrop-filter: blur(6px);
+  display: flex; align-items: flex-end;
+  opacity: 0; pointer-events: none; transition: opacity .25s;
+}
+.reminder-overlay.open { opacity: 1; pointer-events: all; }
+.reminder-modal {
+  background: white; border-radius: 24px 24px 0 0;
+  width: 100%; padding: 20px 20px 36px;
+  transform: translateY(100%); transition: transform .35s cubic-bezier(.4,0,.2,1);
+}
+.reminder-overlay.open .reminder-modal { transform: translateY(0); }
+.reminder-handle { width: 36px; height: 4px; border-radius: 2px; background: var(--border); margin: 0 auto 16px; }
+.reminder-title { font-family: 'Bricolage Grotesque', sans-serif; font-size: 1.1rem; font-weight: 800; color: var(--ink); margin-bottom: 14px; }
+.reminder-field { width: 100%; background: var(--bg); border: 1.5px solid var(--border); border-radius: 12px; padding: 11px 14px; color: var(--ink); font-family: 'Plus Jakarta Sans', sans-serif; font-size: 0.88rem; font-weight: 600; outline: none; margin-bottom: 10px; }
+.reminder-field:focus { border-color: var(--blue); }
+.reminder-row { display: flex; gap: 8px; margin-bottom: 12px; }
+.reminder-time { flex: 1; background: var(--bg); border: 1.5px solid var(--border); border-radius: 12px; padding: 10px 14px; color: var(--ink); font-family: 'Plus Jakarta Sans', sans-serif; font-size: 0.88rem; font-weight: 700; outline: none; }
+.reminder-time:focus { border-color: var(--blue); }
+.reminder-save { width: 100%; background: linear-gradient(135deg,#2563eb,#6366f1); border: none; border-radius: 14px; padding: 14px; color: white; font-family: 'Plus Jakarta Sans', sans-serif; font-size: 0.88rem; font-weight: 800; cursor: pointer; -webkit-tap-highlight-color: transparent; }
+.reminder-save:active { opacity: .9; transform: scale(.98); }
+.reminder-list { display: flex; flex-direction: column; gap: 6px; margin-bottom: 14px; max-height: 140px; overflow-y: auto; }
+.reminder-item { display: flex; align-items: center; gap: 8px; background: #fefce8; border: 1px solid #fde68a; border-radius: 10px; padding: 8px 12px; }
+.reminder-item-time { font-size: 0.75rem; font-weight: 800; color: #92400e; flex-shrink: 0; }
+.reminder-item-label { flex: 1; font-size: 0.78rem; font-weight: 700; color: var(--ink); }
+.reminder-item-del { font-size: 0.9rem; cursor: pointer; color: var(--muted); padding: 2px 4px; -webkit-tap-highlight-color: transparent; }
+.ac-time { font-size: 0.65rem; font-weight: 800; color: var(--muted); margin-bottom: 4px; display: flex; align-items: center; gap: 4px; }
+.ac-now-badge { background: var(--blue); color: white; font-size: 0.5rem; font-weight: 800; border-radius: 20px; padding: 1px 5px; letter-spacing: .04em; }
+.ac-label { font-size: 0.78rem; font-weight: 800; color: var(--ink); line-height: 1.25; }
+.ac-sub { font-size: 0.62rem; font-weight: 600; color: var(--muted); margin-top: 2px; }
+.ac-tag { display: inline-block; font-size: 0.55rem; font-weight: 800; border-radius: 20px; padding: 2px 7px; margin-top: 5px; letter-spacing: .03em; }
+
+/* Profilo card compatta */
+.profile-card {
+  background: var(--card); border: 1.5px solid var(--border);
+  border-radius: var(--radius); padding: 13px 14px;
+  cursor: pointer; transition: all .15s; box-shadow: var(--shadow);
+  -webkit-tap-highlight-color: transparent; flex-shrink: 0;
+}
+.profile-card:active { transform: scale(0.98); }
+.profile-top { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; }
+.profile-icon { font-size: 1.2rem; }
+.profile-title { font-size: 0.82rem; font-weight: 800; color: var(--ink); }
+.profile-sub { font-size: 0.7rem; font-weight: 600; color: var(--muted); margin-top: 1px; }
+.profile-btn { font-size: 0.65rem; font-weight: 800; color: var(--blue); background: var(--blue-light); border-radius: 20px; padding: 4px 10px; flex-shrink: 0; }
+.profile-bar-bg { background: var(--border); border-radius: 20px; height: 6px; overflow: hidden; }
+.profile-bar { height: 100%; border-radius: 20px; background: linear-gradient(90deg, var(--blue), var(--indigo)); transition: width .6s ease; }
+
+/* Obiettivo */
+.goal-card {
+  border-radius: var(--radius); padding: 15px 16px;
+  background: linear-gradient(135deg,#fefce8,#fef9c3);
+  border: 1.5px solid #fde68a;
+  box-shadow: 0 2px 12px rgba(234,179,8,.1); flex-shrink: 0;
+}
+.goal-badge { display: inline-flex; align-items: center; gap: 5px; font-size: 0.58rem; font-weight: 800; text-transform: uppercase; letter-spacing: .06em; background: #fde047; color: #713f12; border-radius: 20px; padding: 2px 8px; margin-bottom: 8px; }
+.goal-title { font-family: 'Bricolage Grotesque', sans-serif; font-size: 0.95rem; font-weight: 800; color: #1c1917; line-height: 1.35; }
+.goal-sub { font-size: 0.75rem; font-weight: 600; color: #78716c; margin-top: 4px; line-height: 1.4; }
+.goal-action { margin-top: 10px; display: inline-flex; align-items: center; gap: 5px; background: #fbbf24; color: #1c1917; font-size: 0.72rem; font-weight: 800; border-radius: 20px; padding: 5px 12px; cursor: pointer; -webkit-tap-highlight-color: transparent; }
+.goal-action:active { transform: scale(0.96); }
+
+/* ── PAGE 2: AAC ── */
+.page-title { font-family: 'Bricolage Grotesque', sans-serif; font-size: 1.1rem; font-weight: 800; color: var(--ink); }
+.page-sub { font-size: 0.75rem; font-weight: 600; color: var(--muted); margin-top: 2px; }
+
+.aac-hero {
+  border-radius: var(--radius); overflow: hidden; position: relative;
+  background: linear-gradient(135deg,#1e3a8a,#2d5be3,#4f46e5);
+  padding: 14px 16px; display: flex; align-items: center; gap: 12px;
+  box-shadow: var(--shadow-lg); flex-shrink: 0;
+  transition: box-shadow .3s, transform .25s;
+}
+.aac-hero.active {
+  box-shadow: 0 0 0 3px rgba(99,102,241,.4), 0 8px 32px rgba(37,99,235,.5);
+  transform: scale(1.012);
+}
+.aac-hero-bars { display: flex; align-items: center; gap: 3px; height: 28px; flex-shrink: 0; }
+.aac-bar { width: 3px; border-radius: 2px; background: linear-gradient(180deg,rgba(255,255,255,.9),rgba(255,255,255,.4)); }
+.aac-bar:nth-child(1){height:10px;animation:barA 1.2s ease-in-out infinite 0s}
+.aac-bar:nth-child(2){height:20px;animation:barA 1.2s ease-in-out infinite .12s}
+.aac-bar:nth-child(3){height:28px;animation:barA 1.2s ease-in-out infinite .24s}
+.aac-bar:nth-child(4){height:18px;animation:barA 1.2s ease-in-out infinite .36s}
+.aac-bar:nth-child(5){height:10px;animation:barA 1.2s ease-in-out infinite .48s}
+.aac-hero-label { font-size: 0.6rem; font-weight: 700; color: rgba(255,255,255,.5); text-transform: uppercase; letter-spacing: .08em; margin-bottom: 2px; }
+.aac-hero-frase { font-family: 'Bricolage Grotesque', sans-serif; font-size: 1rem; font-weight: 800; color: white; line-height: 1.3; }
+.aac-hero-frase.empty { opacity: .4; font-family: 'Plus Jakarta Sans', sans-serif; font-weight: 500; font-size: 0.85rem; }
+.aac-replay {
+  width: 42px; height: 42px; border-radius: 13px; flex-shrink: 0;
+  background: rgba(255,255,255,.15); border: 1.5px solid rgba(255,255,255,.25);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 1.1rem; cursor: pointer; transition: all .18s; -webkit-tap-highlight-color: transparent;
+}
+.aac-replay:active { transform: scale(.92); }
+
+.cat-scroll { display: flex; gap: 8px; overflow-x: auto; scrollbar-width: none; padding-bottom: 2px; flex-shrink: 0; }
+.cat-scroll::-webkit-scrollbar { display: none; }
+.cat-chip {
+  flex-shrink: 0; padding: 7px 14px; border-radius: 20px;
+  border: 1.5px solid var(--border); background: var(--card);
+  font-size: 0.75rem; font-weight: 700; color: var(--muted);
+  cursor: pointer; transition: all .15s; -webkit-tap-highlight-color: transparent;
+}
+.cat-chip.active { color: white; box-shadow: 0 4px 12px rgba(0,0,0,.2); }
+.cat-chip:active { transform: scale(0.96); }
+
+/* Pull to refresh */
+.ptr-indicator {
+  position: fixed; top: var(--top-h); left: 50%; transform: translateX(-50%) translateY(-48px);
+  background: var(--card); border: 1.5px solid var(--border);
+  border-radius: 20px; padding: 7px 14px;
+  display: flex; align-items: center; gap: 7px;
+  font-size: 0.72rem; font-weight: 700; color: var(--muted);
+  box-shadow: var(--shadow); z-index: 99;
+  transition: transform .3s cubic-bezier(.4,0,.2,1), opacity .3s;
+  opacity: 0; pointer-events: none;
+}
+.ptr-indicator.visible { opacity: 1; }
+.ptr-indicator.releasing { color: var(--blue); }
+.ptr-spin { animation: ptrSpin .7s linear infinite; display: inline-block; }
+@keyframes ptrSpin { to { transform: rotate(360deg); } }
+
+.subcat-scroll { display: flex; gap: 6px; overflow-x: auto; scrollbar-width: none; flex-shrink: 0; }
+.subcat-scroll::-webkit-scrollbar { display: none; }
+.subcat-chip {
+  flex-shrink: 0; padding: 5px 11px; border-radius: 20px;
+  border: 1.5px solid var(--border); background: var(--bg);
+  font-size: 0.68rem; font-weight: 700; color: var(--muted);
+  cursor: pointer; transition: all .15s; -webkit-tap-highlight-color: transparent;
+}
+.subcat-chip.active { background: var(--blue-light); border-color: var(--blue); color: var(--blue); }
+.subcat-chip:active { transform: scale(0.96); }
+
+.ai-sec-header { display: flex; align-items: center; gap: 6px; flex-shrink: 0; margin-top: 2px; }
+.ai-sec-label { font-size: 0.62rem; font-weight: 800; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); }
+.ai-sec-tag { font-size: 0.52rem; font-weight: 800; background: linear-gradient(135deg,#2563eb,#6366f1); color: white; border-radius: 20px; padding: 2px 7px; }
+.ai-suggestions { display: flex; flex-direction: column; gap: 7px; flex-shrink: 0; }
+.ai-sug-btn {
+  background: linear-gradient(135deg,#eff6ff,#eef2ff); border: 1.5px solid #bfdbfe;
+  border-radius: 14px; padding: 11px 13px; display: flex; align-items: center; gap: 10px;
+  cursor: pointer; transition: all .15s; -webkit-tap-highlight-color: transparent;
+  animation: fadeUp .3s ease both;
+}
+.ai-sug-btn:active { transform: scale(0.97); }
+.ai-sug-btn.selected { border-color: var(--blue); border-width: 2px; background: linear-gradient(135deg,#dbeafe,#e0e7ff); box-shadow: 0 0 0 3px rgba(59,130,246,.12); }
+.ai-sug-text { font-size: 0.82rem; font-weight: 700; color: #1d4ed8; flex: 1; line-height: 1.3; }
+.ai-loading-row { display: flex; align-items: center; gap: 8px; padding: 6px 2px; }
+.ai-loading-dots { display: flex; gap: 3px; }
+.ai-loading-dots span { width: 5px; height: 5px; border-radius: 50%; background: var(--blue); opacity: .3; animation: tdot 1.1s ease-in-out infinite; }
+.ai-loading-dots span:nth-child(2){animation-delay:.18s} .ai-loading-dots span:nth-child(3){animation-delay:.36s}
+.ai-loading-txt { font-size: 0.72rem; font-weight: 600; color: var(--muted); }
+
+.frases-section-label { font-size: 0.62rem; font-weight: 800; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); flex-shrink: 0; margin-top: 2px; }
+.frases-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.frase-btn {
+  background: var(--card); border: 1.5px solid var(--border);
+  border-radius: 16px; padding: 15px 13px;
+  cursor: pointer; transition: all .15s; box-shadow: var(--shadow);
+  display: flex; flex-direction: column; align-items: flex-start; gap: 8px;
+  -webkit-tap-highlight-color: transparent; animation: fadeUp .3s ease both;
+}
+.frase-btn:active { transform: scale(0.95); box-shadow: none; }
+.frase-btn.selected {
+  border-width: 2.5px !important;
+  box-shadow: 0 0 0 4px rgba(59,130,246,.12), 0 2px 12px rgba(59,130,246,.15) !important;
+}
+.frase-emoji-wrap {
+  width: 40px; height: 40px; border-radius: 12px;
+  display: flex; align-items: center; justify-content: center; font-size: 1.35rem;
+}
+.frase-text { font-size: 0.82rem; font-weight: 700; color: var(--ink); line-height: 1.3; }
+
+/* ── PAGE 3: REHAB ── */
+.rehab-card {
+  background: var(--card); border: 1.5px solid var(--border);
+  border-radius: var(--radius); padding: 16px;
+  display: flex; align-items: center; gap: 14px;
+  box-shadow: var(--shadow); cursor: pointer; transition: all .15s;
+  -webkit-tap-highlight-color: transparent; flex-shrink: 0;
+}
+.rehab-card:active { transform: scale(0.98); box-shadow: none; }
+.rehab-icon { width: 48px; height: 48px; border-radius: 14px; display: flex; align-items: center; justify-content: center; font-size: 1.4rem; flex-shrink: 0; }
+.rehab-body { flex: 1; }
+.rehab-name { font-size: 0.88rem; font-weight: 800; color: var(--ink); }
+.rehab-sub { font-size: 0.72rem; font-weight: 600; color: var(--muted); margin-top: 2px; line-height: 1.3; }
+.rehab-arrow { font-size: 1rem; color: var(--muted); flex-shrink: 0; }
+.next-session-card {
+  background: var(--card); border: 1.5px solid var(--border);
+  border-radius: var(--radius); padding: 14px 16px; box-shadow: var(--shadow); flex-shrink: 0;
+}
+.next-session-label { font-size: 0.62rem; font-weight: 800; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); margin-bottom: 5px; }
+.next-session-val { font-size: 0.85rem; font-weight: 700; color: var(--ink); }
+
+/* ── PAGE 4: YO ── */
+.yo-header { display: flex; align-items: center; padding: 6px 0 4px; gap: 12px; flex-shrink: 0; }
+.yo-avatar {
+  width: 48px; height: 48px; border-radius: 50%;
+  background: linear-gradient(135deg,#2563eb,#6366f1);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 1.2rem; font-weight: 800; color: white; flex-shrink: 0;
+  box-shadow: 0 3px 14px rgba(37,99,235,.3);
+}
+.yo-name-lbl { font-family: 'Bricolage Grotesque', sans-serif; font-size: 1rem; font-weight: 800; color: var(--ink); }
+.yo-sub-lbl { font-size: 0.68rem; font-weight: 600; color: var(--muted); }
+.progress-wrap { background: var(--card); border: 1.5px solid var(--border); border-radius: var(--radius); padding: 14px 16px; box-shadow: var(--shadow); flex-shrink: 0; }
+.progress-header { font-size: 0.72rem; font-weight: 800; color: var(--ink); display: flex; justify-content: space-between; margin-bottom: 8px; }
+.progress-bar-bg { background: var(--border); border-radius: 20px; height: 7px; overflow: hidden; }
+.progress-bar { height: 100%; border-radius: 20px; background: linear-gradient(90deg, var(--blue), var(--indigo)); transition: width .6s ease; }
+.yo-rows { display: flex; flex-direction: column; gap: 8px; flex-shrink: 0; }
+.yo-row {
+  display: flex; align-items: center; gap: 12px;
+  background: var(--card); border: 1.5px solid var(--border);
+  border-radius: 14px; padding: 13px 14px;
+  cursor: pointer; transition: all .15s; -webkit-tap-highlight-color: transparent;
+}
+.yo-row:active { background: var(--blue-light); }
+.yo-row-icon { font-size: 1.2rem; width: 28px; text-align: center; flex-shrink: 0; }
+.yo-row-label { flex: 1; font-size: 0.85rem; font-weight: 700; color: var(--ink); }
+.yo-row-value { font-size: 0.73rem; font-weight: 600; color: var(--muted); }
+.yo-row-arrow { font-size: 0.9rem; color: var(--muted); margin-left: 4px; }
+/* Summary card (non-clickable) */
+.yo-summary { background: var(--card); border: 1.5px solid var(--border); border-radius: 14px; padding: 4px 14px; box-shadow: var(--shadow); }
+.yo-info { display: flex; align-items: center; gap: 12px; padding: 11px 0; border-bottom: 1px solid var(--border); }
+.yo-info:last-child { border-bottom: none; }
+.yo-info-icon { font-size: 1.1rem; width: 26px; text-align: center; flex-shrink: 0; }
+.yo-info-label { flex: 1; font-size: 0.78rem; font-weight: 700; color: var(--ink); }
+.yo-info-value { font-size: 0.73rem; font-weight: 700; color: var(--muted); max-width: 55%; text-align: right; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.yo-info-value.empty { color: #9ca3af; font-weight: 500; font-style: italic; }
+/* CTA button */
+.yo-cta { display: flex; align-items: center; gap: 12px; background: linear-gradient(135deg,#2563eb,#6366f1); border: none; border-radius: 14px; padding: 14px 16px; cursor: pointer; -webkit-tap-highlight-color: transparent; box-shadow: 0 4px 14px rgba(37,99,235,.3); transition: transform .15s; width: 100%; }
+.yo-cta:active { transform: scale(.98); }
+.yo-cta-icon { font-size: 1.2rem; }
+.yo-cta-label { flex: 1; text-align: left; font-family: 'Bricolage Grotesque', sans-serif; font-size: .9rem; font-weight: 800; color: white; }
+.yo-cta-sub { font-size: .65rem; font-weight: 600; color: rgba(255,255,255,.8); margin-top: 1px; }
+.yo-cta-arrow { color: white; font-size: 1.1rem; }
+
+/* ── METEO POPUP ── */
+.meteo-overlay {
+  position: fixed; inset: 0; z-index: 200;
+  opacity: 0; pointer-events: none; transition: opacity .3s ease;
+}
+.meteo-overlay.open { opacity: 1; pointer-events: all; }
+.meteo-popup {
+  position: absolute;
+  top: calc(var(--top-h) + 8px);
+  right: 14px;
+  width: min(300px, calc(100vw - 28px));
+  background: rgba(10,12,28,.9);
+  backdrop-filter: blur(20px) saturate(160%);
+  -webkit-backdrop-filter: blur(20px) saturate(160%);
+  border-radius: 24px;
+  border: 1.5px solid rgba(255,255,255,.1);
+  box-shadow: 0 24px 60px rgba(0,0,0,.45), 0 4px 16px rgba(0,0,0,.3), 0 0 0 0.5px rgba(255,255,255,.06);
+  overflow: hidden;
+  transform: scale(.88) translateY(-12px);
+  transform-origin: top right;
+  opacity: 0;
+  transition: all .3s cubic-bezier(.4,0,.2,1);
+}
+.meteo-overlay.open .meteo-popup {
+  transform: scale(1) translateY(0);
+  opacity: 1;
+}
+
+.wx-sky {
+  width: 100%; height: 150px;
+  margin: 0;
+  position: relative; overflow: hidden; flex-shrink: 0;
+  transition: background 2s ease;
+}
+/* Gradients realistici top→bottom */
+.wx-sky.sunny     { background: linear-gradient(180deg,#0369a1 0%,#0284c7 25%,#38bdf8 55%,#7dd3fc 78%,#fed7aa 92%,#fcd34d 100%); }
+.wx-sky.partcloud { background: linear-gradient(180deg,#1d4ed8 0%,#2563eb 30%,#60a5fa 62%,#93c5fd 82%,#dbeafe 100%); }
+.wx-sky.cloudy    { background: linear-gradient(180deg,#111827 0%,#1f2937 30%,#374151 58%,#4b5563 78%,#6b7280 100%); }
+.wx-sky.rainy     { background: linear-gradient(180deg,#0c1a2e 0%,#0f2543 28%,#1e3a5f 55%,#1e40af 78%,#1d4ed8 100%); }
+.wx-sky.stormy    { background: linear-gradient(180deg,#020617 0%,#060412 25%,#0f0a1e 50%,#1e1b4b 75%,#2d1b69 100%); }
+.wx-sky.snowy     { background: linear-gradient(180deg,#64748b 0%,#94a3b8 28%,#cbd5e1 55%,#e2e8f0 78%,#f8fafc 100%); }
+.wx-sky.night     { background: linear-gradient(180deg,#000005 0%,#04071a 30%,#0a0f1e 55%,#0f172a 78%,#1a2744 100%); }
+.wx-sky.foggy     { background: linear-gradient(180deg,#374151 0%,#4b5563 28%,#6b7280 55%,#9ca3af 78%,#d1d5db 100%); }
+
+.wx-stars,.wx-clouds,.wx-rain-layer,.wx-snow-layer { position:absolute;inset:0;pointer-events:none;overflow:hidden; }
+
+/* Sole — corona atmosferica, no raggi cartoon */
+.wx-sun-wrap { position:absolute;top:18px;right:28px;width:88px;height:88px; }
+.sun-body {
+  position:absolute;inset:10px;border-radius:50%;
+  background:radial-gradient(circle at 38% 32%,#fff9e0,#fde68a 28%,#fbbf24 55%,#f59e0b 75%,#ea580c 100%);
+  box-shadow:
+    0 0 0 10px rgba(253,211,77,.13),
+    0 0 0 22px rgba(253,211,77,.07),
+    0 0 0 40px rgba(253,211,77,.03),
+    0 0 55px rgba(251,191,36,.65),
+    0 0 110px rgba(245,158,11,.32),
+    0 0 200px rgba(234,179,8,.14);
+  animation:sunPulse 7s ease-in-out infinite;
+}
+@keyframes sunPulse {
+  0%,100%{box-shadow:0 0 0 10px rgba(253,211,77,.13),0 0 0 22px rgba(253,211,77,.07),0 0 55px rgba(251,191,36,.65),0 0 110px rgba(245,158,11,.32)}
+  50%{box-shadow:0 0 0 14px rgba(253,211,77,.1),0 0 0 30px rgba(253,211,77,.05),0 0 75px rgba(251,191,36,.75),0 0 140px rgba(245,158,11,.38)}
+}
+.sun-rays { display:none; }
+.sun-ray  { display:none; }
+
+/* Bagliore orizzonte (sole) */
+.wx-sun-haze {
+  position:absolute;bottom:0;left:0;right:0;height:55%;
+  background:linear-gradient(to top,rgba(253,186,116,.22),rgba(253,211,77,.06),transparent);
+  pointer-events:none;
+}
+
+/* Luna — più realistica con alone */
+.wx-moon { position:absolute;top:18px;right:32px;width:64px;height:64px; }
+.moon-body {
+  width:64px;height:64px;border-radius:50%;position:relative;
+  background:radial-gradient(circle at 34% 30%,#f0f4f8,#e2e8f0 38%,#c8d5e0 65%,#8fa3b4 100%);
+  box-shadow:
+    0 0 0 1px rgba(226,232,240,.25),
+    0 0 28px rgba(148,163,184,.45),
+    0 0 64px rgba(148,163,184,.18),
+    inset -12px -6px 0 rgba(100,116,139,.22);
+  animation:moonGlow 8s ease-in-out infinite;
+}
+@keyframes moonGlow {
+  0%,100%{box-shadow:0 0 0 1px rgba(226,232,240,.25),0 0 28px rgba(148,163,184,.45),0 0 64px rgba(148,163,184,.18),inset -12px -6px 0 rgba(100,116,139,.22)}
+  50%{box-shadow:0 0 0 2px rgba(226,232,240,.18),0 0 44px rgba(148,163,184,.55),0 0 90px rgba(148,163,184,.25),inset -12px -6px 0 rgba(100,116,139,.22)}
+}
+.moon-crater { position:absolute;border-radius:50%;background:rgba(100,116,139,.16); }
+
+/* Stelle — variazione dimensione e luminosità */
+.wx-star { position:absolute;border-radius:50%;background:white;animation:starTwinkle ease-in-out infinite; }
+@keyframes starTwinkle { 0%,100%{opacity:.1;transform:scale(.7)} 50%{opacity:1;transform:scale(1.2)} }
+
+/* Nuvole — movimento leggero, ombra morbida */
+.cloud { position:absolute;animation:cloudDrift ease-in-out infinite; }
+.cloud svg { display:block; }
+@keyframes cloudDrift { 0%{transform:translateX(-8px)} 50%{transform:translateX(8px)} 100%{transform:translateX(-8px)} }
+
+/* Pioggia — angolata, gocce sottili */
+.rain-drop {
+  position:absolute;top:-24px;width:1px;border-radius:1px;
+  background:linear-gradient(to bottom,transparent,rgba(147,197,253,.45) 35%,rgba(96,165,250,.8));
+  animation:rainFall linear infinite;
+  transform-origin:top center;
+}
+@keyframes rainFall { to{transform:translateY(200px) translateX(-18px);opacity:0} }
+
+/* Neve — deriva naturale */
+.snow-flake {
+  position:absolute;top:-10px;border-radius:50%;
+  background:radial-gradient(circle,rgba(255,255,255,.95),rgba(220,230,255,.6));
+  animation:snowFall linear infinite;
+}
+@keyframes snowFall {
+  0%  {transform:translateY(0) translateX(0);opacity:.9}
+  33% {transform:translateY(55px) translateX(7px);opacity:.8}
+  66% {transform:translateY(110px) translateX(-5px);opacity:.6}
+  100%{transform:translateY(170px) translateX(4px);opacity:0}
+}
+
+/* Fulmine */
+.wx-lightning {
+  position:absolute;top:24px;left:45%;transform:translateX(-50%);
+  opacity:0;filter:drop-shadow(0 0 12px #fde047) drop-shadow(0 0 4px #fff);
+  animation:lightningFlash 4.5s ease-in-out infinite;
+}
+@keyframes lightningFlash { 0%,82%,100%{opacity:0} 84%,90%{opacity:1} 87%{opacity:.1} }
+
+/* Nebbia — bande sfumate */
+.wx-fog-layer {
+  position:absolute;left:-8%;right:-8%;height:42px;
+  background:rgba(255,255,255,.12);filter:blur(14px);
+  animation:fogDrift ease-in-out infinite;
+}
+@keyframes fogDrift { 0%,100%{transform:translateX(0)} 50%{transform:translateX(18px)} }
+
+/* Body info */
+.wx-body { padding:12px 18px 6px; }
+.wx-top-row { display:flex;align-items:flex-start;justify-content:space-between;gap:8px;margin-bottom:0; }
+.wx-temp-big {
+  font-family:'Bricolage Grotesque',sans-serif;
+  font-size:3.4rem;font-weight:800;color:white;line-height:1;letter-spacing:-1.5px;
+}
+.wx-temp-big sup { font-size:1.5rem;letter-spacing:0;vertical-align:super;opacity:.55; }
+.wx-right { text-align:right;padding-top:4px;flex:1; }
+.wx-desc-lbl { font-size:0.88rem;font-weight:700;color:white;margin-bottom:2px; }
+.wx-feel-lbl { font-size:0.67rem;color:rgba(255,255,255,.45);font-weight:400; }
+.wx-tip { margin:8px 0 0;font-size:0.7rem;font-weight:600;color:rgba(255,255,255,.5);font-style:italic;line-height:1.35; }
+.wx-loc-row { font-size:0.65rem;color:rgba(255,255,255,.32);margin:6px 0 10px;display:flex;align-items:center;gap:4px; }
+.wx-divider { height:1px;background:rgba(255,255,255,.08);margin-bottom:10px; }
+.wx-stats-grid { display:grid;grid-template-columns:repeat(4,1fr);padding-bottom:16px; }
+.wx-stat { display:flex;flex-direction:column;align-items:center;gap:3px;padding:0 3px; }
+.wx-stat+.wx-stat { border-left:1px solid rgba(255,255,255,.07); }
+.wx-stat-val { font-size:0.8rem;font-weight:700;color:white; }
+.wx-stat-lbl { font-size:0.47rem;font-weight:600;color:rgba(255,255,255,.35);text-transform:uppercase;letter-spacing:.05em; }
+.wx-bottom-pad { display:none; }
+
+.ai-night-card {
+  border-radius: var(--radius); overflow: hidden; position: relative;
+  background: linear-gradient(135deg,#0f172a 0%,#1e1b4b 55%,#1e3a5f 100%);
+  box-shadow: var(--shadow-lg); flex-shrink: 0; padding: 22px 18px 20px;
+}
+.ai-night-stars { position: absolute; inset: 0; pointer-events: none; overflow: hidden; }
+.ai-night-star {
+  position: absolute; border-radius: 50%; background: white;
+  animation: starTwinkleN ease-in-out infinite;
+}
+@keyframes starTwinkleN { 0%,100%{opacity:.1;transform:scale(.8)} 50%{opacity:.7;transform:scale(1.1)} }
+.ai-night-inner { position: relative; z-index: 2; display: flex; align-items: center; gap: 14px; }
+.ai-night-moon {
+  width: 52px; height: 52px; border-radius: 50%; flex-shrink: 0;
+  background: radial-gradient(circle at 30% 30%,#f8fafc,#e2e8f0 60%,#cbd5e1);
+  box-shadow: 0 0 0 2px rgba(226,232,240,.15), 0 0 20px rgba(148,163,184,.25), inset -6px -3px 0 rgba(100,116,139,.12);
+}
+.ai-night-text { flex: 1; }
+.ai-night-title { font-family:'Bricolage Grotesque',sans-serif; font-size:1rem; font-weight:800; color:white; margin-bottom:3px; }
+.ai-night-sub { font-size:0.73rem; color:rgba(255,255,255,.45); font-weight:500; line-height:1.4; }
+.ai-night-wake { margin-top:12px; display:inline-flex; align-items:center; gap:6px; background:rgba(255,255,255,.07); border:1px solid rgba(255,255,255,.12); border-radius:20px; padding:6px 13px; font-size:0.7rem; font-weight:700; color:rgba(255,255,255,.6); }
+.skel { background: var(--border); border-radius: 8px; animation: skelP2 1.2s ease-in-out infinite; display: block; }
+@keyframes skelP2 { 0%,100%{opacity:.4} 50%{opacity:.9} }
+@keyframes fadeUp { from{opacity:0;transform:translateY(14px)} to{opacity:1;transform:none} }
+.page > * { animation: fadeUp .4s cubic-bezier(.22,1,.36,1) both; }
+.page > *:nth-child(1){animation-delay:.04s}
+.page > *:nth-child(2){animation-delay:.09s}
+.page > *:nth-child(3){animation-delay:.14s}
+.page > *:nth-child(4){animation-delay:.19s}
+.page > *:nth-child(5){animation-delay:.24s}
+#toast { position:fixed;bottom:90px;left:50%;transform:translateX(-50%) translateY(16px);background:#0f0f10;color:white;padding:10px 18px;border-radius:20px;font-size:0.78rem;font-weight:700;opacity:0;transition:all .3s;pointer-events:none;white-space:nowrap;z-index:300; }
+
+/* ── SETTINGS ── */
+.settings-btn {
+  width: 32px; height: 32px; border-radius: 10px;
+  background: var(--card); border: 1.5px solid var(--border);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 1rem; cursor: pointer; flex-shrink: 0;
+  transition: all .15s; -webkit-tap-highlight-color: transparent;
+}
+.settings-btn:active { background: var(--blue-light); border-color: var(--blue); transform: rotate(30deg); }
+
+.settings-menu {
+  position: fixed; top: calc(var(--top-h) + 8px); right: 14px;
+  background: white; border: 1.5px solid var(--border);
+  border-radius: 16px; padding: 6px;
+  box-shadow: 0 8px 32px rgba(0,0,0,.14);
+  z-index: 150; min-width: 180px;
+  opacity: 0; pointer-events: none;
+  transform: scale(.92) translateY(-8px);
+  transform-origin: top right;
+  transition: all .18s cubic-bezier(.4,0,.2,1);
+}
+.settings-menu.open { opacity: 1; pointer-events: all; transform: scale(1) translateY(0); }
+.settings-item {
+  display: flex; align-items: center; gap: 10px;
+  padding: 10px 12px; border-radius: 10px;
+  font-size: 0.82rem; font-weight: 700; color: var(--ink);
+  cursor: pointer; transition: background .12s;
+  -webkit-tap-highlight-color: transparent;
+  text-decoration: none;
+}
+.settings-item:active { background: var(--blue-light); }
+.settings-item-icon { font-size: 1rem; width: 22px; text-align: center; flex-shrink: 0; }
+.settings-divider { height: 1px; background: var(--border); margin: 4px 0; }
+
+/* SOS PILL */
+.sos-pill {
+  width: 36px; height: 36px; border-radius: 50%;
+  background: linear-gradient(135deg, #dc2626, #ef4444);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 1rem; cursor: pointer;
+  box-shadow: 0 2px 10px rgba(220,38,38,.35);
+  -webkit-tap-highlight-color: transparent;
+  transition: transform .15s;
+}
+.sos-pill:active { transform: scale(.92); }
+
+/* SOS OVERLAY */
+.sos-overlay {
+  position: fixed; inset: 0; z-index: 500;
+  background: rgba(10,10,20,.6); backdrop-filter: blur(6px);
+  display: flex; align-items: flex-end; padding: 0 14px 20px;
+  opacity: 0; pointer-events: none; transition: opacity .25s;
+}
+.sos-overlay.open { opacity: 1; pointer-events: auto; }
+.sos-card {
+  background: white; border-radius: 24px; width: 100%; max-width: 480px;
+  padding: 20px 16px 16px; margin: 0 auto;
+  box-shadow: 0 -4px 40px rgba(0,0,0,.18);
+  transform: translateY(24px); transition: transform .3s cubic-bezier(.4,0,.2,1);
+}
+.sos-overlay.open .sos-card { transform: translateY(0); }
+.sos-title {
+  font-family: 'Bricolage Grotesque', sans-serif;
+  font-size: 1.05rem; font-weight: 800; color: #dc2626;
+  margin-bottom: 14px; display: flex; align-items: center; gap: 8px;
+}
+.sos-btn {
+  display: flex; align-items: center; gap: 12px;
+  width: 100%; padding: 14px 16px; margin-bottom: 8px;
+  background: #fef2f2; border: 1.5px solid #fecaca;
+  border-radius: 16px; cursor: pointer;
+  -webkit-tap-highlight-color: transparent; transition: all .15s;
+}
+.sos-btn:active { background: #fee2e2; transform: scale(.98); }
+.sos-btn-emoji { font-size: 1.4rem; flex-shrink: 0; }
+.sos-btn-text { font-size: .88rem; font-weight: 700; color: var(--ink); }
+.sos-btn-sub { font-size: .7rem; font-weight: 600; color: var(--muted); margin-top: 2px; }
+.sos-close {
+  width: 100%; padding: 13px; margin-top: 6px;
+  background: var(--ink); color: white; border: none; border-radius: 100px;
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  font-size: .88rem; font-weight: 700; cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+</style>
+</head>
+<body>
+
+<div class="mesh"><div class="blob blob1"></div><div class="blob blob2"></div></div>
+
+<!-- TOPBAR -->
+<div class="topbar">
+  <div class="logo-mark">
+    <svg width="18" height="18" viewBox="0 0 60 60" fill="none"><path d="M6 14C6 10.69 8.69 8 12 8H48C51.31 8 54 10.69 54 14V38C54 41.31 51.31 44 48 44H34L24 55V44H12C8.69 44 6 41.31 6 38V14Z" fill="white" fill-opacity=".2" stroke="white" stroke-opacity=".6" stroke-width="2"/><rect x="14" y="22" width="5" height="14" rx="2.5" fill="white" opacity=".9"/><rect x="23" y="16" width="5" height="20" rx="2.5" fill="white"/><rect x="32" y="19" width="5" height="17" rx="2.5" fill="white" opacity=".95"/><rect x="41" y="23" width="5" height="13" rx="2.5" fill="white" opacity=".85"/></svg>
+  </div>
+  <div class="logo-text">Parlia<span>.app</span> <span class="beta-badge">BETA</span></div>
+  <div class="meteo-pill" id="meteoPill" onclick="openMeteo()">
+    <div class="pill-icon" id="pillIcon">⏳</div>
+    <div class="pill-temp" id="pillTemp">—°</div>
+  </div>
+  <div class="settings-btn" onclick="toggleSettings()">⚙️</div>
+  <div class="sos-pill" onclick="openSOS()">🆘</div>
+</div>
+
+<!-- SOS OVERLAY -->
+<div class="sos-overlay" id="sosOverlay" onclick="closeSOS(event)">
+  <div class="sos-card">
+    <div class="sos-title">🆘 Emergencia</div>
+    <div class="sos-btn" onclick="speakSOS('¡Necesito ayuda!')">
+      <div class="sos-btn-emoji">🚨</div>
+      <div><div class="sos-btn-text">¡Necesito ayuda!</div><div class="sos-btn-sub">Pide asistencia inmediata</div></div>
+    </div>
+    <div class="sos-btn" onclick="speakSOS('Me encuentro mal')">
+      <div class="sos-btn-emoji">🤒</div>
+      <div><div class="sos-btn-text">Me encuentro mal</div><div class="sos-btn-sub">Avisa que no te sientes bien</div></div>
+    </div>
+    <div class="sos-btn" onclick="speakSOS('Tengo mucho dolor')">
+      <div class="sos-btn-emoji">😣</div>
+      <div><div class="sos-btn-text">Tengo mucho dolor</div><div class="sos-btn-sub">Indica que sientes dolor</div></div>
+    </div>
+    <div class="sos-btn" onclick="speakSOS('Llama a mi cuidador')">
+      <div class="sos-btn-emoji">📞</div>
+      <div><div class="sos-btn-text">Llama a mi cuidador</div><div class="sos-btn-sub">Contacta a tu persona de confianza</div></div>
+    </div>
+    <div class="sos-btn" onclick="speakSOS('No puedo respirar bien')">
+      <div class="sos-btn-emoji">😰</div>
+      <div><div class="sos-btn-text">No puedo respirar bien</div><div class="sos-btn-sub">Señala dificultad respiratoria</div></div>
+    </div>
+    <button class="sos-close" onclick="document.getElementById('sosOverlay').classList.remove('open')">Cerrar</button>
+  </div>
+</div>
+
+<!-- SETTINGS MENU -->
+<div class="settings-menu" id="settingsMenu">
+  <a class="settings-item" href="roadmap.html">
+    <div class="settings-item-icon">🛠️</div>
+    <div>Roadmap</div>
+  </a>
+  <div class="settings-divider"></div>
+  <a class="settings-item" href="profile.html">
+    <div class="settings-item-icon">👤</div>
+    <div>Editar perfil</div>
+  </a>
+  <div class="settings-divider"></div>
+  <div class="settings-item" onclick="closeSettings();toast('Próximamente…')">
+    <div class="settings-item-icon">🔔</div>
+    <div>Notificaciones</div>
+  </div>
+  <div class="settings-item" onclick="closeSettings();toast('Próximamente…')">
+    <div class="settings-item-icon">🌍</div>
+    <div>Idioma</div>
+  </div>
+  <div class="settings-divider"></div>
+  <a class="settings-item" href="tutorial.html">
+    <div class="settings-item-icon">🎓</div>
+    <div>Tutorial de la app</div>
+  </a>
+</div>
+
+<!-- PULL TO REFRESH -->
+<div class="ptr-indicator" id="ptrIndicator">
+  <span id="ptrIcon">↓</span>
+  <span id="ptrText">Desliza para actualizar</span>
+</div>
+
+<!-- SWIPE PAGES -->
+<div class="pages-wrap" id="pagesWrap">
+  <div class="pages-track" id="track">
+
+    <!-- ── PAGE 1: INICIO ── -->
+    <div class="page" id="page0">
+
+      <!-- Tutorial widget -->
+      <a href="tutorial.html" id="tutorialWidget" class="tutorial-widget" style="text-decoration:none;display:flex;align-items:center;gap:10px;padding:10px 14px;margin:0 0 12px;border-radius:14px;background:linear-gradient(135deg,#7c3aed,#6366f1);box-shadow:0 2px 12px rgba(99,102,241,.3);-webkit-tap-highlight-color:transparent;">
+        <span style="font-size:1.3rem;line-height:1;">🎓</span>
+        <span style="font-size:0.82rem;font-weight:700;color:white;flex:1;">Descubre Parlia.app</span>
+        <span style="font-size:0.75rem;font-weight:600;color:rgba(255,255,255,.7);">Ver tutorial →</span>
+      </a>
+
+      <!-- AI Hero con chat / notte -->
+      <div id="aiHeroWrap">
+        <!-- Viene generato da JS in base all'ora -->
+      </div>
+
+      <!-- Agenda -->
+      <div class="agenda-wrap">
+        <div class="agenda-hdr">
+          <div class="agenda-hdr-title">
+            <div class="agenda-dot"></div>
+            Agenda de hoy
+          </div>
+          <div style="font-size:0.65rem;font-weight:700;color:var(--blue);cursor:pointer;-webkit-tap-highlight-color:transparent" onclick="openReminderModal()">+ Recordatorio</div>
+        </div>
+        <div class="agenda-scroll" id="agendaScroll"></div>
+      </div>
+
+      <!-- Obiettivo -->
+      <div class="goal-card">
+        <div class="goal-badge">🎯 Objetivo de hoy</div>
+        <div id="goalBody">
+          <span class="skel" style="height:14px;width:85%;margin-bottom:6px"></span>
+          <span class="skel" style="height:12px;width:65%"></span>
+        </div>
+      </div>
+
+      <!-- Profilo -->
+      <div class="profile-card" onclick="goTo(3)">
+        <div class="profile-top">
+          <div class="profile-icon">👤</div>
+          <div style="flex:1">
+            <div class="profile-title" id="profileTitle">Perfil al 50%</div>
+            <div class="profile-sub" id="profileSub">Añade más info para personalizar la IA</div>
+          </div>
+          <div class="profile-btn" id="profileBtn">Completar →</div>
+        </div>
+        <div class="profile-bar-bg">
+          <div class="profile-bar" id="profileBar" style="width:50%"></div>
+        </div>
+      </div>
+
+    </div><!-- /page0 -->
+
+    <!-- ── PAGE 2: AAC ── -->
+    <div class="page" id="page1">
+
+      <div>
+        <div class="page-title">Comunicador AAC</div>
+        <div class="page-sub">Toca una frase para hablar</div>
+      </div>
+
+      <div class="aac-hero" id="aacHero">
+        <div class="aac-hero-bars">
+          <div class="aac-bar"></div><div class="aac-bar"></div>
+          <div class="aac-bar"></div><div class="aac-bar"></div>
+          <div class="aac-bar"></div>
+        </div>
+        <div style="flex:1">
+          <div class="aac-hero-label" id="aacLabel">Última frase</div>
+          <div class="aac-hero-frase empty" id="aacFrase">Toca un botón para hablar…</div>
+        </div>
+        <div class="aac-replay" onclick="replayLast()">🔊</div>
+      </div>
+
+      <!-- Categorie principali -->
+      <div class="cat-scroll" id="catScroll"></div>
+
+      <!-- Sottocategorie -->
+      <div class="subcat-scroll" id="subcatScroll"></div>
+
+      <!-- AI Suggerimenti -->
+      <div class="ai-sec-header">
+        <div class="ai-sec-label">Sugerencias IA</div>
+        <div class="ai-sec-tag">✨ AI</div>
+      </div>
+      <div class="ai-suggestions" id="aiSuggestions">
+        <div class="ai-loading-row">
+          <div class="ai-loading-dots"><span></span><span></span><span></span></div>
+          <div class="ai-loading-txt">Generando…</div>
+        </div>
+      </div>
+
+      <!-- Frasi rapide -->
+      <div class="frases-section-label">Frases rápidas</div>
+      <div class="frases-grid" id="frasiGrid"></div>
+
+    </div><!-- /page1 -->
+
+    <!-- ── PAGE 3: REHAB ── -->
+    <div class="page" id="page2">
+
+      <div>
+        <div class="page-title">Rehabilitación</div>
+        <div class="page-sub">Tus herramientas de terapia</div>
+      </div>
+
+      <div class="rehab-card" onclick="toast('Abriendo Logopedia…')">
+        <div class="rehab-icon" style="background:#fdf4ff">🗣️</div>
+        <div class="rehab-body">
+          <div class="rehab-name" style="color:#7e22ce">Logopedia</div>
+          <div class="rehab-sub">Ejercicios de voz y comunicación con tu logopeda virtual</div>
+        </div>
+        <div class="rehab-arrow">→</div>
+      </div>
+
+      <div class="rehab-card" onclick="toast('Abriendo Estimulación…')">
+        <div class="rehab-icon" style="background:#f5f3ff">🧠</div>
+        <div class="rehab-body">
+          <div class="rehab-name" style="color:#6d28d9">Estimulación cognitiva</div>
+          <div class="rehab-sub">Juegos de memoria, atención y lógica adaptados a ti</div>
+        </div>
+        <div class="rehab-arrow">→</div>
+      </div>
+
+      <div class="rehab-card" onclick="toast('Abriendo Progresos…')">
+        <div class="rehab-icon" style="background:#f0fdfa">📊</div>
+        <div class="rehab-body">
+          <div class="rehab-name" style="color:#0d9488">Mis progresos</div>
+          <div class="rehab-sub">Historial de sesiones, rachas y logros conseguidos</div>
+        </div>
+        <div class="rehab-arrow">→</div>
+      </div>
+
+      <div class="next-session-card">
+        <div class="next-session-label">📅 Próxima sesión</div>
+        <div class="next-session-val" id="nextSession">Cargando…</div>
+      </div>
+
+    </div><!-- /page2 -->
+
+    <!-- ── PAGE 4: YO ── -->
+    <div class="page" id="page3">
+
+      <div class="yo-header">
+        <div class="yo-avatar" id="yoAvatar">M</div>
+        <div>
+          <div class="yo-name-lbl" id="yoName">María</div>
+          <div class="yo-sub-lbl">Institut Guttmann · Barcelona</div>
+        </div>
+      </div>
+
+      <div class="progress-wrap">
+        <div class="progress-header">
+          <span>Perfil completado</span>
+          <span id="yoProgressPct" style="color:var(--blue)">50%</span>
+        </div>
+        <div class="progress-bar-bg">
+          <div class="progress-bar" id="yoProgressBar" style="width:50%"></div>
+        </div>
+      </div>
+
+      <!-- Resumen visual (solo lectura) -->
+      <div class="yo-summary">
+        <div class="yo-info">
+          <div class="yo-info-icon">👤</div>
+          <div class="yo-info-label">Datos personales</div>
+          <div class="yo-info-value" id="yoPersonal">—</div>
+        </div>
+        <div class="yo-info">
+          <div class="yo-info-icon">🏥</div>
+          <div class="yo-info-label">Condición</div>
+          <div class="yo-info-value" id="yoCondicion">—</div>
+        </div>
+        <div class="yo-info">
+          <div class="yo-info-icon">🤝</div>
+          <div class="yo-info-label">Cuidador principal</div>
+          <div class="yo-info-value" id="yoCuidador">—</div>
+        </div>
+        <div class="yo-info">
+          <div class="yo-info-icon">🧠</div>
+          <div class="yo-info-label">Memoria AI</div>
+          <div class="yo-info-value" id="yoMemoria">—</div>
+        </div>
+        <div class="yo-info">
+          <div class="yo-info-icon">⚙️</div>
+          <div class="yo-info-label">Funciones activas</div>
+          <div class="yo-info-value" id="yoFunciones">—</div>
+        </div>
+      </div>
+
+      <!-- CTA unico para editar -->
+      <button class="yo-cta" onclick="window.location.href='profile.html'" style="margin-top:4px">
+        <div class="yo-cta-icon">✏️</div>
+        <div style="flex:1;text-align:left">
+          <div class="yo-cta-label">Editar mi perfil</div>
+          <div class="yo-cta-sub">Datos personales + memoria AI</div>
+        </div>
+        <div class="yo-cta-arrow">›</div>
+      </button>
+
+      <div class="yo-row" onclick="window.location.href='tutorial.html'" style="margin-top:4px">
+          <div class="yo-row-icon">🎓</div>
+          <div class="yo-row-label">Tutorial de la app</div>
+          <div class="yo-row-arrow">›</div>
+        </div>
+
+    </div><!-- /page3 -->
+
+  </div><!-- /track -->
+</div><!-- /pages-wrap -->
+
+<!-- NAV -->
+<div class="nav">
+  <div class="nav-item active" id="nav0" onclick="goTo(0)">
+    <div class="nav-icon">🏠</div>
+    <div class="nav-lbl">Inicio</div>
+  </div>
+  <div class="nav-item" id="nav1" onclick="goTo(1)">
+    <div class="nav-icon">🗣️</div>
+    <div class="nav-lbl">AAC</div>
+  </div>
+  <div class="nav-item" id="nav2" onclick="goTo(2)">
+    <div class="nav-icon">🧠</div>
+    <div class="nav-lbl">Rehab</div>
+  </div>
+  <div class="nav-item" id="nav3" onclick="goTo(3)">
+    <div class="nav-icon">👤</div>
+    <div class="nav-lbl">Perfil</div>
+  </div>
+  <div class="nav-copyright">© 2026 Parlia.app</div>
+</div>
+
+<!-- DOT INDICATORI -->
+<div class="nav-dots">
+  <div class="nav-dot active" id="dot0"></div>
+  <div class="nav-dot" id="dot1"></div>
+  <div class="nav-dot" id="dot2"></div>
+  <div class="nav-dot" id="dot3"></div>
+</div>
+
+<!-- SWIPE HINT -->
+<div class="swipe-hint" id="swipeHint">
+  <span>Desliza para navegar</span>
+  <div class="swipe-arrows">››</div>
+</div>
+
+<!-- METEO POPUP -->
+<div class="meteo-overlay" id="meteoOverlay" onclick="closeMeteo(event)">
+  <div class="meteo-popup" id="meteoPopup">
+    <div class="wx-sky" id="wxSky">
+      <canvas id="wxCanvas" style="position:absolute;inset:0;width:100%;height:100%;display:block;"></canvas>
+      <div class="wx-rain-layer" id="wxRain"></div>
+      <div class="wx-snow-layer" id="wxSnow"></div>
+      <div id="wxLightning" style="position:absolute;display:none;top:16px;left:44%;transform:translateX(-50%);filter:drop-shadow(0 0 12px #fde047) drop-shadow(0 0 4px #fff);animation:lightningFlash 4.5s ease-in-out infinite;pointer-events:none;">
+        <svg width="22" height="44" viewBox="0 0 22 44" fill="none"><path d="M13 2L3 24h8l-2 18L20 18h-8L13 2z" fill="#fde047" stroke="#fbbf24" stroke-width="1"/></svg>
+      </div>
+    </div>
+    <div class="wx-body">
+      <div class="wx-top-row">
+        <div class="wx-temp-big" id="wxTempBig">—<sup>°</sup></div>
+        <div class="wx-right">
+          <div class="wx-desc-lbl" id="wxDescLbl">—</div>
+          <div class="wx-feel-lbl" id="wxFeelLbl">Sensación —°C</div>
+        </div>
+      </div>
+      <div class="wx-tip" id="wxTip"></div>
+      <div class="wx-loc-row" id="wxLocRow">
+        <svg width="9" height="12" viewBox="0 0 10 13" fill="none"><path d="M5 0C2.24 0 0 2.24 0 5c0 3.75 5 8 5 8s5-4.25 5-8c0-2.76-2.24-5-5-5zm0 6.5C4.17 6.5 3.5 5.83 3.5 5S4.17 3.5 5 3.5 6.5 4.17 6.5 5 5.83 6.5 5 6.5z" fill="currentColor"/></svg>
+        Detectando…
+      </div>
+      <div class="wx-divider"></div>
+      <div class="wx-stats-grid">
+        <div class="wx-stat">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,.5)" stroke-width="2"><path d="M12 2a7 7 0 017 7c0 5.25-7 13-7 13S5 14.25 5 9a7 7 0 017-7z"/><circle cx="12" cy="9" r="2.5"/></svg>
+          <div class="wx-stat-val" id="wxHumVal">—%</div>
+          <div class="wx-stat-lbl">Humedad</div>
+        </div>
+        <div class="wx-stat">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,.5)" stroke-width="2"><path d="M9.59 4.59A2 2 0 1111 8H2m10.59 11.41A2 2 0 1014 16H2m15.73-8.27A2.5 2.5 0 1119.5 12H2"/></svg>
+          <div class="wx-stat-val" id="wxWindVal">—</div>
+          <div class="wx-stat-lbl">Viento</div>
+        </div>
+        <div class="wx-stat">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,.5)" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 8v4l3 3"/></svg>
+          <div class="wx-stat-val" id="wxVisVal">—</div>
+          <div class="wx-stat-lbl">Visib.</div>
+        </div>
+        <div class="wx-stat">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,.5)" stroke-width="2"><path d="M18 10h-1.26A8 8 0 109 20h9a5 5 0 000-10z"/></svg>
+          <div class="wx-stat-val" id="wxCloudVal">—%</div>
+          <div class="wx-stat-lbl">Nubes</div>
+        </div>
+      </div>
+    </div>
+    <div class="wx-bottom-pad"></div>
+  </div>
+</div>
+
+<!-- MODAL PROMEMORIA -->
+<div class="reminder-overlay" id="reminderOverlay" onclick="closeReminderOutside(event)">
+  <div class="reminder-modal">
+    <div class="reminder-handle"></div>
+    <div class="reminder-title">📌 Recordatorios</div>
+    <div class="reminder-list" id="reminderList"></div>
+    <input class="reminder-field" id="reminderLabel" placeholder="Nombre del recordatorio…" maxlength="60">
+    <div class="reminder-row">
+      <input class="reminder-time" id="reminderTime" type="time" value="09:00">
+    </div>
+    <button class="reminder-save" onclick="saveReminder()">Añadir recordatorio →</button>
+  </div>
+</div>
+
+<div id="toast"></div>
+
+<script src="userData.js"></script>
+<script>
+// Disabilita lo scroll-restoration del browser (iOS/Safari può ripristinare posizioni stale)
+if ('scrollRestoration' in history) try { history.scrollRestoration = 'manual'; } catch(e){}
+
+const PROXY = 'https://voci-ai-proxy.luca-peltrini.workers.dev/v1/messages';
+
+// ── UNIFIED USER DATA ──
+const _ud = ParliaUser.get();
+const profile = {
+  userName: _ud.personal.userName || 'María',
+  caregiverName: _ud.personal.caregiverName || 'Carlos',
+  condicion: (_ud.personal.condicion && _ud.personal.condicion[0]) || ''
+};
+
+// ── LEGACY _mem VIEW (backed by _ud) ──
+// Kept for backward-compat with existing home.html code that reads/writes _mem.
+// Mutations flow into _ud and are persisted via _saveMemory().
+const _mem = {
+  user_profile: _ud.memory,
+  interaction_stats: {
+    get opens()         { return _ud.stats.opens; },
+    set opens(v)        { _ud.stats.opens = v; },
+    get last_open()     { return _ud.stats.last_open; },
+    set last_open(v)    { _ud.stats.last_open = v; },
+    get favorite_hours(){ return _ud.stats.favorite_hours; }
+  },
+  mood_log: {
+    get last_mood()       { return _ud.stats.last_mood; },
+    set last_mood(v)      { _ud.stats.last_mood = v; },
+    get last_mood_date()  { return _ud.stats.last_mood_date; },
+    set last_mood_date(v) { _ud.stats.last_mood_date = v; }
+  }
+};
+// Track this visit
+_mem.interaction_stats.opens = _mem.interaction_stats.opens + 1;
+_mem.interaction_stats.last_open = new Date().toISOString();
+const hArr = _mem.interaction_stats.favorite_hours;
+hArr.push(new Date().getHours());
+if(hArr.length>30) hArr.splice(0,hArr.length-30);
+function _saveMemory(){ ParliaUser.save(_ud); }
+_saveMemory();
+
+// ── SETTINGS ──
+// SOS
+function openSOS(){ document.getElementById('sosOverlay').classList.add('open'); }
+function closeSOS(e){ if(e.target===document.getElementById('sosOverlay')) document.getElementById('sosOverlay').classList.remove('open'); }
+function speakSOS(text){
+  speechSynthesis.cancel();
+  const u=new SpeechSynthesisUtterance(text);
+  u.lang='es-ES'; u.rate=0.85; u.pitch=1.05; u.volume=1;
+  const vs=speechSynthesis.getVoices();
+  const v=vs.find(v=>v.name.includes('Lucía')||v.name.includes('Lucia')||(v.lang==='es-ES'&&v.localService))||vs.find(v=>v.lang==='es-ES');
+  if(v) u.voice=v;
+  speechSynthesis.speak(u);
+}
+
+function toggleSettings() {
+  const m = document.getElementById('settingsMenu');
+  m.classList.toggle('open');
+  if (m.classList.contains('open')) {
+    setTimeout(() => document.addEventListener('click', _closeSettingsOutside), 10);
+  }
+}
+function closeSettings() {
+  document.getElementById('settingsMenu').classList.remove('open');
+  document.removeEventListener('click', _closeSettingsOutside);
+}
+function _closeSettingsOutside(e) {
+  const menu = document.getElementById('settingsMenu');
+  const btn = document.querySelector('.settings-btn');
+  if (!menu.contains(e.target) && !btn.contains(e.target)) closeSettings();
+}
+
+// ── CAROUSEL (scroll nativo con scroll-snap — come profile.html) ──
+// Nessun calcolo di transform, nessun touchhandler custom. Il browser gestisce tutto.
+let curPage = 0;
+const wrap = document.getElementById('pagesWrap');
+const track = document.getElementById('track'); // mantenuto per retrocompat di altri selettori
+
+function _pageWidth(){ return wrap.clientWidth || window.innerWidth; }
+
+function goTo(idx){
+  curPage = idx;
+  wrap.scrollTo({ left: idx * _pageWidth(), behavior: 'smooth' });
+  document.querySelectorAll('.nav-item').forEach((el,i) => el.classList.toggle('active', i===idx));
+  document.querySelectorAll('.nav-dot').forEach((d,i) => d.classList.toggle('active', i===idx));
+  hideHint();
+}
+
+// Aggiorna curPage + nav attivi quando l'utente fa swipe manuale (senza chiamare goTo)
+let _scrollRaf = null;
+wrap.addEventListener('scroll', () => {
+  if (_scrollRaf) return;
+  _scrollRaf = requestAnimationFrame(() => {
+    _scrollRaf = null;
+    const w = _pageWidth();
+    const idx = Math.round(wrap.scrollLeft / w);
+    if (idx !== curPage && idx >= 0 && idx <= 3) {
+      curPage = idx;
+      document.querySelectorAll('.nav-item').forEach((el,i) => el.classList.toggle('active', i===idx));
+      document.querySelectorAll('.nav-dot').forEach((d,i) => d.classList.toggle('active', i===idx));
+      hideHint();
+    }
+  });
+});
+
+// Se si fa swipe oltre page 0, torna all'onboarding (comportamento pre-esistente)
+let _overscrollCheck = null;
+wrap.addEventListener('touchend', () => {
+  clearTimeout(_overscrollCheck);
+  _overscrollCheck = setTimeout(() => {
+    if (curPage === 0 && wrap.scrollLeft < -40) history.back();
+  }, 80);
+}, {passive:true});
+
+// Riallineo il carosello alla pagina corrente su resize/rotazione
+window.addEventListener('resize', () => {
+  wrap.scrollTo({ left: curPage * _pageWidth(), behavior: 'auto' });
+});
+
+// Al ritorno (bfcache, visibility, pageshow) risincronizza senza animazione
+function _resyncCarousel(){
+  wrap.scrollTo({ left: curPage * _pageWidth(), behavior: 'auto' });
+}
+window.addEventListener('pageshow', _resyncCarousel);
+document.addEventListener('visibilitychange', () => { if(!document.hidden) _resyncCarousel(); });
+
+// ── PULL TO REFRESH ──
+let ptrStartY = 0, ptrActive = false, ptrTriggered = false;
+const ptrEl = document.getElementById('ptrIndicator');
+const ptrIcon = document.getElementById('ptrIcon');
+const ptrText = document.getElementById('ptrText');
+const PTR_THRESHOLD = 72;
+
+document.addEventListener('touchstart', e => {
+  // Solo sulla prima pagina, solo se siamo in cima
+  if (curPage !== 0) return;
+  const page = document.getElementById('page0');
+  if (page.scrollTop > 0) return;
+  ptrStartY = e.touches[0].clientY;
+  ptrActive = true; ptrTriggered = false;
+}, {passive: true});
+
+document.addEventListener('touchmove', e => {
+  if (!ptrActive) return;
+  const dy = e.touches[0].clientY - ptrStartY;
+  if (dy <= 0) { ptrActive = false; ptrEl.style.transform=''; ptrEl.classList.remove('visible','releasing'); return; }
+  const pull = Math.min(dy, PTR_THRESHOLD * 1.5);
+  const ratio = Math.min(pull / PTR_THRESHOLD, 1);
+  ptrEl.style.transform = `translateX(-50%) translateY(${-48 + pull * 0.7}px)`;
+  ptrEl.classList.toggle('visible', pull > 20);
+  ptrEl.classList.toggle('releasing', pull >= PTR_THRESHOLD);
+  ptrIcon.textContent = pull >= PTR_THRESHOLD ? '↻' : '↓';
+  ptrText.textContent = pull >= PTR_THRESHOLD ? 'Suelta para actualizar' : 'Desliza para actualizar';
+  ptrTriggered = pull >= PTR_THRESHOLD;
+}, {passive: true});
+
+document.addEventListener('touchend', () => {
+  if (!ptrActive) return;
+  ptrActive = false;
+  ptrEl.style.transform = '';
+  ptrEl.classList.remove('visible', 'releasing');
+  if (ptrTriggered) {
+    ptrIcon.innerHTML = '<span class="ptr-spin">↻</span>';
+    ptrText.textContent = 'Actualizando…';
+    ptrEl.style.transform = 'translateX(-50%) translateY(0px)';
+    ptrEl.classList.add('visible');
+    setTimeout(() => { window.location.reload(); }, 600);
+  }
+}, {passive: true});
+function showHint() {
+  if (localStorage.getItem('parlia_swiped')) return;
+  const hint = document.getElementById('swipeHint');
+  setTimeout(() => hint.classList.add('show'), 1400);
+  setTimeout(() => hint.classList.remove('show'), 5500);
+}
+function hideHint() {
+  document.getElementById('swipeHint').classList.remove('show');
+  localStorage.setItem('parlia_swiped','1');
+}
+
+// ── PROFILO ──
+function initProfile() {
+  const ud = ParliaUser.get();
+  const p = ud.personal, mem = ud.memory, fn = ud.functions;
+  const n = p.userName || 'María';
+  const setVal = (id, val, emptyHint) => {
+    const el = document.getElementById(id);
+    el.textContent = val || emptyHint;
+    el.classList.toggle('empty', !val);
+  };
+  document.getElementById('yoAvatar').textContent = n.charAt(0).toUpperCase();
+  document.getElementById('yoName').textContent = n;
+  setVal('yoPersonal', n, '—');
+  setVal('yoCuidador', p.caregiverName, 'Sin definir');
+  const cond = p.condicion && p.condicion.length ? p.condicion.join(', ') : '';
+  setVal('yoCondicion', cond, 'Sin definir');
+  // Memoria AI: conteggio campi valorizzati
+  const memFields = [mem.hobbies.length, mem.musica, mem.comida, mem.interests.length, mem.family.length, mem.profession, mem.birthplace, mem.notas];
+  const memDone = memFields.filter(v => v && (typeof v !== 'number' || v > 0)).length;
+  setVal('yoMemoria', memDone ? `${memDone} de ${memFields.length} campos` : '', 'Sin personalizar');
+  // Funciones activas (solo quelle ON)
+  const labelsFn = {aac:'AAC', chat:'Chat', logo:'Logo', neuro:'Neuro', gps:'GPS', mood:'Ánimo'};
+  const on = Object.keys(fn).filter(k => fn[k]).map(k => labelsFn[k]).filter(Boolean);
+  setVal('yoFunciones', on.length ? on.join(' · ') : '', 'Ninguna');
+  updateProgress();
+}
+
+function updateProgress() {
+  const c = ParliaUser.count(ParliaUser.get());
+  const pct = c.pct;
+  document.getElementById('profileBar').style.width = pct+'%';
+  document.getElementById('yoProgressBar').style.width = pct+'%';
+  document.getElementById('yoProgressPct').textContent = pct+'%';
+  if (pct >= 100) {
+    document.getElementById('profileTitle').textContent = '¡Perfil completo! 🎉';
+    document.getElementById('profileSub').textContent = 'La IA conoce bien tus necesidades';
+    document.getElementById('profileBtn').textContent = 'Ver →';
+  } else {
+    document.getElementById('profileTitle').textContent = `Perfil al ${pct}%`;
+  }
+}
+
+// ── AGENDA ──
+// Sessioni solo per giorni feriali (lun-ven)
+const SESSIONS = [
+  {time:'09:00',end:9*60+30,  label:'Fisioterapia',       sub:'Gimnasio Guttmann', tag:'Rehab',  tagBg:'#f0fdfa',tagColor:'#0d9488'},
+  {time:'11:00',end:11*60+30, label:'Terapia ocupacional',sub:'Sala 3 · planta 2', tag:'Terapia',tagBg:'#f5f3ff',tagColor:'#7c3aed'},
+  {time:'13:00',end:13*60+30, label:'Logopedia',          sub:'Dra. Martínez',     tag:'Voz',    tagBg:'#eff6ff',tagColor:'#2563eb'},
+  {time:'13:30',end:14*60,    label:'Bicicleta estática', sub:'Sala ejercicios',   tag:'Cardio', tagBg:'#fff7ed',tagColor:'#ea580c'},
+  {time:'17:00',end:17*60+30, label:'Estimulación',       sub:'Con Parlia AI',     tag:'IA',     tagBg:'#f5f3ff',tagColor:'#6366f1'},
+];
+
+const REMINDER_KEY = 'parlia_reminders';
+
+function getReminders() {
+  return JSON.parse(localStorage.getItem(REMINDER_KEY) || '[]');
+}
+function saveReminders(arr) {
+  localStorage.setItem(REMINDER_KEY, JSON.stringify(arr));
+}
+
+function buildAgenda() {
+  const now = new Date();
+  const cur = now.getHours()*60 + now.getMinutes();
+  const dow = now.getDay(); // 0=dom, 6=sab
+  const isWeekend = dow === 0 || dow === 6;
+  const isNight = _IS_NIGHT;
+  const scroll = document.getElementById('agendaScroll');
+
+  // Promemoria personali — sempre visibili
+  const reminders = getReminders().map(r => {
+    const [rh,rm] = r.time.split(':').map(Number);
+    const rMin = rh*60+rm;
+    const isDone = cur > rMin+10;
+    const isNow = cur >= rMin && cur <= rMin+10;
+    return `<div class="agenda-card reminder${isDone?' done':''}">
+      <div class="ac-time">${r.time}${isNow?'<span class="ac-now-badge">AHORA</span>':''}</div>
+      <div class="ac-label"${isDone?' style="color:#9ca3af;text-decoration:line-through"':''}>${r.label}</div>
+      <div class="ac-sub">Recordatorio</div>
+      <div class="ac-tag" style="background:#fefce8;color:#92400e">📌</div>
+    </div>`;
+  }).join('');
+
+  if (isNight) {
+    scroll.innerHTML = `
+      <div class="agenda-sleep">
+        <div class="agenda-sleep-icon">🌙</div>
+        <div>
+          <div class="agenda-sleep-title">Agenda en pausa</div>
+          <div class="agenda-sleep-text">Los compromisos se reanudan a las 6:00</div>
+        </div>
+      </div>
+      ${reminders}`;
+    document.getElementById('nextSession').textContent = 'Agenda activa a partir de las 6:00';
+    return;
+  }
+
+  if (isWeekend) {
+    const dayName = dow === 6 ? 'sábado' : 'domingo';
+    scroll.innerHTML = `
+      <div class="agenda-sleep">
+        <div class="agenda-sleep-icon">${dow===6?'🎉':'☀️'}</div>
+        <div>
+          <div class="agenda-sleep-title">¡${dow===6?'Sábado':'Domingo'} libre!</div>
+          <div class="agenda-sleep-text">Sin compromisos programados hoy</div>
+        </div>
+      </div>
+      ${reminders}`;
+    document.getElementById('nextSession').textContent = `Descanso el ${dayName} 🌿`;
+    return;
+  }
+
+  // Giorno feriale normale
+  const sessionCards = SESSIONS.map(s => {
+    const [sh,sm] = s.time.split(':').map(Number);
+    const start = sh*60+sm;
+    const isDone = cur > s.end, isNow = cur>=start && cur<=s.end;
+    return `<div class="agenda-card${isDone?' done':isNow?' now':''}">
+      <div class="ac-time">${s.time}${isNow?'<span class="ac-now-badge">AHORA</span>':''}</div>
+      <div class="ac-label"${isDone?' style="color:#9ca3af;text-decoration:line-through"':''}>${s.label}</div>
+      <div class="ac-sub">${s.sub}</div>
+      <div class="ac-tag" style="background:${s.tagBg};color:${s.tagColor}">${s.tag}</div>
+    </div>`;
+  }).join('');
+
+  scroll.innerHTML = sessionCards + reminders;
+
+  const idx = SESSIONS.findIndex(s => { const[sh,sm]=s.time.split(':').map(Number); return cur<=s.end; });
+  if (idx>0) setTimeout(() => {
+    const cards = document.querySelectorAll('.agenda-card');
+    if (cards[idx]) cards[idx].scrollIntoView({behavior:'smooth',inline:'center',block:'nearest'});
+  }, 600);
+
+  const next = SESSIONS.find(s => { const[sh,sm]=s.time.split(':').map(Number); return cur<sh*60+sm; });
+  document.getElementById('nextSession').textContent = next
+    ? `${next.label} a las ${next.time} · ${next.sub}`
+    : 'Todas las sesiones completadas 🎉';
+}
+
+// ── PROMEMORIA ──
+function openReminderModal() {
+  renderReminderList();
+  document.getElementById('reminderOverlay').classList.add('open');
+  setTimeout(() => document.getElementById('reminderLabel').focus(), 400);
+}
+function closeReminderModal() {
+  document.getElementById('reminderOverlay').classList.remove('open');
+}
+function closeReminderOutside(e) {
+  if (e.target === document.getElementById('reminderOverlay')) closeReminderModal();
+}
+function renderReminderList() {
+  const reminders = getReminders();
+  const el = document.getElementById('reminderList');
+  if (reminders.length === 0) { el.innerHTML = ''; return; }
+  el.innerHTML = reminders.map((r,i) => `
+    <div class="reminder-item">
+      <div class="reminder-item-time">⏰ ${r.time}</div>
+      <div class="reminder-item-label">${r.label}</div>
+      <div class="reminder-item-del" onclick="deleteReminder(${i})">✕</div>
+    </div>`).join('');
+}
+function saveReminder() {
+  const label = document.getElementById('reminderLabel').value.trim();
+  const time = document.getElementById('reminderTime').value;
+  if (!label) { document.getElementById('reminderLabel').focus(); return; }
+  const reminders = getReminders();
+  reminders.push({label, time});
+  reminders.sort((a,b) => a.time.localeCompare(b.time));
+  saveReminders(reminders);
+  document.getElementById('reminderLabel').value = '';
+  renderReminderList();
+  buildAgenda();
+  toast('Recordatorio añadido 📌');
+}
+function deleteReminder(idx) {
+  const reminders = getReminders();
+  reminders.splice(idx, 1);
+  saveReminders(reminders);
+  renderReminderList();
+  buildAgenda();
+}
+
+// ── AAC ──
+const CAT_COLORS = {
+  necesidades: { bg:'#dbeafe', faint:'#eff6ff', text:'#1d4ed8', accent:'#2563eb', border:'#93c5fd', chip:'#2563eb' },
+  emociones:   { bg:'#ccfbf1', faint:'#f0fdfa', text:'#0f766e', accent:'#0d9488', border:'#5eead4', chip:'#0d9488' },
+  social:      { bg:'#ede9fe', faint:'#f5f3ff', text:'#6d28d9', accent:'#7c3aed', border:'#c4b5fd', chip:'#7c3aed' },
+  actividades: { bg:'#ffedd5', faint:'#fff7ed', text:'#c2410c', accent:'#ea580c', border:'#fdba74', chip:'#ea580c' },
+  lugares:     { bg:'#dcfce7', faint:'#f0fdf4', text:'#15803d', accent:'#16a34a', border:'#86efac', chip:'#16a34a' },
+  urgencias:   { bg:'#fee2e2', faint:'#fef2f2', text:'#b91c1c', accent:'#dc2626', border:'#fca5a5', chip:'#dc2626' },
+};
+
+function _catColors() { return CAT_COLORS[curCat.id] || CAT_COLORS.necesidades; }
+
+const CATS = [
+  { id:'necesidades', label:'Necesidades', emoji:'🙋', subcats:[
+    { id:'basicas', label:'Básicas', frasi:[
+      {e:'💧',t:'Tengo sed'},{e:'🍽️',t:'Tengo hambre'},{e:'🚽',t:'Necesito el baño'},
+      {e:'😴',t:'Estoy cansada'},{e:'🥶',t:'Tengo frío'},{e:'🥵',t:'Tengo calor'},
+      {e:'😣',t:'Me duele algo'},{e:'🙏',t:'Necesito ayuda'}
+    ]},
+    { id:'dolor', label:'Dolor', frasi:[
+      {e:'🤕',t:'Me duele la cabeza'},{e:'🤢',t:'Me duele el estómago'},
+      {e:'😣',t:'Me duele la espalda'},{e:'🔥',t:'Tengo mucho dolor'},
+      {e:'💊',t:'Necesito medicación'},{e:'🚑',t:'Llama al médico'}
+    ]},
+    { id:'descanso', label:'Descanso', frasi:[
+      {e:'😴',t:'Quiero descansar'},{e:'🛏️',t:'Quiero dormir'},
+      {e:'💡',t:'Apaga la luz'},{e:'🤫',t:'Necesito silencio'},
+      {e:'🎵',t:'Pon música suave'},{e:'🌙',t:'Estoy muy cansada'}
+    ]},
+  ]},
+  { id:'emociones', label:'Emociones', emoji:'😊', subcats:[
+    { id:'positivas', label:'Positivas', frasi:[
+      {e:'😊',t:'Estoy bien'},{e:'😄',t:'Me siento feliz'},
+      {e:'💪',t:'Me siento fuerte'},{e:'😌',t:'Estoy tranquila'},
+      {e:'✅',t:'Ha ido bien'},{e:'❤️',t:'Gracias por estar aquí'}
+    ]},
+    { id:'dificiles', label:'Difíciles', frasi:[
+      {e:'😔',t:'Estoy triste'},{e:'😟',t:'Me siento sola'},
+      {e:'😤',t:'Estoy frustrada'},{e:'😰',t:'Estoy nerviosa'},
+      {e:'😨',t:'Me da miedo'},{e:'🤗',t:'Necesito un abrazo'}
+    ]},
+    { id:'rehab_emo', label:'Rehabilitación', frasi:[
+      {e:'💪',t:'Me siento motivada'},{e:'🏆',t:'Lo he conseguido'},
+      {e:'😤',t:'Ha sido muy duro'},{e:'🌱',t:'Quiero seguir mejorando'},
+      {e:'😮‍💨',t:'Necesito un descanso'},{e:'🎯',t:'Estoy lista para empezar'}
+    ]},
+  ]},
+  { id:'social', label:'Social', emoji:'💬', subcats:[
+    { id:'saludos', label:'Saludos', frasi:[
+      {e:'👋',t:'Hola'},{e:'☀️',t:'Buenos días'},
+      {e:'🌆',t:'Buenas tardes'},{e:'🌙',t:'Buenas noches'},
+      {e:'👉',t:'¿Cómo estás?'},{e:'🤝',t:'Hasta luego'}
+    ]},
+    { id:'peticiones', label:'Peticiones', frasi:[
+      {e:'🙏',t:'Por favor'},{e:'💙',t:'Gracias'},
+      {e:'🔄',t:'¿Puedes repetirlo?'},{e:'🐢',t:'Habla más despacio'},
+      {e:'✅',t:'Sí'},{e:'❌',t:'No'}
+    ]},
+    { id:'familia', label:'Familia', frasi:[
+      {e:'📞',t:'Quiero llamar a mi familia'},{e:'❓',t:'¿Ha llamado alguien?'},
+      {e:'💛',t:'Echo de menos a mi familia'},{e:'🗓️',t:'¿Cuándo viene a verme?'},
+      {e:'❤️',t:'Dile que te quiero'},{e:'📱',t:'Quiero escribirle'}
+    ]},
+  ]},
+  { id:'actividades', label:'Actividades', emoji:'🎯', subcats:[
+    { id:'rehab_act', label:'Rehabilitación', frasi:[
+      {e:'🏋️',t:'Quiero hacer fisioterapia'},{e:'📅',t:'¿Cuándo es mi sesión?'},
+      {e:'✅',t:'Estoy lista para empezar'},{e:'😮‍💨',t:'Necesito un descanso'},
+      {e:'👏',t:'Ha ido bien la sesión'},{e:'😓',t:'Me ha costado mucho'}
+    ]},
+    { id:'ocio', label:'Ocio', frasi:[
+      {e:'🎵',t:'Quiero escuchar música'},{e:'📺',t:'¿Ponemos la tele?'},
+      {e:'📖',t:'Quiero leer'},{e:'🚶',t:'Quiero salir a pasear'},
+      {e:'🎮',t:'¿Jugamos a algo?'},{e:'📱',t:'Quiero usar el teléfono'}
+    ]},
+    { id:'comida', label:'Comida', frasi:[
+      {e:'🍽️',t:'Tengo hambre'},{e:'💧',t:'Quiero agua'},
+      {e:'😋',t:'Está muy bueno'},{e:'🤢',t:'No me gusta'},
+      {e:'❓',t:'¿Qué hay de comer?'},{e:'🙏',t:'Quiero más por favor'}
+    ]},
+  ]},
+  { id:'lugares', label:'Lugares', emoji:'📍', subcats:[
+    { id:'hospital', label:'Hospital', frasi:[
+      {e:'👨‍⚕️',t:'Quiero ver al médico'},{e:'💊',t:'Necesito la medicación'},
+      {e:'🛏️',t:'Quiero ir a mi habitación'},{e:'🚶',t:'Quiero ir a fisioterapia'},
+      {e:'📋',t:'¿Qué dice el informe?'},{e:'🔔',t:'Llama a la enfermera'}
+    ]},
+    { id:'tienda', label:'Tienda', frasi:[
+      {e:'🛒',t:'Quiero ir a la tienda'},{e:'💰',t:'¿Cuánto cuesta?'},
+      {e:'🔍',t:'Busco esto'},{e:'🧾',t:'¿Dónde está la caja?'},
+      {e:'🙏',t:'¿Me puede ayudar?'},{e:'✅',t:'Me llevo esto'}
+    ]},
+    { id:'exterior', label:'Exterior', frasi:[
+      {e:'🚌',t:'¿Dónde está el autobús?'},{e:'🚕',t:'Necesito un taxi'},
+      {e:'❓',t:'¿Dónde estamos?'},{e:'🏠',t:'Quiero ir a casa'},
+      {e:'🗺️',t:'Me he perdido'},{e:'🅿️',t:'¿Dónde hay aparcamiento?'}
+    ]},
+  ]},
+  { id:'urgencias', label:'Urgencias', emoji:'🆘', subcats:[
+    { id:'medica', label:'Médica', frasi:[
+      {e:'🆘',t:'Necesito ayuda urgente'},{e:'🚑',t:'Llama a urgencias'},
+      {e:'💔',t:'Me duele el pecho'},{e:'😮‍💨',t:'No puedo respirar'},
+      {e:'🤯',t:'Me mareo mucho'},{e:'📞',t:'Llama al 112'}
+    ]},
+    { id:'seguridad', label:'Seguridad', frasi:[
+      {e:'🙅',t:'Para, no quiero esto'},{e:'😰',t:'Me siento en peligro'},
+      {e:'📞',t:'Llama a alguien de confianza'},{e:'✋',t:'Por favor escúchame'},
+      {e:'👀',t:'No estoy sola'},{e:'🔒',t:'Cierra la puerta'}
+    ]},
+  ]},
+];
+
+let curCat = CATS[0], curSub = CATS[0].subcats[0];
+let _lastBtn = null, _lastText = '';
+
+function buildCats() {
+  document.getElementById('catScroll').innerHTML = CATS.map(c => {
+    const col = CAT_COLORS[c.id] || CAT_COLORS.necesidades;
+    const isActive = c.id === curCat.id;
+    return `<div class="cat-chip${isActive?' active':''}" style="${isActive?`background:${col.accent};border-color:${col.accent};box-shadow:0 4px 12px ${col.accent}44`:''}" onclick="selCat('${c.id}')">${c.emoji} ${c.label}</div>`;
+  }).join('');
+}
+function buildSubcats() {
+  const col = _catColors();
+  document.getElementById('subcatScroll').innerHTML = curCat.subcats.map(s => {
+    const isActive = s.id === curSub.id;
+    return `<div class="subcat-chip${isActive?' active':''}" style="${isActive?`background:${col.faint};border-color:${col.accent};color:${col.text}`:''}" onclick="selSub('${s.id}')">${s.label}</div>`;
+  }).join('');
+}
+function selCat(id) {
+  curCat = CATS.find(c=>c.id===id)||CATS[0];
+  curSub = curCat.subcats[0];
+  if (_lastBtn) { _lastBtn.classList.remove('selected'); _lastBtn=null; }
+  buildCats(); buildSubcats(); buildFrasi(); loadAISuggestions();
+}
+function selSub(id) {
+  curSub = curCat.subcats.find(s=>s.id===id)||curCat.subcats[0];
+  buildSubcats(); buildFrasi(); loadAISuggestions();
+}
+function buildFrasi() {
+  const col = _catColors();
+  document.getElementById('frasiGrid').innerHTML = curSub.frasi.map((f,i) =>
+    `<div class="frase-btn" style="animation-delay:${i*.04}s;border-color:${col.border}" onclick="tapFrase(this,'${f.t.replace(/'/g,"\\'")}','${col.accent}','${col.faint}','${col.text}')">
+      <div class="frase-emoji-wrap" style="background:${col.bg}">${f.e}</div>
+      <div class="frase-text">${f.t}</div>
+    </div>`
+  ).join('');
+}
+async function loadAISuggestions() {
+  const el = document.getElementById('aiSuggestions');
+  el.innerHTML = '<div class="ai-loading-row"><div class="ai-loading-dots"><span></span><span></span><span></span></div><div class="ai-loading-txt">Generando…</div></div>';
+  try {
+    const nome = profile.userName || '';
+    const res = await fetch(PROXY, {method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({model:'claude-haiku-4-5-20251001', max_tokens:150,
+        system:'Eres asistente AAC. Genera frases breves para persona con dificultades del habla. Responde SOLO con JSON array sin markdown.',
+        messages:[{role:'user', content:`Genera exactamente 3 frases para categoría "${curCat.label}" subcategoría "${curSub.label}". ${nome?`Usuario: ${nome}.`:''} Hora: ${new Date().getHours()}h. Formato: ["frase1","frase2","frase3"]. Frases cortas (máx 7 palabras), primera persona, naturales.`}]
+      })
+    });
+    const d = await res.json();
+    const raw = (d.content?.[0]?.text||'[]').replace(/\`\`\`json|\`\`\`/g,'').trim();
+    const frasi = JSON.parse(raw);
+    if (!Array.isArray(frasi)||frasi.length===0) throw 0;
+    const col = _catColors();
+    el.innerHTML = frasi.map((f,i) =>
+      `<div class="ai-sug-btn" style="animation-delay:${i*.08}s;background:linear-gradient(135deg,${col.faint},${col.faint});border-color:${col.border}" onclick="tapFrase(this,'${f.replace(/'/g,"\\'")}','${col.accent}','${col.faint}','${col.text}')">
+        <span style="font-size:0.9rem;color:${col.accent}">✨</span>
+        <div class="ai-sug-text" style="color:${col.text}">${f}</div>
+        <span style="font-size:0.65rem;color:${col.accent};opacity:.6">▶</span>
+      </div>`
+    ).join('');
+  } catch(e) {
+    el.innerHTML = '<div style="font-size:.72rem;color:var(--muted);padding:4px 2px">Sin sugerencias disponibles</div>';
+  }
+}
+function tapFrase(el, text, accent, faint, textCol) {
+  // Usa colori passati o fallback categoria corrente
+  const col = accent ? {accent, faint, text: textCol} : _catColors();
+  if (_lastBtn && _lastBtn!==el) {
+    _lastBtn.classList.remove('selected');
+    _lastBtn.style.background='';
+    _lastBtn.style.borderColor='';
+  }
+  el.classList.add('selected');
+  el.style.background = `linear-gradient(135deg,${col.faint},${col.faint})`;
+  el.style.borderColor = col.accent;
+  const txt = el.querySelector('.frase-text, .ai-sug-text');
+  if (txt) txt.style.color = col.text;
+  _lastBtn = el; _lastText = text;
+  const frase=document.getElementById('aacFrase');
+  frase.textContent=text; frase.classList.remove('empty');
+  document.getElementById('aacLabel').textContent='▶ Reproduciendo';
+  document.getElementById('aacHero').classList.add('active');
+  clearTimeout(window._aacTimer);
+  window._aacTimer=setTimeout(()=>document.getElementById('aacLabel').textContent='Última frase',3000);
+  aacSpeak(text);
+}
+function replayLast() { if (_lastText) aacSpeak(_lastText); }
+function aacSpeak(text) {
+  if (!window.speechSynthesis) return;
+  speechSynthesis.cancel();
+  const utt=new SpeechSynthesisUtterance(text);
+  utt.lang='es-ES'; utt.rate=0.9; utt.volume=1;
+  const voices=speechSynthesis.getVoices();
+  const v=voices.find(v=>v.lang.startsWith('es')&&v.name.toLowerCase().includes('female'))||voices.find(v=>v.lang.startsWith('es'));
+  if (v) utt.voice=v;
+  speechSynthesis.speak(utt);
+}
+
+// ── TTS (AI hero) ──
+let _ttsOn = false;
+function toggleTTS() {
+  _ttsOn=!_ttsOn;
+  const btn=document.getElementById('ttsBtn');
+  btn.textContent=_ttsOn?'🔊':'🔇';
+  btn.style.background=_ttsOn?'rgba(255,255,255,.22)':'rgba(255,255,255,.1)';
+  if (!_ttsOn) speechSynthesis.cancel();
+}
+function _speak(text) {
+  if (!_ttsOn||!window.speechSynthesis) return;
+  speechSynthesis.cancel();
+  const utt=new SpeechSynthesisUtterance(text);
+  utt.lang='es-ES'; utt.rate=0.95; utt.pitch=1.05;
+  const voices=speechSynthesis.getVoices();
+  const v=voices.find(v=>v.lang.startsWith('es')&&v.name.toLowerCase().includes('female'))||voices.find(v=>v.lang.startsWith('es'));
+  if (v) utt.voice=v;
+  speechSynthesis.speak(utt);
+}
+
+// ── AI CONTEXT-AWARE ──
+const _H=new Date().getHours(), _M=new Date().getMinutes();
+const _IS_NIGHT = false;
+
+function _timeStr(h) {
+  if (h >= 6  && h < 12) return 'Buenos días';
+  if (h >= 12 && h < 14) return 'Buenas tardes';
+  if (h >= 14 && h < 20) return 'Buenas tardes';
+  if (h >= 20 && h < 23) return 'Buenas noches';
+  return 'Buenas noches'; // 23-6 ma non dovrebbe servire
+}
+
+function initAIHero() {
+  const wrap = document.getElementById('aiHeroWrap');
+  if (_IS_NIGHT) {
+    // Calcola ore al risveglio (stimiamo 7:00)
+    const wakeH = 7;
+    const hoursLeft = _H >= 23 ? (24 - _H + wakeH) : (wakeH - _H);
+    const stars = Array.from({length:20}, (_,i) => {
+      const x=Math.random()*90, y=Math.random()*85, s=Math.random()<.3?2.5:1.5;
+      const dur=2+Math.random()*3, delay=-Math.random()*4;
+      return `<div class="ai-night-star" style="left:${x}%;top:${y}%;width:${s}px;height:${s}px;animation-duration:${dur}s;animation-delay:${delay}s"></div>`;
+    }).join('');
+    wrap.innerHTML = `
+      <div class="ai-night-card">
+        <div class="ai-night-stars">${stars}</div>
+        <div class="ai-night-inner">
+          <div class="ai-night-moon"></div>
+          <div class="ai-night-text">
+            <div class="ai-night-title">Parlia AI está descansando 🌙</div>
+            <div class="ai-night-sub">El asistente estará disponible a partir de las 6:00. Buenas noches, ${profile.userName||''}.</div>
+            <div class="ai-night-wake">⏰ Activo en ~${hoursLeft}h</div>
+          </div>
+        </div>
+      </div>`;
+  } else {
+    wrap.innerHTML = `
+      <div class="ai-hero">
+        <div class="ai-hero-grid"></div>
+        <div class="ai-hero-inner">
+          <div class="ai-header">
+            <div class="ai-avatar-box">
+              <div class="ai-bars">
+                <div class="ai-bar"></div><div class="ai-bar"></div>
+                <div class="ai-bar"></div><div class="ai-bar"></div>
+                <div class="ai-bar"></div>
+              </div>
+            </div>
+            <div class="ai-meta">
+              <div class="ai-name-lbl">Parlia AI</div>
+              <div class="ai-status">
+                <div class="ai-online"></div>
+                <div class="ai-status-txt" id="aiStatusText">Escuchándote</div>
+              </div>
+            </div>
+            <div class="ai-tts-btn" id="ttsBtn" onclick="toggleTTS()">🔇</div>
+          </div>
+          <div class="ctx-badge" id="ctxBadge">
+            <div class="ctx-dot" id="ctxDot"></div>
+            <span id="ctxTxt"></span>
+          </div>
+          <div class="chat-thread" id="chatThread"></div>
+          <div class="ai-chips" id="aiChips"></div>
+        </div>
+      </div>`;
+  }
+}
+const _sessions=[
+  {time:'09:00',end:9*60+30,  label:'Fisioterapia',       emoji:'🏋️'},
+  {time:'11:00',end:11*60+30, label:'Terapia ocupacional',emoji:'🖐️'},
+  {time:'13:00',end:13*60+30, label:'Logopedia',           emoji:'🎤'},
+  {time:'13:30',end:14*60,    label:'Bicicleta estática',  emoji:'🚴'},
+  {time:'17:00',end:17*60+30, label:'Estimulación',        emoji:'🧩'},
+];
+let _history=[], _isTyping=false;
+
+function _getCtx() {
+  const cur=_H*60+_M;
+  const timeStr=_timeStr(_H);
+  const now=_sessions.find(s=>{const[sh,sm]=s.time.split(':').map(Number);return cur>=sh*60+sm&&cur<=s.end;});
+  const soon=_sessions.find(s=>{const[sh,sm]=s.time.split(':').map(Number);const st=sh*60+sm;return cur<st&&st-cur<=15;});
+  const done=_sessions.slice().reverse().find(s=>cur>s.end&&cur-s.end<=10);
+  const next=_sessions.find(s=>{const[sh,sm]=s.time.split(':').map(Number);return cur<sh*60+sm;});
+  const allDone=_sessions.filter(s=>cur>s.end);
+  return {timeStr,now,soon,done,next,allDone,cur};
+}
+function _showCtxBadge(ctx) {
+  const badge=document.getElementById('ctxBadge'),dot=document.getElementById('ctxDot'),txt=document.getElementById('ctxTxt');
+  let label='',color='#60a5fa';
+  if (ctx.now) {label=`${ctx.now.emoji} ${ctx.now.label} en curso`;color='#fbbf24';}
+  else if (ctx.soon) {const[sh,sm]=ctx.soon.time.split(':').map(Number);label=`⏰ ${ctx.soon.label} en ${sh*60+sm-ctx.cur} min`;color='#fbbf24';}
+  else if (ctx.done) {label=`✅ ${ctx.done.label} completada`;color='#4ade80';}
+  else if (ctx.allDone.length===_sessions.length) {label='🎉 Todas las sesiones completadas';color='#4ade80';}
+  else if (ctx.next) {label=`📅 Próximo: ${ctx.next.emoji} ${ctx.next.time}`;color='#60a5fa';}
+  if (label) {txt.textContent=label;dot.style.background=color;badge.style.display='flex';}
+}
+function _buildSystem(ctx) {
+  const lines=[
+    `Eres Parlia AI, asistente conversacional dentro de una app de rehabilitación neurológica.`,
+    `Hablas con ${profile.userName||'el usuario'}, en rehabilitación en el Institut Guttmann, Barcelona.`,
+    `Hora actual: ${String(_H).padStart(2,'0')}:${String(_M).padStart(2,'0')} (${ctx.timeStr}).`,
+  ];
+  if (ctx.now)   lines.push(`Ahora está en sesión de ${ctx.now.label}.`);
+  if (ctx.soon)  {const[sh,sm]=ctx.soon.time.split(':').map(Number);lines.push(`En ${sh*60+sm-ctx.cur} minutos tiene ${ctx.soon.label}.`);}
+  if (ctx.done)  lines.push(`Acaba de terminar ${ctx.done.label} hace menos de 10 minutos.`);
+  if (ctx.allDone.length>0) lines.push(`Sesiones completadas hoy: ${ctx.allDone.map(s=>s.label).join(', ')}.`);
+  if (ctx.allDone.length===_sessions.length) lines.push(`Ha completado TODAS las sesiones del día.`);
+  if (ctx.next&&!ctx.soon) lines.push(`Próxima sesión: ${ctx.next.label} a las ${ctx.next.time}.`);
+  if (window._meteoCtx) lines.push(window._meteoCtx);
+  // Memory context injection (from unified parlia_user_data)
+  const mp=_ud.memory, pers=_ud.personal;
+  const memLines=[];
+  if(pers.age) memLines.push(`Edad: ${pers.age}.`);
+  if(pers.condicion&&pers.condicion.length) memLines.push(`Condición: ${pers.condicion.join(', ')}.`);
+  if(mp.hobbies&&mp.hobbies.length) memLines.push(`Hobbies: ${mp.hobbies.join(', ')}.`);
+  if(mp.musica) memLines.push(`Música favorita: ${mp.musica}.`);
+  if(mp.comida) memLines.push(`Comida favorita: ${mp.comida}.`);
+  if(mp.interests&&mp.interests.length) memLines.push(`Intereses: ${mp.interests.join(', ')}.`);
+  if(mp.family&&mp.family.length) memLines.push(`Familia/mascotas: ${mp.family.join(', ')}.`);
+  if(mp.profession) memLines.push(`Profesión: ${mp.profession}.`);
+  if(mp.birthplace) memLines.push(`Lugar de origen: ${mp.birthplace}.`);
+  if(mp.notas) memLines.push(`Tono y preferencias de conversación: ${mp.notas}.`);
+  if(_mem.mood_log.last_mood) memLines.push(`Último estado de ánimo: "${_mem.mood_log.last_mood}" (${_mem.mood_log.last_mood_date}).`);
+  if(_mem.interaction_stats.opens>1) memLines.push(`Ha abierto la app ${_mem.interaction_stats.opens} veces.`);
+  if(memLines.length) lines.push(`\nCONOCIMIENTO PERSONAL del usuario (úsalo de forma natural, no recites la lista):\n${memLines.join(' ')}`);
+  lines.push(`\nESTILO: Varía los temas. NO hables siempre de sesiones o rehabilitación. Usa su vida personal (hobbies, música, comida, notas), el tiempo, el momento del día, sentimientos, curiosidades, planes. Las sesiones son solo un contexto posible entre muchos.`);
+  lines.push(`\nREGLAS ABSOLUTAS:\n1. NUNCA repitas lo que ya dijiste.\n2. Responde SIEMPRE al último mensaje.\n3. No repitas preguntas.\n4. Máx 18 palabras.\n5. Escribe en nueva línea: CHIPS: y 3-4 opciones separadas por |\n6. Chips = respuestas directas a TU mensaje. Nunca genéricos.\n7. Sin asteriscos ni markdown.\n8. Evita hablar de sesiones más de 1 vez de cada 3 mensajes.`);
+  return lines.join(' ');
+}
+async function _sendMsg(userText) {
+  if (_IS_NIGHT || _isTyping) return;
+  _isTyping=true;
+  document.getElementById('aiChips').innerHTML='';
+  document.getElementById('aiStatusText').textContent='Pensando…';
+  if (userText) { _addBubble('user',userText); _history.push({role:'user',content:userText}); }
+  else {
+    // Vary the greeting prompt to avoid repetition
+    const mp=_mem.user_profile;
+    const variants=[`Salúdame de forma cálida y breve.`];
+    if(mp.hobbies&&mp.hobbies.length){
+      const h=mp.hobbies[Math.floor(Math.random()*mp.hobbies.length)];
+      variants.push(`Salúdame y pregúntame algo sobre mi hobby: ${h}.`);
+    }
+    if(mp.musica) variants.push(`Salúdame y menciona música (sabes que me gusta ${mp.musica}).`);
+    if(mp.comida) variants.push(`Salúdame y comenta algo ligero sobre comida (me gusta ${mp.comida}).`);
+    if(mp.family&&mp.family.length){
+      const f=mp.family[Math.floor(Math.random()*mp.family.length)];
+      variants.push(`Salúdame y pregúntame por ${f}.`);
+    }
+    if(mp.interests&&mp.interests.length){
+      const it=mp.interests[Math.floor(Math.random()*mp.interests.length)];
+      variants.push(`Salúdame y comparte una curiosidad sobre ${it}.`);
+    }
+    if(mp.birthplace) variants.push(`Salúdame y menciona algo cálido sobre ${mp.birthplace}.`);
+    if(mp.notas) variants.push(`Salúdame teniendo en cuenta mis preferencias de conversación (sin recitarlas).`);
+    variants.push(`Salúdame y pregúntame cómo me siento hoy.`);
+    variants.push(`Salúdame y cuéntame una curiosidad breve o un pensamiento positivo.`);
+    variants.push(`Salúdame y pregúntame qué planes tengo hoy.`);
+    if(_mem.mood_log.last_mood) variants.push(`Salúdame recordando que la última vez dije que me sentía "${_mem.mood_log.last_mood}".`);
+    const prompt=variants[Math.floor(Math.random()*variants.length)];
+    _history.push({role:'user',content:prompt});
+  }
+  _addBubble('ai','',true); _showChipSkeleton();
+  const ctx=_getCtx(); _showCtxBadge(ctx);
+  let raw='';
+  try {
+    const res=await fetch(PROXY,{method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({model:'claude-haiku-4-5-20251001',max_tokens:180,system:_buildSystem(ctx),messages:_history.slice(-14)})});
+    const data=await res.json();
+    if (data.content?.[0]?.text) raw=data.content[0].text.trim();
+  } catch(e){}
+  if (!raw) raw=_buildFallback(ctx);
+  _history.push({role:'assistant',content:raw});
+  const si=raw.indexOf('\nCHIPS:');
+  const aiText=si>-1?raw.slice(0,si).trim():raw.trim();
+  const chipsRaw=si>-1?raw.slice(si+7).trim():'';
+  const chips=chipsRaw?chipsRaw.split('|').map(c=>c.trim()).filter(Boolean).slice(0,4):['😊 Bien','😐 Regular','😔 Cansada','💪 Con ganas'];
+  const lb=document.getElementById('_loadingBubble'); if(lb)lb.remove();
+  const bubble=_addBubble('ai','');
+  document.getElementById('aiStatusText').textContent='Escuchándote';
+  _typeIntoBubble(bubble,aiText,()=>{ _isTyping=false; _speak(aiText); _renderChips(chips); });
+}
+function _addBubble(role,text,isLoading=false) {
+  const thread=document.getElementById('chatThread');
+  const div=document.createElement('div');
+  if (role==='user') {div.className='bubble-user';div.textContent=text;}
+  else {div.className='bubble-ai';div.innerHTML=isLoading?'<div class="typing-dots"><span></span><span></span><span></span></div>':(text+'<span class="cursor-blink"></span>');}
+  if (isLoading) div.id='_loadingBubble';
+  thread.appendChild(div); thread.scrollTop=thread.scrollHeight; return div;
+}
+function _typeIntoBubble(bubble,text,onDone) {
+  let i=0;
+  const iv=setInterval(()=>{
+    if(i<=text.length){bubble.innerHTML=text.slice(0,i)+'<span class="cursor-blink"></span>';document.getElementById('chatThread').scrollTop=9999;i++;}
+    else{bubble.innerHTML=text;clearInterval(iv);onDone&&onDone();}
+  },22);
+}
+function _showChipSkeleton() {
+  document.getElementById('aiChips').innerHTML='<div style="display:flex;gap:7px"><div class="chip-skel" style="width:75px"></div><div class="chip-skel" style="width:95px"></div><div class="chip-skel" style="width:65px"></div></div>';
+}
+function _renderChips(chips) {
+  const w=document.getElementById('aiChips'); w.innerHTML='';
+  chips.forEach((c,idx)=>{
+    const chip=document.createElement('div');
+    chip.className='ai-chip'+(c.startsWith('🎤')||c.startsWith('🧩')||c.startsWith('💬')?' cta':'');
+    chip.textContent=c.trim(); chip.style.animationDelay=(idx*.09)+'s';
+    chip.onclick=()=>{
+      _mem.mood_log.last_mood=c.trim();
+      _mem.mood_log.last_mood_date=new Date().toLocaleDateString('es-ES');
+      _saveMemory();
+      _sendMsg(c.trim());
+    }; w.appendChild(chip);
+  });
+}
+function _buildFallback(ctx) {
+  if (ctx.now)   return `Estás en ${ctx.now.label}. ¿Cómo va?\nCHIPS: 💪 Muy bien|😅 Es dura|😊 Genial|🎤 Necesito pausa`;
+  if (ctx.soon)  {const[sh,sm]=ctx.soon.time.split(':').map(Number);return `En ${sh*60+sm-ctx.cur} min tienes ${ctx.soon.label}. ¿Estás lista?\nCHIPS: ✅ Sí, lista|⏰ Más tiempo|😟 Nerviosa|💪 Vamos`;}
+  if (ctx.done)  return `¡Acabas de terminar ${ctx.done.label}! ¿Cómo te has sentido?\nCHIPS: 💪 Muy bien|😓 Ha sido duro|😴 Agotada|😊 Satisfecha`;
+  if (ctx.allDone.length===_sessions.length) return `¡Has completado todas las sesiones de hoy! ¿Cómo te sientes?\nCHIPS: 🎉 Muy orgullosa|😴 Agotada|💪 Con energía|💬 Hablar`;
+  if (_H>=20) return `${_timeStr(_H)}, ${profile.userName||''}. ¿Cómo ha ido el día?\nCHIPS: 😊 Muy bien|😐 Regular|😔 Cansada|💤 A descansar`;
+  return `${_timeStr(_H)}, ${profile.userName||''}. ¿Cómo estás hoy?\nCHIPS: 😊 Bien|😐 Regular|😔 Cansada|💪 Con ganas`;
+}
+
+// ── OBIETTIVO ──
+async function loadGoal() {
+  const key='parlia_goal_'+new Date().toISOString().slice(0,10);
+  const cached=localStorage.getItem(key);
+  if (cached) { renderGoal(JSON.parse(cached)); return; }
+  try {
+    const h=new Date().getHours();
+    const res=await fetch(PROXY,{method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({model:'claude-haiku-4-5-20251001',max_tokens:100,
+        system:`Responde SOLO con JSON válido sin markdown. Formato: {"titulo":"...","descripcion":"...","accion":"..."}`,
+        messages:[{role:'user',content:`Objetivo de rehabilitación para ${profile.userName||'el usuario'} con ${(()=>{const e=JSON.parse(localStorage.getItem('parlia_profile_extra')||'{}');const c=e.condicion||profile.condicion;return Array.isArray(c)?c[0]:c||'rehabilitación neurológica';})()}. titulo: máx 6 palabras. descripcion: 1 frase máx 12 palabras. accion: 2-3 palabras para botón.`}]})});
+    const d=await res.json();
+    const raw=(d.content?.[0]?.text||'').trim().replace(/```json|```/g,'').trim();
+    const goal=JSON.parse(raw);
+    localStorage.setItem(key,JSON.stringify(goal));
+    renderGoal(goal);
+  } catch(e) { renderGoal({titulo:'Practica tu comunicación',descripcion:'Usa el AAC 5 minutos con frases nuevas.',accion:'Ir al AAC'}); }
+}
+function renderGoal(g) {
+  document.getElementById('goalBody').innerHTML=`
+    <div class="goal-title">${g.titulo}</div>
+    <div class="goal-sub">${g.descripcion}</div>
+    <div class="goal-action" onclick="goTo(2)">${g.accion} →</div>`;
+}
+
+// ── METEO ──
+// Descrizioni meteo in spagnolo hardcoded (non dipende da wttr lang_es che non funziona sempre)
+// ── WMO descriptions in Spanish ──
+const WX_TIPS = {
+  sunny:    '¡Perfecto para salir al exterior! ☀️',
+  partcloud:'Tiempo agradable, ideal para pasear.',
+  cloudy:   'Fresquito y nublado, lleva una chaqueta.',
+  rainy:    '¡Día para quedarse en casa! ☔',
+  stormy:   'Tormenta activa, mejor no salir. ⛈️',
+  snowy:    '¡Está nevando! Abrígate bien. ❄️',
+  night:    'Descansa bien, mañana será un gran día. 🌙',
+  foggy:    'Hay niebla, ten cuidado al salir.'
+};
+
+const WX_ES = {
+  0:'Despejado',1:'Mayormente despejado',2:'Parcialmente nublado',3:'Nublado',
+  45:'Niebla',48:'Niebla helada',
+  51:'Llovizna débil',53:'Llovizna moderada',55:'Llovizna intensa',
+  61:'Lluvia débil',63:'Lluvia moderada',65:'Lluvia fuerte',
+  71:'Nevada débil',73:'Nevada moderada',75:'Nevada intensa',77:'Granizo',
+  80:'Chubascos débiles',81:'Chubascos moderados',82:'Chubascos fuertes',
+  85:'Chubascos de nieve',86:'Chubascos de nieve fuertes',
+  95:'Tormenta',96:'Tormenta con granizo',99:'Tormenta fuerte'
+};
+
+function _wxSceneType(code, hour) {
+  const night = hour < 6 || hour >= 21;
+  if (night && code <= 1) return 'night';
+  if (code === 0) return 'sunny';
+  if (code <= 2) return 'partcloud';
+  if (code === 3) return 'cloudy';
+  if (code <= 48) return 'foggy';
+  if (code >= 95) return 'stormy';
+  if ((code >= 71 && code <= 77) || code >= 85) return 'snowy';
+  return 'rainy';
+}
+
+// ── CANVAS WEATHER RENDERER ──
+let _wxAF = null, _wxLastF = 0;
+
+const WX_SCENE_SKY = {
+  sunny:'linear-gradient(135deg,#38bdf8,#fbbf24)',
+  partcloud:'linear-gradient(135deg,#3b82f6,#93c5fd)',
+  cloudy:'linear-gradient(135deg,#6b7280,#9ca3af)',
+  rainy:'linear-gradient(135deg,#1e3a8a,#3b82f6)',
+  stormy:'linear-gradient(135deg,#1e1b4b,#4338ca)',
+  snowy:'linear-gradient(135deg,#c7d2fe,#ede9fe)',
+  night:'linear-gradient(135deg,#0f172a,#1e3a5f)',
+  foggy:'linear-gradient(135deg,#4b5563,#9ca3af)'
+};
+
+const _WX_SKY_STOPS = {
+  sunny:    ['#0369a1','#0284c7','#38bdf8','#7dd3fc','#fed7aa','#fbbf24'],
+  partcloud:['#1d4ed8','#2563eb','#60a5fa','#93c5fd','#bfdbfe','#dbeafe'],
+  cloudy:   ['#111827','#1f2937','#374151','#4b5563','#6b7280','#9ca3af'],
+  rainy:    ['#0c1a2e','#0f2543','#1e3a5f','#1e40af','#1d4ed8','#2563eb'],
+  stormy:   ['#020617','#060412','#0f0a1e','#1e1b4b','#2d1b69','#3b0764'],
+  snowy:    ['#64748b','#94a3b8','#cbd5e1','#e2e8f0','#f1f5f9','#f8fafc'],
+  night:    ['#000005','#04071a','#0a0f1e','#0f172a','#1a2744','#1e3a5f'],
+  foggy:    ['#374151','#4b5563','#6b7280','#9ca3af','#c4ccd5','#d1d5db']
+};
+
+function _wxGrad(ctx, W, H, stops) {
+  const g = ctx.createLinearGradient(0,0,0,H);
+  stops.forEach((c,i) => g.addColorStop(i/(stops.length-1), c));
+  ctx.fillStyle=g; ctx.fillRect(0,0,W,H);
+}
+
+function _wxSun(ctx, W, H, behindClouds) {
+  const sx=W*.74, sy=H*.2, r=H*.17;
+  // Atmospheric scatter — concentric glow rings
+  [[r*8,.022],[r*5,.048],[r*3,.1],[r*1.8,.2]].forEach(([gr,a]) => {
+    const g=ctx.createRadialGradient(sx,sy,0,sx,sy,gr);
+    g.addColorStop(0,`rgba(255,242,180,${a})`);
+    g.addColorStop(.5,`rgba(255,210,90,${a*.4})`);
+    g.addColorStop(1,'rgba(255,180,50,0)');
+    ctx.fillStyle=g; ctx.beginPath(); ctx.arc(sx,sy,gr,0,Math.PI*2); ctx.fill();
+  });
+  // Warm horizon glow
+  const hg=ctx.createLinearGradient(0,H*.4,0,H);
+  hg.addColorStop(0,'rgba(253,186,116,0)'); hg.addColorStop(1,'rgba(252,211,77,.18)');
+  ctx.fillStyle=hg; ctx.fillRect(0,H*.4,W,H*.6);
+  // Sun disc (skip when mostly behind clouds)
+  if (!behindClouds) {
+    const d=ctx.createRadialGradient(sx-r*.22,sy-r*.22,0,sx,sy,r);
+    d.addColorStop(0,'#fffde7'); d.addColorStop(.32,'#fde68a');
+    d.addColorStop(.62,'#fbbf24'); d.addColorStop(1,'#f59e0b');
+    ctx.fillStyle=d; ctx.beginPath(); ctx.arc(sx,sy,r,0,Math.PI*2); ctx.fill();
+  }
+}
+
+// Volumetric cloud: many overlapping soft radial gradients = realistic depth
+function _wxCloud(ctx, cx, cy, sz, alpha, gray) {
+  const blobs = [
+    [0,0,1,.94],[-.42,.09,.74,.87],[.47,.07,.78,.85],
+    [-.2,-.34,.62,.79],[.23,-.31,.67,.81],[.71,.19,.52,.71],
+    [-.71,.15,.47,.67],[.11,-.54,.41,.63],[-.37,-.5,.37,.59],
+    [.41,-.46,.39,.61],[.91,.27,.31,.53],[-.91,.23,.29,.49],
+    [.56,-.37,.33,.56],[-.56,-.34,.31,.53],[.0,-.65,.29,.51],
+    [.15,.12,.88,.75],[-.1,.06,.65,.6],  // extra depth blobs
+  ];
+  const [tr,tg,tb] = gray ? [158,172,192] : [255,255,255];
+  const [br,bg,bb] = gray ? [95,110,132]  : [178,196,218];
+  blobs.forEach(([dx,dy,r,am]) => {
+    const bx=cx+dx*sz, by=cy+dy*sz, br2=r*sz;
+    const g=ctx.createRadialGradient(bx,by-br2*.18,0, bx,by+br2*.15,br2*1.07);
+    g.addColorStop(0,  `rgba(${tr},${tg},${tb},${alpha*am})`);
+    g.addColorStop(.42,`rgba(${Math.round((tr+br)/2)},${Math.round((tg+bg)/2)},${Math.round((tb+bb)/2)},${alpha*am*.58})`);
+    g.addColorStop(.8, `rgba(${br},${bg},${bb},${alpha*am*.2})`);
+    g.addColorStop(1,  'rgba(0,0,0,0)');
+    ctx.fillStyle=g; ctx.beginPath(); ctx.arc(bx,by,br2,0,Math.PI*2); ctx.fill();
+  });
+}
+
+function _wxMoon(ctx, W, H) {
+  const mx=W*.76, my=H*.21, r=H*.16;
+  [[r*4,.05],[r*2.5,.1],[r*1.5,.18]].forEach(([gr,a]) => {
+    const g=ctx.createRadialGradient(mx,my,0,mx,my,gr);
+    g.addColorStop(0,`rgba(210,225,240,${a})`); g.addColorStop(1,'rgba(148,163,184,0)');
+    ctx.fillStyle=g; ctx.beginPath(); ctx.arc(mx,my,gr,0,Math.PI*2); ctx.fill();
+  });
+  const d=ctx.createRadialGradient(mx-r*.28,my-r*.28,0,mx,my,r);
+  d.addColorStop(0,'#f0f4f8'); d.addColorStop(.4,'#e2e8f0');
+  d.addColorStop(.7,'#c8d5e0'); d.addColorStop(1,'#8fa3b4');
+  ctx.fillStyle=d; ctx.beginPath(); ctx.arc(mx,my,r,0,Math.PI*2); ctx.fill();
+  ctx.save(); ctx.globalCompositeOperation='multiply';
+  const sh=ctx.createRadialGradient(mx+r*.3,my+r*.08,0,mx+r*.26,my,r*1.04);
+  sh.addColorStop(0,'rgba(50,65,95,.9)'); sh.addColorStop(.5,'rgba(50,65,95,.4)'); sh.addColorStop(1,'rgba(50,65,95,0)');
+  ctx.fillStyle=sh; ctx.beginPath(); ctx.arc(mx,my,r,0,Math.PI*2); ctx.fill(); ctx.restore();
+}
+
+function _wxStars(ctx, W, H, t) {
+  for (let i=0; i<54; i++) {
+    const ph=i*1.618; const x=(ph*.891%0.94)*W; const y=(ph*.723%0.84)*H;
+    const s=i%9===0?2.4:i%4===0?1.7:1.1;
+    const tw=.2+.8*(.5+.5*Math.sin(t*.05+ph*3.7));
+    if (s>2) {
+      const g=ctx.createRadialGradient(x,y,0,x,y,s*4.5);
+      g.addColorStop(0,`rgba(210,230,255,${tw*.26})`); g.addColorStop(1,'rgba(0,0,0,0)');
+      ctx.fillStyle=g; ctx.beginPath(); ctx.arc(x,y,s*4.5,0,Math.PI*2); ctx.fill();
+    }
+    ctx.fillStyle=`rgba(255,255,255,${tw*.92})`;
+    ctx.beginPath(); ctx.arc(x,y,s,0,Math.PI*2); ctx.fill();
+  }
+}
+
+function _wxFog(ctx, W, H, t) {
+  for (let i=0; i<6; i++) {
+    const y=H*(.1+i*.17), drift=Math.sin(t*.018+i*1.4)*W*.055;
+    const a=.22-i*.03;
+    const g=ctx.createLinearGradient(0,y,0,y+H*.2);
+    g.addColorStop(0,'rgba(215,228,238,0)'); g.addColorStop(.3,`rgba(215,228,238,${a})`);
+    g.addColorStop(.7,`rgba(215,228,238,${a*.75})`); g.addColorStop(1,'rgba(215,228,238,0)');
+    ctx.save(); ctx.translate(drift,0); ctx.fillStyle=g; ctx.fillRect(-W*.12,y,W*1.24,H*.22); ctx.restore();
+  }
+}
+
+function _wxFrame(canvas, type, t) {
+  const dpr=window.devicePixelRatio||1;
+  const W=+canvas.dataset.wxw||300, H=+canvas.dataset.wxh||150;
+  const ctx=canvas.getContext('2d');
+  ctx.save(); ctx.scale(dpr,dpr);
+  ctx.clearRect(0,0,W,H);
+  _wxGrad(ctx,W,H,_WX_SKY_STOPS[type]||_WX_SKY_STOPS.sunny);
+  if (type==='sunny')     _wxSun(ctx,W,H,false);
+  if (type==='partcloud') _wxSun(ctx,W,H,true);
+  if (type==='night')     { _wxStars(ctx,W,H,t); _wxMoon(ctx,W,H); }
+  if (type==='foggy')     _wxFog(ctx,W,H,t);
+  // Clouds — slow sinusoidal drift
+  const dr=Math.sin(t*.012)*W*.022;
+  if (type==='sunny')     _wxCloud(ctx,W*.22+dr,H*.58,W*.2,.38,false);
+  if (type==='partcloud') { _wxCloud(ctx,W*.62+dr,H*.34,W*.34,.9,false); _wxCloud(ctx,W*.18-dr*.7,H*.62,W*.25,.62,false); }
+  if (type==='cloudy')    { _wxCloud(ctx,W*.5+dr,H*.26,W*.48,.93,true); _wxCloud(ctx,W*.1-dr*.8,H*.5,W*.39,.85,true); _wxCloud(ctx,W*.82+dr*.5,H*.6,W*.28,.68,true); }
+  if (type==='rainy')     { _wxCloud(ctx,W*.5+dr*.4,H*.2,W*.54,.91,true); _wxCloud(ctx,W*.08-dr*.4,H*.42,W*.42,.77,true); }
+  if (type==='stormy')    { _wxCloud(ctx,W*.45+dr*.3,H*.16,W*.62,.97,true); _wxCloud(ctx,W*.9-dr*.5,H*.4,W*.38,.83,true); _wxCloud(ctx,W*.08+dr*.2,H*.34,W*.3,.72,true); }
+  if (type==='snowy')     { _wxCloud(ctx,W*.5+dr*.4,H*.24,W*.5,.87,false); _wxCloud(ctx,W*.12-dr*.3,H*.52,W*.35,.7,false); }
+  // Stormy flash
+  if (type==='stormy') {
+    const fl=Math.sin(t*.14)*Math.sin(t*.38);
+    if (fl>.91) { ctx.fillStyle=`rgba(255,255,200,${(fl-.91)*8})`; ctx.fillRect(0,0,W,H); }
+  }
+  ctx.restore();
+}
+
+function _wxTick(t) {
+  const canvas=document.getElementById('wxCanvas');
+  if (!canvas||!canvas.dataset.wxtype) return;
+  const now=performance.now();
+  if (now-_wxLastF>85) { _wxLastF=now; _wxFrame(canvas,canvas.dataset.wxtype,t); t++; }
+  _wxAF=requestAnimationFrame(()=>_wxTick(t));
+}
+
+function _buildWxScene(type) {
+  if (_wxAF) { cancelAnimationFrame(_wxAF); _wxAF=null; }
+  const canvas=document.getElementById('wxCanvas');
+  if (!canvas) return;
+  const dpr=window.devicePixelRatio||1;
+  const W=canvas.offsetWidth||300, H=canvas.offsetHeight||150;
+  canvas.dataset.wxtype=type; canvas.dataset.wxw=W; canvas.dataset.wxh=H;
+  canvas.width=Math.round(W*dpr); canvas.height=Math.round(H*dpr);
+  _wxFrame(canvas,type,0);
+  _wxLastF=0; _wxAF=requestAnimationFrame(()=>_wxTick(1));
+  // CSS overlays: rain, snow, lightning
+  document.getElementById('wxRain').innerHTML='';
+  document.getElementById('wxSnow').innerHTML='';
+  document.getElementById('wxLightning').style.display='none';
+  if (type==='rainy'||type==='stormy') {
+    const n=type==='stormy'?64:48, fast=type==='stormy';
+    document.getElementById('wxRain').innerHTML=Array.from({length:n},()=>{
+      const x=Math.random()*110-5,dur=(fast?.28:.45)+Math.random()*(fast?.25:.4),delay=-Math.random()*2.5,h=14+Math.random()*20;
+      return `<div class="rain-drop" style="left:${x}%;height:${h}px;animation-duration:${dur}s;animation-delay:${delay}s;opacity:${.5+Math.random()*.4}"></div>`;
+    }).join('');
+    if (type==='stormy') document.getElementById('wxLightning').style.display='block';
+  } else if (type==='snowy') {
+    document.getElementById('wxSnow').innerHTML=Array.from({length:36},()=>{
+      const x=Math.random()*100,sz=2+Math.random()*5,dur=2.2+Math.random()*3.5,delay=-Math.random()*5;
+      return `<div class="snow-flake" style="left:${x}%;width:${sz}px;height:${sz}px;animation-duration:${dur}s;animation-delay:${delay}s"></div>`;
+    }).join('');
+  }
+}
+
+async function loadMeteo() {
+  try {
+    let lat=41.3851, lon=2.1734, locName='Barcelona';
+    if (navigator.geolocation) {
+      await new Promise(res=>navigator.geolocation.getCurrentPosition(
+        p=>{lat=p.coords.latitude;lon=p.coords.longitude;res();},()=>res(),{timeout:4000}
+      ));
+    }
+    // Geocodifica inversa
+    try {
+      const geo = await fetch(`https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lon}&format=json`);
+      const gd = await geo.json();
+      locName = gd.address?.city||gd.address?.town||gd.address?.village||gd.address?.county||locName;
+    } catch(e){}
+
+    // Open-Meteo — no API key
+    const r = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=temperature_2m,apparent_temperature,relative_humidity_2m,wind_speed_10m,cloud_cover,visibility,weather_code&wind_speed_unit=kmh&timezone=auto`);
+    const d = await r.json();
+    const cur = d.current;
+
+    const temp = Math.round(cur.temperature_2m);
+    const feels = Math.round(cur.apparent_temperature);
+    const hum = cur.relative_humidity_2m;
+    const wind = Math.round(cur.wind_speed_10m);
+    const cloud = cur.cloud_cover;
+    const vis = cur.visibility != null ? (cur.visibility >= 1000 ? Math.round(cur.visibility/1000)+'km' : cur.visibility+'m') : '—';
+    const code = cur.weather_code;
+    const hour = new Date().getHours();
+    const desc = WX_ES[code] || 'Despejado';
+    const sceneType = _wxSceneType(code, hour);
+
+    // Pill in topbar
+    document.getElementById('pillTemp').textContent = `${temp}°`;
+    // Aggiorna icona pill con mini sky gradient
+    const pillEl = document.getElementById('meteoPill');
+    pillEl.style.background = WX_SCENE_SKY[sceneType] || WX_SCENE_SKY.sunny;
+    pillEl.style.border = 'none';
+    document.getElementById('pillIcon').style.display = 'none';
+    document.getElementById('pillTemp').style.color = 'white';
+    // Aggiungi descrizione breve alla pill
+    let pillDescEl = document.getElementById('pillDesc');
+    if (!pillDescEl) {
+      pillDescEl = document.createElement('div');
+      pillDescEl.id = 'pillDesc';
+      pillDescEl.style.cssText = 'font-size:0.62rem;font-weight:600;color:rgba(255,255,255,.8);max-width:70px;overflow:hidden;white-space:nowrap;text-overflow:ellipsis';
+      pillEl.appendChild(pillDescEl);
+    }
+    pillDescEl.textContent = desc;
+
+    // Scena animata
+    _buildWxScene(sceneType);
+
+    // Testi popup
+    document.getElementById('wxTempBig').innerHTML = `${temp}<sup>°</sup>`;
+    document.getElementById('wxDescLbl').textContent = desc;
+    document.getElementById('wxFeelLbl').textContent = `Sensación ${feels}°C`;
+    document.getElementById('wxTip').textContent = WX_TIPS[sceneType] || '';
+    document.getElementById('wxLocRow').innerHTML = `<svg width="9" height="12" viewBox="0 0 10 13" fill="none"><path d="M5 0C2.24 0 0 2.24 0 5c0 3.75 5 8 5 8s5-4.25 5-8c0-2.76-2.24-5-5-5zm0 6.5C4.17 6.5 3.5 5.83 3.5 5S4.17 3.5 5 3.5 6.5 4.17 6.5 5 5.83 6.5 5 6.5z" fill="currentColor"/></svg> ${locName}`;
+    document.getElementById('wxHumVal').textContent = `${hum}%`;
+    document.getElementById('wxWindVal').textContent = `${wind}`;
+    document.getElementById('wxVisVal').textContent = vis;
+    document.getElementById('wxCloudVal').textContent = `${cloud}%`;
+
+    window._meteoCtx = `Tiempo: ${temp}°C, ${desc}.`;
+  } catch(e) {
+    document.getElementById('pillTemp').textContent = '—°';
+  }
+}
+function openMeteo() { document.getElementById('meteoOverlay').classList.add('open'); }
+function closeMeteo(e) { if(e.target===document.getElementById('meteoOverlay')) document.getElementById('meteoOverlay').classList.remove('open'); }
+
+
+// ── TOAST ──
+function toast(msg) {
+  const t=document.getElementById('toast');
+  t.textContent=msg; t.style.opacity='1'; t.style.transform='translateX(-50%) translateY(0)';
+  clearTimeout(window._tt);
+  window._tt=setTimeout(()=>{t.style.opacity='0';t.style.transform='translateX(-50%) translateY(16px)';},2000);
+}
+
+// ── INIT ──
+function init() {
+  if(localStorage.getItem('parlia_hide_tutorial_widget')){
+    const tw=document.getElementById('tutorialWidget'); if(tw) tw.style.display='none';
+  }
+  initProfile();
+  initAIHero();
+  buildAgenda();
+  buildCats();
+  buildSubcats();
+  buildFrasi();
+  showHint();
+  loadMeteo();
+  if (!_IS_NIGHT) {
+    setTimeout(()=>{ _sendMsg(null); loadGoal(); loadAISuggestions(); }, 400);
+  } else {
+    setTimeout(()=>{ loadGoal(); loadAISuggestions(); }, 400);
+  }
+}
+init();
+
+// History management — pulisce eventuali hash/query che potrebbero far partire lo script su una pagina sbagliata
+if (window.location.hash || window.location.search) {
+  window.history.replaceState({inApp: true, page: 0}, '', window.location.pathname);
+} else {
+  window.history.replaceState({inApp: true, page: 0}, '', window.location.href);
+}
+
+// Forza il carosello sulla pagina 0 al load — scroll-snap nativo, nessun calcolo
+curPage = 0;
+function _forceResetToPage0(){
+  curPage = 0;
+  wrap.scrollLeft = 0;
+  document.querySelectorAll('.nav-item').forEach((el,i) => el.classList.toggle('active', i===0));
+  document.querySelectorAll('.nav-dot').forEach((d,i) => d.classList.toggle('active', i===0));
+}
+_forceResetToPage0();
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', _forceResetToPage0);
+}
+window.addEventListener('load', () => {
+  _forceResetToPage0();
+  requestAnimationFrame(() => requestAnimationFrame(_forceResetToPage0));
+  setTimeout(_forceResetToPage0, 150);
+});
+
+// Override goTo to push history states
+const originalGoTo = goTo;
+goTo = function(idx) {
+  if (idx !== curPage) {
+    window.history.pushState({inApp: true, page: idx}, '', window.location.href);
+  }
+  originalGoTo(idx);
+};
+
+// Guard: ignore any popstate fired within the first 600ms of page load.
+// iOS Safari can fire spurious popstate events during init (e.g. after replaceState
+// when navigating from onboarding via location.replace), causing wrong page to show.
+let _popstateReady = false;
+setTimeout(() => { _popstateReady = true; }, 600);
+
+window.addEventListener('popstate', (e) => {
+  if (!_popstateReady) return;
+  if (!e.state || !e.state.inApp) {
+    window.location.href = '/index.html';
+  } else {
+    originalGoTo(e.state.page);
+  }
+});
+</script>
+
+
+</body>
+</html>
