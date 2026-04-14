@@ -373,16 +373,15 @@ html,body { height:100%; overflow:hidden; font-family:'Plus Jakarta Sans',sans-s
         <div style="font-size:.68rem;font-weight:600;color:var(--muted)">Luca</div>
         <div style="font-size:.82rem;color:var(--muted);margin-left:3px">›</div>
       </div>
-      <div id="perfil-mem" style="display:flex;align-items:center;gap:10px;background:var(--card);border:1.5px solid var(--border);border-radius:11px;padding:7px 11px;transition:border-color .4s,box-shadow .4s,background .4s,transform .3s">
+      <div id="perfil-intereses" style="display:flex;align-items:center;gap:10px;background:var(--card);border:1.5px solid var(--border);border-radius:11px;padding:7px 11px;transition:border-color .4s,box-shadow .4s,background .4s,transform .3s">
         <div style="font-size:.95rem;width:22px;text-align:center">🧠</div>
-        <div style="flex:1;font-size:.78rem;font-weight:700;color:var(--ink)">Mi Memoria AI</div>
-        <div style="font-size:.63rem;font-weight:700;color:var(--blue)">Personalizar</div>
+        <div style="flex:1;font-size:.78rem;font-weight:700;color:var(--ink)">Memoria e intereses</div>
+        <div style="font-size:.63rem;font-weight:700;color:var(--blue)">Hobbies, música…</div>
         <div style="font-size:.82rem;color:var(--muted);margin-left:3px">›</div>
       </div>
     </div>
     <div class="hs-wrap" style="margin-top:5px;gap:6px">
-      <div class="hs-btn" onclick="openPopup('perfil-memoria')"><div class="hs-badge">i</div><span class="hs-label">Mi Memoria AI</span></div>
-      <div class="hs-btn" onclick="openPopup('perfil-ia')"><div class="hs-badge">i</div><span class="hs-label">Personalización</span></div>
+      <div class="hs-btn" onclick="openPopup('perfil-memoria')"><div class="hs-badge">i</div><span class="hs-label">Memoria AI</span></div>
       <div class="hs-btn" onclick="openPopup('perfil-funciones')"><div class="hs-badge">i</div><span class="hs-label">Funciones</span></div>
     </div>
   </div>
@@ -456,8 +455,7 @@ const POPUPS = {
   'agenda-add':{ emoji:'⏰', title:'Añadir recordatorio', body:'Toca "+ Recordatorio" para añadir un aviso con la hora que quieras. Los recordatorios aparecen en la agenda con fondo amarillo y puedes eliminarlos tocando la X.' },
   'rehab-juegos':{ emoji:'🧠', title:'Los 4 ejercicios cognitivos', body:'Parlia tiene 4 tipos de ejercicios: Palabras (completa sílabas), Memoria (encuentra pares), Atención (identifica el elemento diferente) y Lógica (sigue la secuencia). La dificultad se adapta automáticamente a tu progreso.' },
   'rehab-logo':{ emoji:'🎙️', title:'Sesión de logopedia', body:'La sección Logopedia incluye ejercicios guiados por IA con reconocimiento de voz. El semáforo visual te indica si la pronunciación fue correcta (verde), aproximada (amarillo) o necesita repetición (rojo).' },
-  'perfil-memoria':{ emoji:'🧠', title:'Mi Memoria AI — lo más importante', body:'Mi Memoria AI es el corazón de la personalización: cuéntale a Parlia quién eres (hobbies, música favorita, recuerdos, familia, valores, cómo te gusta que te hablen…). Cuanto más le cuentes, más humanas y cercanas serán las conversaciones. Parlia recuerda todo y lo usa cada día para saludarte, proponerte chips y acompañarte de forma única. Todo se guarda solo en tu dispositivo.' },
-  'perfil-ia':{ emoji:'🤖', title:'Personalización IA', body:'Cuanto más completes tu perfil (condición, movilidad, edad, preferencias), más personalizada será la experiencia. La IA adapta el tono de los mensajes, la dificultad de los ejercicios y las sugerencias del comunicador.' },
+  'perfil-memoria':{ emoji:'🧠', title:'Memoria e intereses — el corazón de Parlia AI', body:'Dentro de tu perfil hay una sección dedicada a la memoria: cuéntale a Parlia tus hobbies, música favorita, comida, familia, profesión, origen y cómo te gusta que te hablen. Cuanto más le cuentes, más humanas y cercanas serán las conversaciones. Parlia lo recuerda todo y lo usa cada día para saludarte y acompañarte de forma única. Todo se guarda solo en tu dispositivo.' },
   'perfil-funciones':{ emoji:'🔧', title:'Activar o desactivar funciones', body:'En tu perfil puedes activar o desactivar cada módulo: AAC, Chat familiar, Logopedia, Estimulación cognitiva, GPS y Widget de ánimo. Si no necesitas alguna función, ocúltala para simplificar la pantalla principal.' },
 };
 
@@ -494,7 +492,7 @@ const TOUR=[
   { widgetId:'w-ai',     badge:'Paso 1 de 4', title:'🤖 Parlia AI — tu asistente',  desc:'Este es el corazón de la app. Cada día Parlia AI te saluda con un mensaje personalizado y te propone chips de respuesta rápida. Un solo toque y te comunicas sin escribir nada.' },
   { widgetId:'w-agenda', badge:'Paso 2 de 4', title:'📅 Tu agenda del día',          desc:'Aquí ves todas tus sesiones de rehabilitación. Las completadas están tachadas, la sesión actual resaltada en azul. Desliza para ver más actividades y toca "+ Recordatorio" para añadir un aviso.' },
   { widgetId:'w-rehab',  badge:'Paso 3 de 4', title:'🧠 Rehabilitación y logopedia', desc:'Ejercicios cognitivos (palabras, memoria, atención, lógica) y sesiones de logopedia con reconocimiento de voz. La dificultad se adapta automáticamente a tu progreso.' },
-  { widgetId:'w-perfil', badge:'Paso 4 de 4', title:'👤 Tu perfil y Mi Memoria AI',  desc:'Cuanto más completes tu perfil, más personalizada será la experiencia. Y sobre todo entra en 🧠 Mi Memoria AI: cuéntale a Parlia tus hobbies, recuerdos y cómo te gusta que te hablen. Es lo que hace cada conversación única y humana.', last:true },
+  { widgetId:'w-perfil', badge:'Paso 4 de 4', title:'👤 Tu perfil — datos y memoria',  desc:'Todo en un solo lugar: tus datos (nombre, condición, cuidador) y tu memoria para Parlia AI (hobbies, música, familia, tono de conversación). Cuanto más le cuentes, más humana y cercana será cada charla con Parlia.', last:true },
 ];
 
 let tourStep=-1;
@@ -701,7 +699,7 @@ function aacFlash(){
     {id:'perfil-datos', color:'#2563eb', shadow:'rgba(37,99,235,.3)', bg:'#eff6ff'},
     {id:'perfil-cond',  color:'#16a34a', shadow:'rgba(22,163,74,.3)', bg:'#f0fdf4'},
     {id:'perfil-cuid',  color:'#7c3aed', shadow:'rgba(124,58,237,.3)',bg:'#f5f3ff'},
-    {id:'perfil-mem',   color:'#db2777', shadow:'rgba(219,39,119,.35)',bg:'#fdf2f8'}
+    {id:'perfil-intereses', color:'#db2777', shadow:'rgba(219,39,119,.35)',bg:'#fdf2f8'}
   ];
   let i=0;
   function highlight(){
