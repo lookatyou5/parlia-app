@@ -890,213 +890,17 @@ html, body {
 <div class="pages-wrap" id="pagesWrap">
   <div class="pages-track" id="track">
 
-    <!-- ── PAGE 1: INICIO ── -->
-    <div class="page" id="page0">
+    <!-- ── PAGE 1: INICIO (contenuto iniettato da components/inicio.html) ── -->
+    <div class="page" id="page0"></div>
 
-      <!-- Tutorial widget -->
-      <a href="tutorial.html" id="tutorialWidget" class="tutorial-widget" style="text-decoration:none;display:flex;align-items:center;gap:10px;padding:10px 14px;margin:0 0 12px;border-radius:14px;background:linear-gradient(135deg,#7c3aed,#6366f1);box-shadow:0 2px 12px rgba(99,102,241,.3);-webkit-tap-highlight-color:transparent;">
-        <span style="font-size:1.3rem;line-height:1;">🎓</span>
-        <span style="font-size:0.82rem;font-weight:700;color:white;flex:1;">Descubre Parlia.app</span>
-        <span style="font-size:0.75rem;font-weight:600;color:rgba(255,255,255,.7);">Ver tutorial →</span>
-      </a>
+    <!-- ── PAGE 2: AAC (contenuto iniettato da components/aac.html) ── -->
+    <div class="page" id="page1"></div>
 
-      <!-- AI Hero con chat / notte -->
-      <div id="aiHeroWrap">
-        <!-- Viene generato da JS in base all'ora -->
-      </div>
+    <!-- ── PAGE 3: REHAB (contenuto iniettato da components/rehab.html) ── -->
+    <div class="page" id="page2"></div>
 
-      <!-- Agenda -->
-      <div class="agenda-wrap">
-        <div class="agenda-hdr">
-          <div class="agenda-hdr-title">
-            <div class="agenda-dot"></div>
-            Agenda de hoy
-          </div>
-          <div style="font-size:0.65rem;font-weight:700;color:var(--blue);cursor:pointer;-webkit-tap-highlight-color:transparent" onclick="openReminderModal()">+ Recordatorio</div>
-        </div>
-        <div class="agenda-scroll" id="agendaScroll"></div>
-      </div>
-
-      <!-- Obiettivo -->
-      <div class="goal-card">
-        <div class="goal-badge">🎯 Objetivo de hoy</div>
-        <div id="goalBody">
-          <span class="skel" style="height:14px;width:85%;margin-bottom:6px"></span>
-          <span class="skel" style="height:12px;width:65%"></span>
-        </div>
-      </div>
-
-      <!-- Profilo -->
-      <div class="profile-card" onclick="goTo(3)">
-        <div class="profile-top">
-          <div class="profile-icon">👤</div>
-          <div style="flex:1">
-            <div class="profile-title" id="profileTitle">Perfil al 50%</div>
-            <div class="profile-sub" id="profileSub">Añade más info para personalizar la IA</div>
-          </div>
-          <div class="profile-btn" id="profileBtn">Completar →</div>
-        </div>
-        <div class="profile-bar-bg">
-          <div class="profile-bar" id="profileBar" style="width:50%"></div>
-        </div>
-      </div>
-
-    </div><!-- /page0 -->
-
-    <!-- ── PAGE 2: AAC ── -->
-    <div class="page" id="page1">
-
-      <div>
-        <div class="page-title">Comunicador AAC</div>
-        <div class="page-sub">Toca una frase para hablar</div>
-      </div>
-
-      <div class="aac-hero" id="aacHero">
-        <div class="aac-hero-bars">
-          <div class="aac-bar"></div><div class="aac-bar"></div>
-          <div class="aac-bar"></div><div class="aac-bar"></div>
-          <div class="aac-bar"></div>
-        </div>
-        <div style="flex:1">
-          <div class="aac-hero-label" id="aacLabel">Última frase</div>
-          <div class="aac-hero-frase empty" id="aacFrase">Toca un botón para hablar…</div>
-        </div>
-        <div class="aac-replay" onclick="replayLast()">🔊</div>
-      </div>
-
-      <!-- Categorie principali -->
-      <div class="cat-scroll" id="catScroll"></div>
-
-      <!-- Sottocategorie -->
-      <div class="subcat-scroll" id="subcatScroll"></div>
-
-      <!-- AI Suggerimenti -->
-      <div class="ai-sec-header">
-        <div class="ai-sec-label">Sugerencias IA</div>
-        <div class="ai-sec-tag">✨ AI</div>
-      </div>
-      <div class="ai-suggestions" id="aiSuggestions">
-        <div class="ai-loading-row">
-          <div class="ai-loading-dots"><span></span><span></span><span></span></div>
-          <div class="ai-loading-txt">Generando…</div>
-        </div>
-      </div>
-
-      <!-- Frasi rapide -->
-      <div class="frases-section-label">Frases rápidas</div>
-      <div class="frases-grid" id="frasiGrid"></div>
-
-    </div><!-- /page1 -->
-
-    <!-- ── PAGE 3: REHAB ── -->
-    <div class="page" id="page2">
-
-      <div>
-        <div class="page-title">Rehabilitación</div>
-        <div class="page-sub">Tus herramientas de terapia</div>
-      </div>
-
-      <div class="rehab-card" onclick="toast('Abriendo Logopedia…')">
-        <div class="rehab-icon" style="background:#fdf4ff">🗣️</div>
-        <div class="rehab-body">
-          <div class="rehab-name" style="color:#7e22ce">Logopedia</div>
-          <div class="rehab-sub">Ejercicios de voz y comunicación con tu logopeda virtual</div>
-        </div>
-        <div class="rehab-arrow">→</div>
-      </div>
-
-      <div class="rehab-card" onclick="toast('Abriendo Estimulación…')">
-        <div class="rehab-icon" style="background:#f5f3ff">🧠</div>
-        <div class="rehab-body">
-          <div class="rehab-name" style="color:#6d28d9">Estimulación cognitiva</div>
-          <div class="rehab-sub">Juegos de memoria, atención y lógica adaptados a ti</div>
-        </div>
-        <div class="rehab-arrow">→</div>
-      </div>
-
-      <div class="rehab-card" onclick="toast('Abriendo Progresos…')">
-        <div class="rehab-icon" style="background:#f0fdfa">📊</div>
-        <div class="rehab-body">
-          <div class="rehab-name" style="color:#0d9488">Mis progresos</div>
-          <div class="rehab-sub">Historial de sesiones, rachas y logros conseguidos</div>
-        </div>
-        <div class="rehab-arrow">→</div>
-      </div>
-
-      <div class="next-session-card">
-        <div class="next-session-label">📅 Próxima sesión</div>
-        <div class="next-session-val" id="nextSession">Cargando…</div>
-      </div>
-
-    </div><!-- /page2 -->
-
-    <!-- ── PAGE 4: YO ── -->
-    <div class="page" id="page3">
-
-      <div class="yo-header">
-        <div class="yo-avatar" id="yoAvatar">M</div>
-        <div>
-          <div class="yo-name-lbl" id="yoName">María</div>
-          <div class="yo-sub-lbl">Institut Guttmann · Barcelona</div>
-        </div>
-      </div>
-
-      <div class="progress-wrap">
-        <div class="progress-header">
-          <span>Perfil completado</span>
-          <span id="yoProgressPct" style="color:var(--blue)">50%</span>
-        </div>
-        <div class="progress-bar-bg">
-          <div class="progress-bar" id="yoProgressBar" style="width:50%"></div>
-        </div>
-      </div>
-
-      <!-- Resumen visual (solo lectura) -->
-      <div class="yo-summary">
-        <div class="yo-info">
-          <div class="yo-info-icon">👤</div>
-          <div class="yo-info-label">Datos personales</div>
-          <div class="yo-info-value" id="yoPersonal">—</div>
-        </div>
-        <div class="yo-info">
-          <div class="yo-info-icon">🏥</div>
-          <div class="yo-info-label">Condición</div>
-          <div class="yo-info-value" id="yoCondicion">—</div>
-        </div>
-        <div class="yo-info">
-          <div class="yo-info-icon">🤝</div>
-          <div class="yo-info-label">Cuidador principal</div>
-          <div class="yo-info-value" id="yoCuidador">—</div>
-        </div>
-        <div class="yo-info">
-          <div class="yo-info-icon">🧠</div>
-          <div class="yo-info-label">Memoria AI</div>
-          <div class="yo-info-value" id="yoMemoria">—</div>
-        </div>
-        <div class="yo-info">
-          <div class="yo-info-icon">⚙️</div>
-          <div class="yo-info-label">Funciones activas</div>
-          <div class="yo-info-value" id="yoFunciones">—</div>
-        </div>
-      </div>
-
-      <!-- CTA unico para editar -->
-      <button class="yo-cta" onclick="window.location.href='profile.html'" style="margin-top:4px">
-        <div class="yo-cta-icon">✏️</div>
-        <div style="flex:1;text-align:left">
-          <div class="yo-cta-label">Editar mi perfil</div>
-          <div class="yo-cta-sub">Datos personales + memoria AI</div>
-        </div>
-        <div class="yo-cta-arrow">›</div>
-      </button>
-
-      <div class="yo-row" onclick="window.location.href='tutorial.html'" style="margin-top:4px">
-          <div class="yo-row-icon">🎓</div>
-          <div class="yo-row-label">Tutorial de la app</div>
-          <div class="yo-row-arrow">›</div>
-        </div>
-
-    </div><!-- /page3 -->
+    <!-- ── PAGE 4: PERFIL (contenuto iniettato da components/perfil.html) ── -->
+    <div class="page" id="page3"></div>
 
   </div><!-- /track -->
 </div><!-- /pages-wrap -->
@@ -1208,6 +1012,35 @@ html, body {
 <script>
 // Disabilita lo scroll-restoration del browser (iOS/Safari può ripristinare posizioni stale)
 if ('scrollRestoration' in history) try { history.scrollRestoration = 'manual'; } catch(e){}
+
+// ── BOOTSTRAP ──
+// Carica i partial HTML delle 4 pagine in parallelo, poi avvia l'app.
+// Lo swipe e il tutorial partono SOLO dopo che il DOM è popolato: così il
+// layout flex + scroll-snap del carosello ha le larghezze reali al primo paint
+// e non parte sfasato.
+(async function bootstrap(){
+  try {
+    const [inicio, aac, rehab, perfil] = await Promise.all([
+      fetch('components/inicio.html').then(r => r.ok ? r.text() : Promise.reject(r.status)),
+      fetch('components/aac.html').then(r => r.ok ? r.text() : Promise.reject(r.status)),
+      fetch('components/rehab.html').then(r => r.ok ? r.text() : Promise.reject(r.status)),
+      fetch('components/perfil.html').then(r => r.ok ? r.text() : Promise.reject(r.status))
+    ]);
+    document.getElementById('page0').innerHTML = inicio;
+    document.getElementById('page1').innerHTML = aac;
+    document.getElementById('page2').innerHTML = rehab;
+    document.getElementById('page3').innerHTML = perfil;
+  } catch(err){
+    console.error('[parlia] partials load failed:', err);
+  }
+  // Due rAF: garantiscono layout+paint completo prima di lanciare l'app.
+  // Senza questo il carosello potrebbe partire con scrollLeft su una posizione stale.
+  requestAnimationFrame(() => requestAnimationFrame(() => {
+    try { runApp(); } catch(e){ console.error('[parlia] runApp crash:', e); }
+  }));
+})();
+
+function runApp(){
 
 const PROXY = 'https://voci-ai-proxy.luca-peltrini.workers.dev/v1/messages';
 
@@ -2416,6 +2249,8 @@ window.addEventListener('popstate', (e) => {
     originalGoTo(e.state.page);
   }
 });
+
+} // fine runApp()
 </script>
 
 
