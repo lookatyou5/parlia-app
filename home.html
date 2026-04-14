@@ -1508,6 +1508,10 @@ async function _sendMsg(userText) {
   document.getElementById('aiStatusText').textContent='Pensando…';
   if (userText) { _addBubble('user',userText); _history.push({role:'user',content:userText}); }
   else {
+    // Nuovo saluto = chat fresca: svuota thread e history precedenti
+    const thread = document.getElementById('chatThread');
+    if (thread) thread.innerHTML = '';
+    _history = [];
     // Vary the greeting prompt to avoid repetition
     const mp=_mem.user_profile;
     const variants=[`Salúdame de forma cálida y breve.`];
