@@ -345,7 +345,7 @@ html,body { height:100%; overflow:hidden; font-family:'Plus Jakarta Sans',sans-s
         <div style="font-size:.65rem;font-weight:600;color:var(--muted)">Institut Guttmann · Barcelona</div>
       </div>
     </div>
-    <div style="background:var(--card);border:1.5px solid var(--border);border-radius:12px;padding:8px 12px;box-shadow:var(--shadow);margin-bottom:5px">
+    <div style="background:var(--card);border:1.5px solid var(--border);border-radius:12px;padding:8px 12px;box-shadow:var(--shadow);margin-bottom:6px">
       <div style="font-size:.66rem;font-weight:800;color:var(--ink);display:flex;justify-content:space-between;margin-bottom:4px">
         <span>Perfil completado</span>
         <span style="color:var(--blue)">70%</span>
@@ -354,34 +354,45 @@ html,body { height:100%; overflow:hidden; font-family:'Plus Jakarta Sans',sans-s
         <div style="height:100%;width:70%;border-radius:20px;background:linear-gradient(90deg,var(--blue),var(--indigo))"></div>
       </div>
     </div>
-    <div style="display:flex;flex-direction:column;gap:4px">
-      <div id="perfil-datos" style="display:flex;align-items:center;gap:10px;background:var(--card);border:1.5px solid var(--border);border-radius:11px;padding:7px 11px;transition:border-color .4s,box-shadow .4s,background .4s,transform .3s">
-        <div style="font-size:.95rem;width:22px;text-align:center">👤</div>
-        <div style="flex:1;font-size:.78rem;font-weight:700;color:var(--ink)">Datos personales</div>
-        <div style="font-size:.68rem;font-weight:600;color:var(--muted)">Laura</div>
-        <div style="font-size:.82rem;color:var(--muted);margin-left:3px">›</div>
+    <!-- Summary card: info read-only, stile home.html .yo-summary -->
+    <div style="background:var(--card);border:1.5px solid var(--border);border-radius:12px;padding:2px 11px;box-shadow:var(--shadow);margin-bottom:6px">
+      <div id="perfil-datos" style="display:flex;align-items:center;gap:10px;padding:7px 0;border-bottom:1px solid var(--border);transition:border-color .4s,box-shadow .4s,background .4s,transform .3s">
+        <div style="font-size:.92rem;width:20px;text-align:center">👤</div>
+        <div style="flex:1;font-size:.75rem;font-weight:700;color:var(--ink)">Datos personales</div>
+        <div style="font-size:.66rem;font-weight:700;color:var(--muted)">Laura</div>
       </div>
-      <div id="perfil-cond" style="display:flex;align-items:center;gap:10px;background:var(--card);border:1.5px solid var(--border);border-radius:11px;padding:7px 11px;transition:border-color .4s,box-shadow .4s,background .4s,transform .3s">
-        <div style="font-size:.95rem;width:22px;text-align:center">🏥</div>
-        <div style="flex:1;font-size:.78rem;font-weight:700;color:var(--ink)">Condición</div>
-        <div style="font-size:.68rem;font-weight:600;color:var(--muted)">Afasia</div>
-        <div style="font-size:.82rem;color:var(--muted);margin-left:3px">›</div>
+      <div id="perfil-cond" style="display:flex;align-items:center;gap:10px;padding:7px 0;border-bottom:1px solid var(--border);transition:border-color .4s,box-shadow .4s,background .4s,transform .3s">
+        <div style="font-size:.92rem;width:20px;text-align:center">🏥</div>
+        <div style="flex:1;font-size:.75rem;font-weight:700;color:var(--ink)">Condición</div>
+        <div style="font-size:.66rem;font-weight:700;color:var(--muted)">Afasia</div>
       </div>
-      <div id="perfil-cuid" style="display:flex;align-items:center;gap:10px;background:var(--card);border:1.5px solid var(--border);border-radius:11px;padding:7px 11px;transition:border-color .4s,box-shadow .4s,background .4s,transform .3s">
-        <div style="font-size:.95rem;width:22px;text-align:center">🤝</div>
-        <div style="flex:1;font-size:.78rem;font-weight:700;color:var(--ink)">Cuidador principal</div>
-        <div style="font-size:.68rem;font-weight:600;color:var(--muted)">Luca</div>
-        <div style="font-size:.82rem;color:var(--muted);margin-left:3px">›</div>
+      <div id="perfil-cuid" style="display:flex;align-items:center;gap:10px;padding:7px 0;border-bottom:1px solid var(--border);transition:border-color .4s,box-shadow .4s,background .4s,transform .3s">
+        <div style="font-size:.92rem;width:20px;text-align:center">🤝</div>
+        <div style="flex:1;font-size:.75rem;font-weight:700;color:var(--ink)">Cuidador principal</div>
+        <div style="font-size:.66rem;font-weight:700;color:var(--muted)">Luca</div>
       </div>
-      <div id="perfil-intereses" style="display:flex;align-items:center;gap:10px;background:var(--card);border:1.5px solid var(--border);border-radius:11px;padding:7px 11px;transition:border-color .4s,box-shadow .4s,background .4s,transform .3s">
-        <div style="font-size:.95rem;width:22px;text-align:center">🧠</div>
-        <div style="flex:1;font-size:.78rem;font-weight:700;color:var(--ink)">Memoria e intereses</div>
-        <div style="font-size:.63rem;font-weight:700;color:var(--blue)">Hobbies, música…</div>
-        <div style="font-size:.82rem;color:var(--muted);margin-left:3px">›</div>
+      <div id="perfil-intereses" style="display:flex;align-items:center;gap:10px;padding:7px 0;border-bottom:1px solid var(--border);transition:border-color .4s,box-shadow .4s,background .4s,transform .3s">
+        <div style="font-size:.92rem;width:20px;text-align:center">🧠</div>
+        <div style="flex:1;font-size:.75rem;font-weight:700;color:var(--ink)">Memoria AI</div>
+        <div style="font-size:.66rem;font-weight:700;color:#db2777">5 de 8 campos</div>
+      </div>
+      <div id="perfil-fn" style="display:flex;align-items:center;gap:10px;padding:7px 0;transition:border-color .4s,box-shadow .4s,background .4s,transform .3s">
+        <div style="font-size:.92rem;width:20px;text-align:center">⚙️</div>
+        <div style="flex:1;font-size:.75rem;font-weight:700;color:var(--ink)">Funciones activas</div>
+        <div style="font-size:.66rem;font-weight:700;color:var(--muted)">AAC · Rehab</div>
       </div>
     </div>
-    <div class="hs-wrap" style="margin-top:5px;gap:6px">
-      <div class="hs-btn" onclick="openPopup('perfil-memoria')"><div class="hs-badge">i</div><span class="hs-label">Memoria AI</span></div>
+    <!-- CTA -->
+    <div style="display:flex;align-items:center;gap:10px;background:linear-gradient(135deg,#2563eb,#6366f1);border-radius:12px;padding:11px 14px;box-shadow:0 4px 14px rgba(37,99,235,.3)">
+      <div style="font-size:1rem">✏️</div>
+      <div style="flex:1">
+        <div style="font-family:'Bricolage Grotesque',sans-serif;font-size:.82rem;font-weight:800;color:white">Editar mi perfil</div>
+        <div style="font-size:.6rem;font-weight:600;color:rgba(255,255,255,.8);margin-top:1px">Datos personales + memoria AI</div>
+      </div>
+      <div style="color:white;font-size:1rem">›</div>
+    </div>
+    <div class="hs-wrap" style="margin-top:6px;gap:6px">
+      <div class="hs-btn" onclick="openPopup('perfil-memoria')" style="border-color:#f9a8d4;background:linear-gradient(135deg,#fdf2f8,#fff)"><div class="hs-badge" style="background:linear-gradient(135deg,#db2777,#ec4899)">i</div><span class="hs-label" style="color:#9d174d">Memoria AI · lo más importante</span></div>
       <div class="hs-btn" onclick="openPopup('perfil-funciones')"><div class="hs-badge">i</div><span class="hs-label">Funciones</span></div>
     </div>
   </div>
@@ -455,7 +466,7 @@ const POPUPS = {
   'agenda-add':{ emoji:'⏰', title:'Añadir recordatorio', body:'Toca "+ Recordatorio" para añadir un aviso con la hora que quieras. Los recordatorios aparecen en la agenda con fondo amarillo y puedes eliminarlos tocando la X.' },
   'rehab-juegos':{ emoji:'🧠', title:'Los 4 ejercicios cognitivos', body:'Parlia tiene 4 tipos de ejercicios: Palabras (completa sílabas), Memoria (encuentra pares), Atención (identifica el elemento diferente) y Lógica (sigue la secuencia). La dificultad se adapta automáticamente a tu progreso.' },
   'rehab-logo':{ emoji:'🎙️', title:'Sesión de logopedia', body:'La sección Logopedia incluye ejercicios guiados por IA con reconocimiento de voz. El semáforo visual te indica si la pronunciación fue correcta (verde), aproximada (amarillo) o necesita repetición (rojo).' },
-  'perfil-memoria':{ emoji:'🧠', title:'Memoria e intereses — el corazón de Parlia AI', body:'Dentro de tu perfil hay una sección dedicada a la memoria: cuéntale a Parlia tus hobbies, música favorita, comida, familia, profesión, origen y cómo te gusta que te hablen. Cuanto más le cuentes, más humanas y cercanas serán las conversaciones. Parlia lo recuerda todo y lo usa cada día para saludarte y acompañarte de forma única. Todo se guarda solo en tu dispositivo.' },
+  'perfil-memoria':{ emoji:'💙', title:'Memoria AI — lo más importante', body:'Entra en "Editar mi perfil" y desliza hasta la sección rosa "Cuéntale a Parlia quién eres": ahí puedes contar tus hobbies, música y comida favoritas, intereses, familia, profesión, lugar de origen y cómo te gusta que te hablen. Cada dato que añadas hará que Parlia AI converse contigo de forma más humana, cercana y personal. Todo se guarda solo en tu dispositivo.' },
   'perfil-funciones':{ emoji:'🔧', title:'Activar o desactivar funciones', body:'En tu perfil puedes activar o desactivar cada módulo: AAC, Chat familiar, Logopedia, Estimulación cognitiva, GPS y Widget de ánimo. Si no necesitas alguna función, ocúltala para simplificar la pantalla principal.' },
 };
 
@@ -492,7 +503,7 @@ const TOUR=[
   { widgetId:'w-ai',     badge:'Paso 1 de 4', title:'🤖 Parlia AI — tu asistente',  desc:'Este es el corazón de la app. Cada día Parlia AI te saluda con un mensaje personalizado y te propone chips de respuesta rápida. Un solo toque y te comunicas sin escribir nada.' },
   { widgetId:'w-agenda', badge:'Paso 2 de 4', title:'📅 Tu agenda del día',          desc:'Aquí ves todas tus sesiones de rehabilitación. Las completadas están tachadas, la sesión actual resaltada en azul. Desliza para ver más actividades y toca "+ Recordatorio" para añadir un aviso.' },
   { widgetId:'w-rehab',  badge:'Paso 3 de 4', title:'🧠 Rehabilitación y logopedia', desc:'Ejercicios cognitivos (palabras, memoria, atención, lógica) y sesiones de logopedia con reconocimiento de voz. La dificultad se adapta automáticamente a tu progreso.' },
-  { widgetId:'w-perfil', badge:'Paso 4 de 4', title:'👤 Tu perfil — datos y memoria',  desc:'Todo en un solo lugar: tus datos (nombre, condición, cuidador) y tu memoria para Parlia AI (hobbies, música, familia, tono de conversación). Cuanto más le cuentes, más humana y cercana será cada charla con Parlia.', last:true },
+  { widgetId:'w-perfil', badge:'Paso 4 de 4', title:'👤 Tu perfil + 💙 Memoria AI',  desc:'Aquí ves un resumen de tus datos y accedes a "Editar mi perfil". Dentro encontrarás la sección rosa "Memoria AI": hobbies, música, familia, tono de conversación… Cuanto más le cuentes, más humana será cada charla con Parlia. Toca la "i" para saber más.', last:true },
 ];
 
 let tourStep=-1;
@@ -695,29 +706,39 @@ function aacFlash(){
 
 // Perfil rows highlight animation
 (function perfilGlow(){
+  // Memoria AI sta sempre evidenziato (è il focus principale); le altre righe fanno un pulse sequenziale leggero
   const rows=[
-    {id:'perfil-datos', color:'#2563eb', shadow:'rgba(37,99,235,.3)', bg:'#eff6ff'},
-    {id:'perfil-cond',  color:'#16a34a', shadow:'rgba(22,163,74,.3)', bg:'#f0fdf4'},
-    {id:'perfil-cuid',  color:'#7c3aed', shadow:'rgba(124,58,237,.3)',bg:'#f5f3ff'},
-    {id:'perfil-intereses', color:'#db2777', shadow:'rgba(219,39,119,.35)',bg:'#fdf2f8'}
+    {id:'perfil-datos', bg:'#eff6ff'},
+    {id:'perfil-cond',  bg:'#f0fdf4'},
+    {id:'perfil-cuid',  bg:'#f5f3ff'},
+    {id:'perfil-fn',    bg:'#fef3c7'}
   ];
+  const memEl=document.getElementById('perfil-intereses');
+  if(memEl){
+    memEl.style.background='linear-gradient(90deg,#fdf2f8,#fce7f3)';
+    memEl.style.borderRadius='8px';
+    memEl.style.margin='2px -4px';
+    memEl.style.padding='7px 4px';
+    memEl.style.boxShadow='0 0 0 2px rgba(219,39,119,.35), 0 4px 12px rgba(219,39,119,.18)';
+  }
   let i=0;
   function highlight(){
     if(_animPaused()) return;
     rows.forEach(r=>{
       const el=document.getElementById(r.id);
-      el.style.borderColor=''; el.style.boxShadow=''; el.style.transform=''; el.style.background='var(--card)';
+      if(!el) return;
+      el.style.background=''; el.style.transform='';
     });
     const r=rows[i];
     const el=document.getElementById(r.id);
-    el.style.background=r.bg;
-    el.style.borderColor=r.color;
-    el.style.boxShadow='0 0 0 4px '+r.shadow+', 0 6px 24px '+r.shadow;
-    el.style.transform='scale(1.03)';
+    if(el){
+      el.style.background=r.bg;
+      el.style.transform='scale(1.02)';
+    }
     i=(i+1)%rows.length;
   }
   highlight();
-  _animTimers.push(setInterval(highlight,1000));
+  _animTimers.push(setInterval(highlight,1100));
 })();
 
 // Agenda auto-swipe animation
