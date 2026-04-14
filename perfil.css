@@ -1,0 +1,49 @@
+/* ──────────────────────────────────────────────────
+   PERFIL · stili specifici della pagina 3 della home
+   ────────────────────────────────────────────────── */
+
+.yo-header { display: flex; align-items: center; padding: 6px 0 4px; gap: 12px; flex-shrink: 0; }
+.yo-avatar {
+  width: 48px; height: 48px; border-radius: 50%;
+  background: linear-gradient(135deg,#2563eb,#6366f1);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 1.2rem; font-weight: 800; color: white; flex-shrink: 0;
+  box-shadow: 0 3px 14px rgba(37,99,235,.3);
+}
+.yo-name-lbl { font-family: 'Bricolage Grotesque', sans-serif; font-size: 1rem; font-weight: 800; color: var(--ink); }
+.yo-sub-lbl { font-size: 0.68rem; font-weight: 600; color: var(--muted); }
+
+.progress-wrap { background: var(--card); border: 1.5px solid var(--border); border-radius: var(--radius); padding: 14px 16px; box-shadow: var(--shadow); flex-shrink: 0; }
+.progress-header { font-size: 0.72rem; font-weight: 800; color: var(--ink); display: flex; justify-content: space-between; margin-bottom: 8px; }
+.progress-bar-bg { background: var(--border); border-radius: 20px; height: 7px; overflow: hidden; }
+.progress-bar { height: 100%; border-radius: 20px; background: linear-gradient(90deg, var(--blue), var(--indigo)); transition: width .6s ease; }
+
+.yo-rows { display: flex; flex-direction: column; gap: 8px; flex-shrink: 0; }
+.yo-row {
+  display: flex; align-items: center; gap: 12px;
+  background: var(--card); border: 1.5px solid var(--border);
+  border-radius: 14px; padding: 13px 14px;
+  cursor: pointer; transition: all .15s; -webkit-tap-highlight-color: transparent;
+}
+.yo-row:active { background: var(--blue-light); }
+.yo-row-icon { font-size: 1.2rem; width: 28px; text-align: center; flex-shrink: 0; }
+.yo-row-label { flex: 1; font-size: 0.85rem; font-weight: 700; color: var(--ink); }
+.yo-row-value { font-size: 0.73rem; font-weight: 600; color: var(--muted); }
+.yo-row-arrow { font-size: 0.9rem; color: var(--muted); margin-left: 4px; }
+
+/* Summary card (non-clickable) */
+.yo-summary { background: var(--card); border: 1.5px solid var(--border); border-radius: 14px; padding: 4px 14px; box-shadow: var(--shadow); }
+.yo-info { display: flex; align-items: center; gap: 12px; padding: 11px 0; border-bottom: 1px solid var(--border); }
+.yo-info:last-child { border-bottom: none; }
+.yo-info-icon { font-size: 1.1rem; width: 26px; text-align: center; flex-shrink: 0; }
+.yo-info-label { flex: 1; font-size: 0.78rem; font-weight: 700; color: var(--ink); }
+.yo-info-value { font-size: 0.73rem; font-weight: 700; color: var(--muted); max-width: 55%; text-align: right; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.yo-info-value.empty { color: #9ca3af; font-weight: 500; font-style: italic; }
+
+/* CTA button "Editar mi perfil" */
+.yo-cta { display: flex; align-items: center; gap: 12px; background: linear-gradient(135deg,#2563eb,#6366f1); border: none; border-radius: 14px; padding: 14px 16px; cursor: pointer; -webkit-tap-highlight-color: transparent; box-shadow: 0 4px 14px rgba(37,99,235,.3); transition: transform .15s; width: 100%; }
+.yo-cta:active { transform: scale(.98); }
+.yo-cta-icon { font-size: 1.2rem; }
+.yo-cta-label { flex: 1; text-align: left; font-family: 'Bricolage Grotesque', sans-serif; font-size: .9rem; font-weight: 800; color: white; }
+.yo-cta-sub { font-size: .65rem; font-weight: 600; color: rgba(255,255,255,.8); margin-top: 1px; }
+.yo-cta-arrow { color: white; font-size: 1.1rem; }
