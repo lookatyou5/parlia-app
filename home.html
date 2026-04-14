@@ -824,24 +824,10 @@ function goTo(idx){
 
 // Aggiorna curPage + nav attivi quando l'utente fa swipe manuale (senza chiamare goTo)
 let _scrollRaf = null;
-// _pushingHistory è TRUE durante la smooth-scroll programmatica di goTo() o popstate
-// (per NON pushare voci spurie mentre il carosello anima attraverso idx intermedi).
-let _pushingHistory = false;
-
-// Pusha uno stato solo se NON è uguale a quello corrente in history — protezione
-// finale contro qualsiasi ri-push duplicato, indipendentemente dal timing.
-function _safePushPage(idx){
-  const cur = history.state;
-  if (cur && cur.inApp && cur.page === idx) return; // già su questo stato
-  try { window.history.pushState({inApp:true, page:idx}, '', window.location.href); } catch(e){}
-}
-
 wrap.addEventListener('scroll', () => {
   if (_scrollRaf) return;
-  if (_pushingHistory) return;
   _scrollRaf = requestAnimationFrame(() => {
     _scrollRaf = null;
-    if (_pushingHistory) return; // ricontrolla: il flag può essere cambiato tra lo schedule e l'esecuzione
     const w = _pageWidth();
     const idx = Math.round(wrap.scrollLeft / w);
     if (idx !== curPage && idx >= 0 && idx <= 3) {
@@ -849,7 +835,6 @@ wrap.addEventListener('scroll', () => {
       document.querySelectorAll('.nav-item').forEach((el,i) => el.classList.toggle('active', i===idx));
       document.querySelectorAll('.nav-dot').forEach((d,i) => d.classList.toggle('active', i===idx));
       hideHint();
-      _safePushPage(idx);
     }
   });
 });
@@ -1911,16 +1896,17 @@ function init() {
 }
 init();
 
-// History management — pulisce eventuali hash/query che potrebbero far partire lo script su una pagina sbagliata
+// History management — back gesture SPAZIALE.
+// Non tracciamo la cronologia dei click: la history contiene SEMPRE 2 voci fisse
+// [sentinel, buffer]. Quando l'utente fa back, popstate scatta e noi navighiamo
+// una pagina a sinistra nel carosello, poi ripushiamo il buffer. Quando il
+// carosello è già su pagina 0, il back esce verso l'onboarding.
 if (window.location.hash || window.location.search) {
   window.history.replaceState({inApp: true, sentinel: true}, '', window.location.pathname);
 } else {
   window.history.replaceState({inApp: true, sentinel: true}, '', window.location.href);
 }
-// Sentinella: onboarding.html usa location.replace(), quindi NON c'è una voce di onboarding
-// nella history. Creiamo noi una doppia voce: [sentinel, page0_reale].
-// Quando il back gesture pop fino alla sentinella → redirect manuale a onboarding.
-window.history.pushState({inApp: true, page: 0}, '', window.location.href);
+window.history.pushState({inApp: true, buffer: true}, '', window.location.href);
 
 // Forza il carosello sulla pagina 0 al load — scroll-snap nativo, nessun calcolo
 curPage = 0;
@@ -1940,17 +1926,8 @@ window.addEventListener('load', () => {
   setTimeout(_forceResetToPage0, 150);
 });
 
-// Back gesture = una pagina indietro nel carosello.
-// goTo pusha history e blocca il listener di scroll durante la smooth-scroll
-// (altrimenti il listener pusherebbe voci spurie per ogni idx intermedio).
-const _origGoTo = goTo;
-const SMOOTH_SCROLL_MS = 500;
-goTo = function(idx){
-  if (idx !== curPage && !_pushingHistory) _safePushPage(idx);
-  _pushingHistory = true;
-  _origGoTo(idx);
-  setTimeout(() => { _pushingHistory = false; }, SMOOTH_SCROLL_MS);
-};
+// Back gesture SPAZIALE: ogni back = una pagina a sinistra del carosello.
+// Non serve wrappare goTo — cambia solo lo stato visivo, non la history.
 
 // Guard contro popstate spuri durante il boot (iOS Safari)
 let _popstateReady = false;
@@ -1958,21 +1935,16 @@ setTimeout(() => { _popstateReady = true; }, 600);
 
 window.addEventListener('popstate', (e) => {
   if (!_popstateReady) return;
-  if (!e.state || !e.state.inApp) {
-    // Nessuno stato Parlia → lasciamo fare al browser (back naturale)
-    return;
-  }
-  if (e.state.sentinel) {
-    // L'utente ha popato tutte le pagine del carosello → vai all'onboarding.
-    // (Usiamo replace così un ulteriore back non rimbalza qui ma esce davvero)
+
+  if (curPage > 0) {
+    // Spatial back: un passo a sinistra nel carosello
+    goTo(curPage - 1);
+    // Ripristina il buffer in history così il prossimo back continua a funzionare
+    try { window.history.pushState({inApp:true, buffer:true}, '', window.location.href); } catch(err){}
+  } else {
+    // Già su Inicio → esci verso l'onboarding (fase test)
     window.location.replace('/index.html');
-    return;
   }
-  // Allinea il carosello alla pagina dello stato senza ripushare history
-  // e senza far intervenire il listener di scroll durante la smooth-scroll
-  _pushingHistory = true;
-  _origGoTo(e.state.page);
-  setTimeout(() => { _pushingHistory = false; }, SMOOTH_SCROLL_MS);
 });
 
 // Espone le funzioni chiamate dagli onclick="..." nell'HTML (dopo il wrap in runApp
