@@ -1307,7 +1307,12 @@ wrap.addEventListener('touchmove', e => {
   if (!dragging || blocked) return;
   const dx = e.touches[0].clientX - tX;
   const dy = e.touches[0].clientY - tY;
-  if (!scrolling && Math.abs(dy) > Math.abs(dx) + 5) { scrolling = true; }
+  if (!scrolling && Math.abs(dy) > Math.abs(dx) + 5) {
+    scrolling = true;
+    // Snap back: se touchmove aveva già spostato il track prima di capire che era uno scroll verticale, rimettilo a posto
+    track.style.transition = 'transform .25s cubic-bezier(.4,0,.2,1)';
+    track.style.transform = `translateX(${-curPage * window.innerWidth}px)`;
+  }
   if (scrolling) return;
   e.preventDefault();
   const offsetPx = -(curPage * window.innerWidth) + dx;
@@ -1316,22 +1321,37 @@ wrap.addEventListener('touchmove', e => {
 }, {passive:false});
 
 wrap.addEventListener('touchend', e => {
-  if (!dragging || scrolling || blocked) { dragging=false; blocked=false; return; }
+  if (!dragging || blocked) { dragging=false; blocked=false; scrolling=false; return; }
+  if (scrolling) {
+    // Snap di sicurezza anche qui: garantisce la pagina corrente sia allineata
+    track.style.transition = 'transform .25s cubic-bezier(.4,0,.2,1)';
+    track.style.transform = `translateX(${-curPage * window.innerWidth}px)`;
+    dragging = false; blocked = false; scrolling = false;
+    return;
+  }
   const dx = e.changedTouches[0].clientX - tX;
   track.style.transition = 'transform .38s cubic-bezier(.4,0,.2,1)';
   if (dx < -50 && curPage < 3) goTo(curPage+1);
   else if (dx > 50 && curPage > 0) goTo(curPage-1);
   else if (dx > 50 && curPage === 0) history.back();
   else goTo(curPage);
-  dragging = false; blocked = false;
+  dragging = false; blocked = false; scrolling = false;
 }, {passive:true});
 
 // touchcancel: iOS cancels touch on system gesture/notification — reset track to avoid stuck position
 wrap.addEventListener('touchcancel', () => {
-  track.style.transition = 'transform .38s cubic-bezier(.4,0,.2,1)';
+  track.style.transition = 'transform .25s cubic-bezier(.4,0,.2,1)';
   track.style.transform = `translateX(${-curPage * window.innerWidth}px)`;
   dragging = false; blocked = false; scrolling = false;
 });
+
+// Re-sync quando la pagina torna visibile (es. ritorno da profile.html) o cambia viewport
+function _resyncTrack(){
+  track.style.transition = 'none';
+  track.style.transform = `translateX(${-curPage * window.innerWidth}px)`;
+}
+window.addEventListener('pageshow', _resyncTrack);
+document.addEventListener('visibilitychange', () => { if(!document.hidden) _resyncTrack(); });
 
 // visibilitychange: when app returns from background (notification, phone call, sleep)
 // any active touch is silently cancelled — reset track position so it's never stuck halfway
