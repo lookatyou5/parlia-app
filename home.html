@@ -520,6 +520,8 @@ html, body {
 </style>
 </head>
 <body>
+<!-- BUILD MARKER (temporaneo) — se vedi il pallino viola in alto a destra = nuova versione caricata -->
+<div id="buildMarker" style="position:fixed;top:4px;right:4px;z-index:9999;width:10px;height:10px;border-radius:50%;background:linear-gradient(135deg,#7c3aed,#db2777);box-shadow:0 0 8px rgba(124,58,237,.6);pointer-events:none;" title="build 5100479"></div>
 
 <div class="mesh"><div class="blob blob1"></div><div class="blob blob2"></div></div>
 
@@ -732,6 +734,10 @@ if ('scrollRestoration' in history) try { history.scrollRestoration = 'manual'; 
 // Lo swipe e il tutorial partono SOLO dopo che il DOM è popolato: così il
 // layout flex + scroll-snap del carosello ha le larghezze reali al primo paint
 // e non parte sfasato.
+// Marker di build — se in console vedi questa riga significa che la NUOVA
+// versione è caricata. Usa DevTools → Console per verificarlo.
+console.log('%c[parlia] build 5100479 · futuristic inicio test', 'color:#7c3aed;font-weight:bold;');
+
 // ── TOGGLE DI TEST ──
 // Metti a true per vedere la variante "futuristic" della pagina Inicio
 // (hero liquid halo + glass cards). Il resto del carosello resta invariato.
@@ -741,19 +747,29 @@ const USE_FUTURISTIC_INICIO = true;
   const inicioSrc = USE_FUTURISTIC_INICIO
     ? 'components/inicio-futuristic.html'
     : 'components/inicio.html';
+  console.log('[parlia] loading partials, inicio =', inicioSrc);
   try {
     const [inicio, aac, rehab, perfil] = await Promise.all([
-      fetch(inicioSrc).then(r => r.ok ? r.text() : Promise.reject(r.status)),
-      fetch('components/aac.html').then(r => r.ok ? r.text() : Promise.reject(r.status)),
-      fetch('components/rehab.html').then(r => r.ok ? r.text() : Promise.reject(r.status)),
-      fetch('components/perfil.html').then(r => r.ok ? r.text() : Promise.reject(r.status))
+      fetch(inicioSrc).then(r => r.ok ? r.text() : Promise.reject('inicio HTTP '+r.status)),
+      fetch('components/aac.html').then(r => r.ok ? r.text() : Promise.reject('aac HTTP '+r.status)),
+      fetch('components/rehab.html').then(r => r.ok ? r.text() : Promise.reject('rehab HTTP '+r.status)),
+      fetch('components/perfil.html').then(r => r.ok ? r.text() : Promise.reject('perfil HTTP '+r.status))
     ]);
     document.getElementById('page0').innerHTML = inicio;
     document.getElementById('page1').innerHTML = aac;
     document.getElementById('page2').innerHTML = rehab;
     document.getElementById('page3').innerHTML = perfil;
+    console.log('[parlia] partials injected ✓');
   } catch(err){
     console.error('[parlia] partials load failed:', err);
+    // Fallback: se inicio-futuristic fallisce, carica quello classico
+    if (USE_FUTURISTIC_INICIO) {
+      try {
+        const classic = await fetch('components/inicio.html').then(r => r.text());
+        document.getElementById('page0').innerHTML = classic;
+        console.warn('[parlia] fallback to classic inicio');
+      } catch(e2){ console.error('[parlia] classic inicio fallback also failed:', e2); }
+    }
   }
 
   // Carica asset della variante futuristic solo se necessario
@@ -763,13 +779,19 @@ const USE_FUTURISTIC_INICIO = true;
       link.id = 'fut-inicio-css';
       link.rel = 'stylesheet';
       link.href = 'inicio-futuristic.css';
+      link.onload = () => console.log('[parlia] inicio-futuristic.css loaded ✓');
+      link.onerror = () => console.error('[parlia] inicio-futuristic.css FAILED to load');
       document.head.appendChild(link);
     }
     if (!document.getElementById('fut-inicio-js')) {
       const s = document.createElement('script');
       s.id = 'fut-inicio-js';
       s.src = 'inicio-futuristic.js';
-      s.onload = () => { try { window.initFuturisticInicio && window.initFuturisticInicio(); } catch(e){ console.error(e); } };
+      s.onload = () => {
+        console.log('[parlia] inicio-futuristic.js loaded ✓');
+        try { window.initFuturisticInicio && window.initFuturisticInicio(); } catch(e){ console.error('[parlia] initFuturisticInicio crash:', e); }
+      };
+      s.onerror = () => console.error('[parlia] inicio-futuristic.js FAILED to load');
       document.body.appendChild(s);
     } else {
       try { window.initFuturisticInicio && window.initFuturisticInicio(); } catch(e){}
