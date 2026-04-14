@@ -930,7 +930,23 @@ document.addEventListener('touchend', () => {
     ptrText.textContent = 'Actualizando…';
     ptrEl.style.transform = 'translateX(-50%) translateY(0px)';
     ptrEl.classList.add('visible');
-    setTimeout(() => { window.location.reload(); }, 600);
+    // Soft refresh: NON ricarichiamo la pagina (che causerebbe flash di schermo
+    // bianco mentre fetchiamo di nuovo i partial). Rinfreschiamo solo i dati
+    // dinamici in-place, poi nascondiamo l'indicatore. Così resta più "PWA".
+    Promise.resolve()
+      .then(() => { try { buildAgenda(); } catch(e){} })
+      .then(() => { try { loadMeteo(); } catch(e){} })
+      .then(() => { try { loadGoal(); } catch(e){} })
+      .then(() => { try { if (!_IS_NIGHT) _sendMsg(null); } catch(e){} })
+      .then(() => { try { loadAISuggestions(); } catch(e){} })
+      .finally(() => {
+        setTimeout(() => {
+          ptrEl.classList.remove('visible', 'releasing');
+          ptrEl.style.transform = '';
+          ptrIcon.textContent = '↓';
+          ptrText.textContent = 'Desliza para actualizar';
+        }, 600);
+      });
   }
 }, {passive: true});
 function showHint() {
