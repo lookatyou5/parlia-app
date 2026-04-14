@@ -6,10 +6,10 @@
 <title>Parlia</title>
 <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <!-- Stili specifici di ogni pagina della home (?v= cache-bust su ogni deploy) -->
-<link rel="stylesheet" href="inicio.css?v=20260414j">
-<link rel="stylesheet" href="aac.css?v=20260414j">
-<link rel="stylesheet" href="rehab.css?v=20260414j">
-<link rel="stylesheet" href="perfil.css?v=20260414j">
+<link rel="stylesheet" href="inicio.css?v=20260414k">
+<link rel="stylesheet" href="aac.css?v=20260414k">
+<link rel="stylesheet" href="rehab.css?v=20260414k">
+<link rel="stylesheet" href="perfil.css?v=20260414k">
 <style>
 *, *::before, *::after { box-sizing: border-box !important; margin: 0; padding: 0; }
 
@@ -139,60 +139,55 @@ body.is-scrolling .meteo-widget {
 .page::-webkit-scrollbar { display: none; }
 
 /* ── NAV ── */
-/* Navbar fluttuante — pill di vetro centrata in basso */
+/* Navbar fluttuante — nessun contenitore, solo 4 item larghi.
+   L'attivo ha il suo "pill" con gradient, gli altri sono icone libere. */
 .nav {
   position: fixed; bottom: 0; left: 0; right: 0; z-index: 100;
   height: var(--nav-h);
-  padding: 0 16px 18px;
-  display: flex; align-items: flex-end; justify-content: center;
+  padding: 0 14px 20px;
+  display: flex; align-items: flex-end; justify-content: space-around;
   background: transparent; border-top: none;
-  pointer-events: none; /* solo la pill interna cattura i tap */
-}
-/* Il contenitore "pill" è l'unico cliccabile */
-.nav-inner {
-  pointer-events: auto;
-  display: flex; gap: 2px; align-items: center;
-  background: rgba(255,255,255,.78);
-  backdrop-filter: blur(22px) saturate(1.8);
-  -webkit-backdrop-filter: blur(22px) saturate(1.8);
-  border: 1px solid rgba(255,255,255,.95);
-  border-radius: 100px; padding: 5px;
-  box-shadow:
-    0 10px 36px rgba(37,99,235,.18),
-    0 4px 14px rgba(0,0,0,.08),
-    0 1px 0 rgba(255,255,255,.9) inset,
-    0 -1px 0 rgba(0,0,0,.04) inset;
-  max-width: 96vw;
+  pointer-events: none;
   animation: navFloat 6s ease-in-out infinite;
   transform: translateZ(0);
 }
 @keyframes navFloat { 0%,100%{transform:translateY(0) translateZ(0)} 50%{transform:translateY(-3px) translateZ(0)} }
-/* Durante lo scroll fermiamo l'animazione float per fluidità */
-body.is-scrolling .nav-inner { animation-play-state: paused; }
+body.is-scrolling .nav { animation-play-state: paused; }
 
 .nav-copyright { position: fixed; bottom: 3px; left: 0; right: 0; text-align: center; font-size: 0.56rem; color: #c4c4c4; font-weight: 600; letter-spacing: .02em; pointer-events: none; z-index: 99; }
 
 .nav-item {
-  display: flex; flex-direction: column; align-items: center; gap: 2px;
-  cursor: pointer; padding: 8px 15px; border-radius: 100px;
-  transition: all .22s cubic-bezier(.4,0,.2,1);
+  pointer-events: auto;
+  display: flex; flex-direction: column; align-items: center; gap: 3px;
+  cursor: pointer; padding: 10px 18px; border-radius: 100px;
+  transition: all .25s cubic-bezier(.4,0,.2,1);
   -webkit-tap-highlight-color: transparent;
   position: relative;
+  /* Non-attivi: nessun background */
+  background: transparent;
 }
-.nav-item:active { transform: scale(.94); }
+.nav-item:active { transform: scale(.92); }
 .nav-icon {
   width: auto; height: auto; border-radius: 0;
   background: none !important; box-shadow: none !important;
-  font-size: 1.2rem; line-height: 1;
+  font-size: 1.55rem; line-height: 1;
   display: flex; align-items: center; justify-content: center;
-  transition: transform .22s;
+  transition: transform .25s;
+  filter: drop-shadow(0 2px 6px rgba(0,0,0,.15));
 }
 .nav-item.active {
   background: linear-gradient(135deg, #2563eb 0%, #4f46e5 50%, #7c3aed 100%);
-  box-shadow: 0 4px 16px rgba(99,102,241,.38);
+  box-shadow: 0 8px 24px rgba(99,102,241,.45), 0 2px 6px rgba(37,99,235,.25);
+  transform: translateY(-2px); /* attivo sollevato di più */
 }
-.nav-item.active .nav-icon { transform: scale(1.05); }
-.nav-lbl { font-size: 0.5rem; font-weight: 700; color: var(--muted); letter-spacing: .06em; transition: color .22s; text-transform: uppercase; }
+.nav-item.active .nav-icon {
+  transform: scale(1.08);
+  filter: drop-shadow(0 2px 8px rgba(0,0,0,.25));
+}
+.nav-lbl {
+  font-size: 0.56rem; font-weight: 700; color: var(--muted);
+  letter-spacing: .08em; transition: color .25s; text-transform: uppercase;
+}
 .nav-item.active .nav-lbl { color: white; }
 
 /* Dot indicatori */
@@ -663,25 +658,23 @@ body.is-scrolling .nav-inner { animation-play-state: paused; }
   </div><!-- /track -->
 </div><!-- /pages-wrap -->
 
-<!-- NAV fluttuante (glass pill) -->
+<!-- NAV fluttuante (senza sfondo, solo item; l'attivo ha il suo pill con gradient) -->
 <div class="nav">
-  <div class="nav-inner">
-    <div class="nav-item active" id="nav0" onclick="goTo(0)">
-      <div class="nav-icon">🏠</div>
-      <div class="nav-lbl">Inicio</div>
-    </div>
-    <div class="nav-item" id="nav1" onclick="goTo(1)">
-      <div class="nav-icon">🗣️</div>
-      <div class="nav-lbl">AAC</div>
-    </div>
-    <div class="nav-item" id="nav2" onclick="goTo(2)">
-      <div class="nav-icon">🧠</div>
-      <div class="nav-lbl">Rehab</div>
-    </div>
-    <div class="nav-item" id="nav3" onclick="goTo(3)">
-      <div class="nav-icon">👤</div>
-      <div class="nav-lbl">Perfil</div>
-    </div>
+  <div class="nav-item active" id="nav0" onclick="goTo(0)">
+    <div class="nav-icon">🏠</div>
+    <div class="nav-lbl">Inicio</div>
+  </div>
+  <div class="nav-item" id="nav1" onclick="goTo(1)">
+    <div class="nav-icon">🗣️</div>
+    <div class="nav-lbl">AAC</div>
+  </div>
+  <div class="nav-item" id="nav2" onclick="goTo(2)">
+    <div class="nav-icon">🧠</div>
+    <div class="nav-lbl">Rehab</div>
+  </div>
+  <div class="nav-item" id="nav3" onclick="goTo(3)">
+    <div class="nav-icon">👤</div>
+    <div class="nav-lbl">Perfil</div>
   </div>
 </div>
 <div class="nav-copyright">© 2026 Parlia.app</div>
