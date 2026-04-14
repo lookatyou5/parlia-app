@@ -824,6 +824,7 @@ function goTo(idx){
 
 // Aggiorna curPage + nav attivi quando l'utente fa swipe manuale (senza chiamare goTo)
 let _scrollRaf = null;
+let _pushingHistory = false; // vero solo durante popstate, per evitare loop
 wrap.addEventListener('scroll', () => {
   if (_scrollRaf) return;
   _scrollRaf = requestAnimationFrame(() => {
@@ -831,10 +832,16 @@ wrap.addEventListener('scroll', () => {
     const w = _pageWidth();
     const idx = Math.round(wrap.scrollLeft / w);
     if (idx !== curPage && idx >= 0 && idx <= 3) {
+      const prev = curPage;
       curPage = idx;
       document.querySelectorAll('.nav-item').forEach((el,i) => el.classList.toggle('active', i===idx));
       document.querySelectorAll('.nav-dot').forEach((d,i) => d.classList.toggle('active', i===idx));
       hideHint();
+      // Push history: ogni cambio pagina (swipe o goTo) aggiunge uno stack,
+      // così il back del telefono fa Perfil→Rehab→AAC→Inicio→Onboarding.
+      if (!_pushingHistory && idx !== prev) {
+        try { window.history.pushState({inApp:true, page:idx}, '', window.location.href); } catch(e){}
+      }
     }
   });
 });
@@ -1921,28 +1928,32 @@ window.addEventListener('load', () => {
   setTimeout(_forceResetToPage0, 150);
 });
 
-// Override goTo to push history states
-const originalGoTo = goTo;
-goTo = function(idx) {
-  if (idx !== curPage) {
-    window.history.pushState({inApp: true, page: idx}, '', window.location.href);
+// Back gesture = una pagina indietro nel carosello.
+// goTo pusha history (il listener di scroll fa lo stesso per gli swipe manuali).
+const _origGoTo = goTo;
+goTo = function(idx){
+  if (idx !== curPage && !_pushingHistory) {
+    try { window.history.pushState({inApp:true, page:idx}, '', window.location.href); } catch(e){}
   }
-  originalGoTo(idx);
+  _origGoTo(idx);
 };
 
-// Guard: ignore any popstate fired within the first 600ms of page load.
-// iOS Safari can fire spurious popstate events during init (e.g. after replaceState
-// when navigating from onboarding via location.replace), causing wrong page to show.
+// Guard contro popstate spuri durante il boot (iOS Safari)
 let _popstateReady = false;
 setTimeout(() => { _popstateReady = true; }, 600);
 
 window.addEventListener('popstate', (e) => {
   if (!_popstateReady) return;
   if (!e.state || !e.state.inApp) {
+    // Fuori dagli stati della home → esci verso l'onboarding.
+    // (nota: questo lo useremo solo in fase di test — in prod verrà riadattato)
     window.location.href = '/index.html';
-  } else {
-    originalGoTo(e.state.page);
+    return;
   }
+  // Allinea il carosello alla pagina dello stato (senza ripushare history)
+  _pushingHistory = true;
+  _origGoTo(e.state.page);
+  setTimeout(() => { _pushingHistory = false; }, 80);
 });
 
 // Espone le funzioni chiamate dagli onclick="..." nell'HTML (dopo il wrap in runApp
