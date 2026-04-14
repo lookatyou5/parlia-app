@@ -1905,10 +1905,14 @@ init();
 
 // History management — pulisce eventuali hash/query che potrebbero far partire lo script su una pagina sbagliata
 if (window.location.hash || window.location.search) {
-  window.history.replaceState({inApp: true, page: 0}, '', window.location.pathname);
+  window.history.replaceState({inApp: true, sentinel: true}, '', window.location.pathname);
 } else {
-  window.history.replaceState({inApp: true, page: 0}, '', window.location.href);
+  window.history.replaceState({inApp: true, sentinel: true}, '', window.location.href);
 }
+// Sentinella: onboarding.html usa location.replace(), quindi NON c'è una voce di onboarding
+// nella history. Creiamo noi una doppia voce: [sentinel, page0_reale].
+// Quando il back gesture pop fino alla sentinella → redirect manuale a onboarding.
+window.history.pushState({inApp: true, page: 0}, '', window.location.href);
 
 // Forza il carosello sulla pagina 0 al load — scroll-snap nativo, nessun calcolo
 curPage = 0;
@@ -1945,9 +1949,13 @@ setTimeout(() => { _popstateReady = true; }, 600);
 window.addEventListener('popstate', (e) => {
   if (!_popstateReady) return;
   if (!e.state || !e.state.inApp) {
-    // Fuori dagli stati della home → esci verso l'onboarding.
-    // (nota: questo lo useremo solo in fase di test — in prod verrà riadattato)
-    window.location.href = '/index.html';
+    // Nessuno stato Parlia → lasciamo fare al browser (back naturale)
+    return;
+  }
+  if (e.state.sentinel) {
+    // L'utente ha popato tutte le pagine del carosello → vai all'onboarding.
+    // (Usiamo replace così un ulteriore back non rimbalza qui ma esce davvero)
+    window.location.replace('/index.html');
     return;
   }
   // Allinea il carosello alla pagina dello stato (senza ripushare history)
