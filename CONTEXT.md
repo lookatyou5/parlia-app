@@ -11,7 +11,10 @@ Parlia è una PWA (app web progressiva) per comunicazione aumentativa (AAC) dest
 ## File principali
 - `index.html` — router (manda sempre a onboarding.html)
 - `onboarding.html` — onboarding a step con animazioni
-- `home.html` — app principale con 4 pagine a swipe (Inicio / AAC / Rehab / Perfil)
+- `home.html` — **orchestratore** del carosello Inicio/AAC/Rehab/Perfil (~600 righe dopo la modularizzazione)
+- `home.backup.html` — snapshot pre-refactor di home.html, recuperabile in caso di necessità
+- `inicio.css` · `aac.css` · `rehab.css` · `perfil.css` — stili specifici di ogni pagina della home
+- `components/inicio.html` · `aac.html` · `rehab.html` · `perfil.html` — partial HTML di ogni pagina, caricati via fetch
 - `profile.html` — **profilo unificato** (datos personales + memoria AI + funciones)
 - `profileApp.js` — logica della pagina profilo (config-driven, modal unico)
 - `userData.js` — data layer condiviso `parlia_user_data` con migrazione legacy
@@ -20,7 +23,49 @@ Parlia è una PWA (app web progressiva) per comunicazione aumentativa (AAC) dest
 - `tutorial.html` — tutorial interattivo standalone con tour guidato
 - `roadmap.html` — roadmap interna (accessibile da ⚙️ nella home)
 - `manifest.json` — PWA manifest (start_url: /)
-- `sw.js` — service worker
+- `sw.js` — service worker (kill-cache, passa tutto alla rete)
+
+## Architettura del carosello home (modulare)
+`home.html` al caricamento:
+1. Linka i 4 CSS per sezione (`<link rel="stylesheet" href="inicio.css">` ecc.)
+2. Lascia i 4 `<div class="page" id="pageN">` **vuoti**
+3. All'inizio del `<script>` principale esegue un **bootstrap** che fa `Promise.all` su `fetch('components/*.html')` e inietta i partial nei rispettivi div
+4. Solo dopo due `requestAnimationFrame` (layout+paint completi) chiama `runApp()` — la funzione che racchiude tutta la logica dell'app
+
+Tutte le funzioni richiamate da `onclick="…"` negli HTML (goTo, toast, openSOS, openReminderModal, replayLast, selCat, ecc.) sono esposte a `window` alla fine di `runApp()` con un `Object.assign(window, {…})`.
+
+## Carosello swipe (scroll-snap nativo)
+Dopo vari tentativi di implementazione custom con `transform/translateX`, abbiamo riscritto il carosello usando **CSS scroll-snap nativo** (stesso modello di `profile.html`):
+```css
+.pages-wrap {
+  position: fixed; left: 0; right: 0;
+  overflow-x: auto; overflow-y: hidden;
+  scroll-snap-type: x mandatory;
+  scroll-behavior: smooth;
+  overscroll-behavior-x: contain;
+}
+.page { width: 100vw; scroll-snap-align: start; scroll-snap-stop: always; }
+```
+Il browser gestisce: drag del dito, inerzia, snap-to-page, allineamento. JS solo per:
+- `goTo(idx)` → `wrap.scrollTo({left: idx*width, behavior:'smooth'})`
+- Scroll listener con rAF → aggiorna `curPage` + nav attivi quando l'utente fa swipe
+- Flag `_programmaticScroll` per evitare che il listener reagisca durante smooth-scroll di `goTo`
+
+## Back gesture (modello lineare, 2 stati)
+Regola semplice: la `history` della home contiene **al massimo 2 voci** — `{page:0}` e, se si è fuori da Inicio, `{page:currentIdx}`.
+- Al load: `history.replaceState({page:0}, '')`
+- `goTo(idx)` + swipe listener chiamano `_syncNavAndHistory(idx)`:
+  - Torna a Inicio (idx=0) → `replaceState({page:0})`
+  - Lascia Inicio per la prima volta → `pushState({page:idx})`
+  - Cambia tra sezioni non-Inicio → `replaceState({page:idx})`
+- `popstate`:
+  - Se `curPage > 0` → `goTo(0, true)` (fromBack=true, non modifica history)
+  - Se `curPage === 0` → browser default (chiude l'app)
+
+Risultato: da AAC/Rehab/Perfil **un solo back porta a Inicio**, da Inicio un solo back chiude l'app. Nessuna cronologia infinita, nessun loop.
+
+## Pull-to-refresh (soft refresh PWA)
+Trascinare giù su Inicio **non ricarica la pagina**. Esegue invece in sequenza: `buildAgenda()` → `loadMeteo()` → `loadGoal()` → `_sendMsg(null)` (saluto AI) → `loadAISuggestions()`. La pagina resta sempre visibile, niente flash bianco, effetto nativo PWA.
 
 ## Profilo unificato (parlia_user_data)
 Schema centralizzato in localStorage, gestito da `userData.js`:
@@ -36,6 +81,15 @@ Schema centralizzato in localStorage, gestito da `userData.js`:
 - `ParliaUser.save()` mantiene le chiavi legacy sincronizzate (backward compat con codice esistente di home.html)
 - `profile.html` edita ogni campo tramite **modal unico** (text / textarea / chip single / chip multi / lista CSV)
 - `home.html` legge `_ud = ParliaUser.get()` e costruisce il system prompt AI includendo: edad, condición, hobbies, música, comida, intereses, familia, profesión, lugar de origen, tono/preferencias — tutto con sync immediato appena si salva nel profilo.
+- La sezione "Memoria e intereses" in profile.html ha una **hero viola/rosa** con gradient distintivo ("💙 EL CORAZÓN DE PARLIA AI · Cuéntale a Parlia quién eres") e mini-barra di completamento dedicata; hero e lista campi formano un unico blocco visivo.
+
+## Tab Perfil nella home (page3)
+Vista read-only come dashboard:
+- Avatar + nome + "Institut Guttmann · Barcelona"
+- Barra "Perfil completado" (calcolo condiviso con `ParliaUser.count()`)
+- Card riassuntiva **non cliccabile** (Datos personales · Condición · Cuidador · Memoria AI (N/8 campos) · Funciones activas)
+- Un unico bottone CTA in gradient blu: **"✏️ Editar mi perfil · Datos personales + memoria AI"** → apre `profile.html`
+- Link 🎓 Tutorial de la app (separato, apre `tutorial.html`)
 
 ## Tech stack
 - HTML/CSS/JS puro, niente framework
@@ -102,6 +156,22 @@ Schema centralizzato in localStorage, gestito da `userData.js`:
 - Auto-deploy: ogni `git push` deploya automaticamente
 - Comando deploy: `git push` (nient'altro necessario!)
 - Dominio: app.parlia.app (CNAME configurato)
+
+## Sessione 14 aprile 2026 — Modularizzazione + back gesture + PWA
+- **Modularizzazione home.html**: estratto HTML e CSS di ogni pagina del carosello in file separati.
+  - 4 partial: `components/{inicio,aac,rehab,perfil}.html`
+  - 4 CSS: `{inicio,aac,rehab,perfil}.css` (link nel head di home.html)
+  - Bootstrap con `Promise.all(fetch...)` + doppio `requestAnimationFrame` prima di `runApp()`, così il carosello scroll-snap parte su un layout stabile.
+  - `home.html` è passato da 2423 a ~600 righe.
+  - Funzioni chiamate via `onclick=` nell'HTML esposte a `window` a fine `runApp()` (altrimenti locali alla funzione).
+  - Backup in `home.backup.html` + commit `b4eab7d`.
+- **Riscritto il carosello con scroll-snap nativo** (come profile.html): eliminati tutti i bug di allineamento/sfasatura che si avevano con `transform: translateX` custom.
+- **Back gesture rifatta 3 volte** fino al modello finale: cronologia lineare con max 2 voci (`{page:0}` + `{page:currentIdx}`). Back da qualsiasi sezione → Inicio. Back da Inicio → chiude app. Nessun loop, nessun stato spurio.
+- **Pull-to-refresh = soft refresh**: invece di `window.location.reload()` (che con i partial fa flash bianco), rinfrescamo solo i dati dinamici in-place (agenda, meteo, obiettivo, saluto AI, suggerimenti AAC). Effetto PWA nativo.
+- **Profilo unificato**: `profile.html` + `profileApp.js` + `userData.js`. Schema unico `parlia_user_data` con migrazione automatica da `parlia_profile`/`parlia_profile_extra`/`parlia_memory`. Un solo modal per editare ogni campo (text/textarea/chip single/chip multi/lista CSV). `memoriaAI.html` convertito in redirect.
+- **Tab Perfil nella home**: trasformata in dashboard read-only con un unico CTA "Editar mi perfil".
+- **Sezione Memoria e intereses nel profile**: card hero viola→rosa "Cuéntale a Parlia quién eres" con mini-barra di completamento dedicata; hero + lista campi uniti in un unico blocco visivo.
+- **Tutorial aggiornato**: il passo 4 ora mostra una preview della hero Memoria AI + CTA di editing del profilo.
 
 ## Sessione 12 aprile 2026 (mattina)
 - Aggiunto tutorial interattivo con spotlight su elementi UI reali
