@@ -6,10 +6,10 @@
 <title>Parlia</title>
 <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <!-- Stili specifici di ogni pagina della home (?v= cache-bust su ogni deploy) -->
-<link rel="stylesheet" href="inicio.css?v=20260414l">
-<link rel="stylesheet" href="aac.css?v=20260414l">
-<link rel="stylesheet" href="rehab.css?v=20260414l">
-<link rel="stylesheet" href="perfil.css?v=20260414l">
+<link rel="stylesheet" href="inicio.css?v=20260414m">
+<link rel="stylesheet" href="aac.css?v=20260414m">
+<link rel="stylesheet" href="rehab.css?v=20260414m">
+<link rel="stylesheet" href="perfil.css?v=20260414m">
 <style>
 *, *::before, *::after { box-sizing: border-box !important; margin: 0; padding: 0; }
 
@@ -1531,6 +1531,11 @@ function initAIHero() {
                 <div class="ai-status-txt" id="aiStatusText">Escuchándote</div>
               </div>
             </div>
+            <!-- Mode toggle: A=chips / C=texto -->
+            <div class="ai-mode-toggle" id="aiModeToggle">
+              <div class="ai-mode-opt" data-mode="chips" onclick="setAiMode('chips')" title="Respuestas con chips">💬</div>
+              <div class="ai-mode-opt" data-mode="texto" onclick="setAiMode('texto')" title="Escribir respuesta">✏️</div>
+            </div>
             <div class="ai-tts-btn" id="ttsBtn" onclick="toggleTTS()">🔇</div>
           </div>
           <div class="ai-session-pill" id="aiSessionPill" style="display:none">
@@ -1544,6 +1549,11 @@ function initAIHero() {
           </div>
           <div class="chat-thread" id="chatThread"></div>
           <div class="ai-chips" id="aiChips"></div>
+          <!-- Input testo (visibile solo in mode 'texto') -->
+          <form class="ai-text-input" id="aiTextInput" onsubmit="return sendAiText(event)">
+            <input type="text" id="aiTextField" placeholder="Escribe a Parlia…" autocomplete="off" spellcheck="false" enterkeyhint="send">
+            <button type="submit" aria-label="Enviar" class="ai-text-send">↑</button>
+          </form>
 
           <!-- Agenda · orbitante dentro il core AI -->
           <div class="ai-agenda-divider">
@@ -1553,6 +1563,7 @@ function initAIHero() {
         </div>
       </div>`;
     _updateSessionPill();
+    _applyAiMode();
   }
 }
 
@@ -1614,6 +1625,26 @@ function _showCtxBadge(ctx) {
   else if (ctx.next) {label=`📅 Próximo: ${ctx.next.emoji} ${ctx.next.time}`;color='#60a5fa';}
   if (label) {txt.textContent=label;dot.style.background=color;badge.style.display='flex';}
 }
+// Modalità di interazione con Parlia AI — letta da parlia_user_data.functions.aiMode
+// 'chips' (default): il modello genera "CHIPS: a|b|c|d" per risposte-tap rapide
+// 'texto': l'utente scrive liberamente, il modello risponde solo con testo
+function _getAiMode(){ return (_ud.functions && _ud.functions.aiMode) || 'chips'; }
+function setAiMode(mode){
+  if (mode !== 'chips' && mode !== 'texto') return;
+  _ud.functions = _ud.functions || {};
+  _ud.functions.aiMode = mode;
+  ParliaUser.save(_ud);
+  _applyAiMode();
+}
+function _applyAiMode(){
+  const mode = _getAiMode();
+  document.body.classList.toggle('ai-mode-texto', mode === 'texto');
+  document.body.classList.toggle('ai-mode-chips', mode === 'chips');
+  document.querySelectorAll('.ai-mode-opt').forEach(el => {
+    el.classList.toggle('on', el.dataset.mode === mode);
+  });
+}
+
 function _buildSystem(ctx) {
   const mp=_ud.memory, pers=_ud.personal;
   // Fase della giornata (per saluti/conversazione contestuale)
@@ -1669,9 +1700,16 @@ function _buildSystem(ctx) {
   // ── REGLAS ESTRICTAS DE FORMATO ──
   lines.push(`\n=== FORMATO OBLIGATORIO ===`);
   lines.push(`- Sin markdown, sin asteriscos, sin emojis excesivos (máx 1-2).`);
-  lines.push(`- Segunda línea exacta: "CHIPS: opción1 | opción2 | opción3 | opción4"`);
-  lines.push(`- CHIPS son EXACTAMENTE las posibles respuestas directas a tu pregunta final. Si preguntas "¿qué tal?" → chips de ánimo. Si preguntas sobre comida → chips de platos. NUNCA chips genéricos tipo "Sí", "No", "Ok" solos.`);
-  lines.push(`- 3 o 4 chips, cada uno máx 4 palabras, naturales como frases que ${profile.userName||'el usuario'} diría realmente.`);
+  if (_getAiMode() === 'texto') {
+    // Mode C — texto libero, nessun chip
+    lines.push(`- Responde SOLO con texto natural, sin "CHIPS:" ni bloques con opciones. El usuario escribirá libremente, conversa como un amigo.`);
+    lines.push(`- Puedes alargar un poco la respuesta si la conversación lo pide, hasta 35 palabras.`);
+  } else {
+    // Mode A — chips obligatori
+    lines.push(`- Segunda línea exacta: "CHIPS: opción1 | opción2 | opción3 | opción4"`);
+    lines.push(`- CHIPS son EXACTAMENTE las posibles respuestas directas a tu pregunta final. Si preguntas "¿qué tal?" → chips de ánimo. Si preguntas sobre comida → chips de platos. NUNCA chips genéricos tipo "Sí", "No", "Ok" solos.`);
+    lines.push(`- 3 o 4 chips, cada uno máx 4 palabras, naturales como frases que ${profile.userName||'el usuario'} diría realmente.`);
+  }
   lines.push(`- NO repitas preguntas ni frases ya usadas en este historial.`);
   lines.push(`- Responde SIEMPRE al último mensaje del usuario (si existe).`);
   return lines.join('\n');
@@ -1736,7 +1774,30 @@ async function _sendMsg(userText) {
   const lb=document.getElementById('_loadingBubble'); if(lb)lb.remove();
   const bubble=_addBubble('ai','');
   document.getElementById('aiStatusText').textContent='Escuchándote';
-  _typeIntoBubble(bubble,aiText,()=>{ _isTyping=false; _speak(aiText); _renderChips(chips); });
+  _typeIntoBubble(bubble,aiText,()=>{
+    _isTyping=false;
+    _speak(aiText);
+    // Chips mostrati solo in modalità 'chips'
+    if (_getAiMode() === 'chips') _renderChips(chips);
+    else document.getElementById('aiChips').innerHTML = '';
+    // Se siamo in texto, refocus sull'input per risposta rapida
+    if (_getAiMode() === 'texto') {
+      const f = document.getElementById('aiTextField');
+      if (f) f.focus();
+    }
+  });
+}
+
+// Invio messaggio testuale (mode 'texto')
+function sendAiText(ev){
+  ev && ev.preventDefault && ev.preventDefault();
+  const field = document.getElementById('aiTextField');
+  if (!field) return false;
+  const text = (field.value || '').trim();
+  if (!text || _isTyping) return false;
+  field.value = '';
+  _sendMsg(text);
+  return false;
 }
 function _addBubble(role,text,isLoading=false) {
   const thread=document.getElementById('chatThread');
@@ -2175,7 +2236,8 @@ Object.assign(window, {
   openSOS, closeSOS, speakSOS,
   toggleSettings, closeSettings,
   openMeteo, closeMeteo, closeMeteoBtn,
-  replayLast, selCat, selSub, tapFrase, toggleTTS
+  replayLast, selCat, selSub, tapFrase, toggleTTS,
+  setAiMode, sendAiText
 });
 
 } // fine runApp()

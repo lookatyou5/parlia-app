@@ -203,6 +203,54 @@
 .ai-chip:active { background: rgba(255,255,255,.22); transform: scale(0.96); }
 .ai-chip.cta { background: rgba(255,255,255,.18); border-color: rgba(255,255,255,.35); font-weight: 700; }
 
+/* ── Mode toggle (chips vs texto) nell'AI hero header ── */
+.ai-mode-toggle {
+  display: flex; gap: 2px; flex-shrink: 0;
+  background: rgba(255,255,255,.1); border: 1px solid rgba(255,255,255,.18);
+  border-radius: 100px; padding: 2px;
+}
+.ai-mode-opt {
+  width: 26px; height: 22px; border-radius: 100px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: .78rem; cursor: pointer;
+  transition: all .2s; -webkit-tap-highlight-color: transparent;
+  opacity: .5;
+}
+.ai-mode-opt.on {
+  background: rgba(255,255,255,.25);
+  opacity: 1;
+  box-shadow: 0 1px 4px rgba(0,0,0,.15);
+}
+.ai-mode-opt:active { transform: scale(.92); }
+
+/* ── Text input (visible solo in mode 'texto') ── */
+.ai-text-input {
+  display: none; align-items: center; gap: 6px;
+  background: rgba(255,255,255,.12);
+  border: 1px solid rgba(255,255,255,.22);
+  border-radius: 100px; padding: 4px 4px 4px 14px;
+  margin-top: 6px;
+}
+.ai-text-input input {
+  flex: 1; background: transparent; border: none; outline: none;
+  color: white; font-family: 'Plus Jakarta Sans', sans-serif;
+  font-size: .82rem; font-weight: 500; padding: 7px 0;
+  caret-color: white;
+}
+.ai-text-input input::placeholder { color: rgba(255,255,255,.5); }
+.ai-text-send {
+  width: 30px; height: 30px; border-radius: 50%;
+  background: white; color: #4f46e5; border: none;
+  font-size: .95rem; font-weight: 800; cursor: pointer;
+  -webkit-tap-highlight-color: transparent; transition: transform .15s;
+  flex-shrink: 0; line-height: 1;
+}
+.ai-text-send:active { transform: scale(.9); }
+
+/* In mode texto: nascondi chips, mostra input */
+body.ai-mode-texto .ai-chips { display: none !important; }
+body.ai-mode-texto .ai-text-input { display: flex; }
+
 /* Badge "AHORA" o "PRÓXIMO" — session pill che emerge dall'hero */
 .ai-session-pill {
   display: inline-flex; align-items: center; gap: 5px;

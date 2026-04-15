@@ -17,7 +17,7 @@
     return {
       personal: { userName:'', gender:'', age:'', condicion:[], movilidad:'', caregiverName:'', caregiver2Name:'' },
       memory:   { hobbies:[], musica:'', comida:'', interests:[], family:[], profession:'', birthplace:'', notas:'' },
-      functions:{ aac:true, chat:true, logo:true, neuro:true, gps:false, mood:true },
+      functions:{ aac:true, chat:true, logo:true, neuro:true, gps:false, mood:true, aiMode:'chips' },
       stats:    { opens:0, last_open:'', favorite_hours:[], last_mood:'', last_mood_date:'' }
     };
   }
