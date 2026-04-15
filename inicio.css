@@ -329,12 +329,53 @@ body.ai-mode-texto .ai-text-input { display: flex; }
   color: white;
   transform: translateZ(0);
 }
+/* Card "AHORA" — fortemente illuminata: bianco brillante + glow dorato/viola pulsante */
 .ai-hero-inner .agenda-card.now {
-  background: linear-gradient(135deg, rgba(255,255,255,.22), rgba(167,139,250,.25));
-  border-color: rgba(255,255,255,.4);
-  box-shadow: 0 4px 14px rgba(167,139,250,.35);
+  background: linear-gradient(135deg, #ffffff 0%, #fef3c7 55%, #fde68a 100%);
+  border: 1.5px solid #fde047;
+  box-shadow:
+    0 0 0 3px rgba(253,224,71,.35),
+    0 0 24px rgba(253,224,71,.55),
+    0 6px 18px rgba(253,224,71,.3),
+    0 1px 0 rgba(255,255,255,.8) inset;
+  transform: translateY(-2px) scale(1.04);
+  transform-origin: center;
+  animation: agendaNowPulse 2.4s ease-in-out infinite;
+  z-index: 2;
 }
-.ai-hero-inner .agenda-card.done { opacity: .4; }
+@keyframes agendaNowPulse {
+  0%, 100% {
+    box-shadow:
+      0 0 0 3px rgba(253,224,71,.35),
+      0 0 24px rgba(253,224,71,.55),
+      0 6px 18px rgba(253,224,71,.3),
+      0 1px 0 rgba(255,255,255,.8) inset;
+  }
+  50% {
+    box-shadow:
+      0 0 0 5px rgba(253,224,71,.25),
+      0 0 36px rgba(253,224,71,.75),
+      0 8px 22px rgba(253,224,71,.4),
+      0 1px 0 rgba(255,255,255,.8) inset;
+  }
+}
+/* Pause during swipe for smooth scroll */
+body.is-scrolling .ai-hero-inner .agenda-card.now { animation-play-state: paused; }
+/* Testo della card NOW: scuro per contrasto sul fondo chiaro */
+.ai-hero-inner .agenda-card.now .ac-time { color: #78350f; opacity: 1; }
+.ai-hero-inner .agenda-card.now .ac-label { color: #1c1917; text-shadow: none; }
+.ai-hero-inner .agenda-card.now .ac-sub { color: #78716c; }
+.ai-hero-inner .agenda-card.now .ac-now-badge {
+  background: #f59e0b; color: white;
+  box-shadow: 0 2px 8px rgba(245,158,11,.45);
+  animation: nowBadgePulse 1.4s ease-in-out infinite;
+}
+@keyframes nowBadgePulse { 0%,100%{transform:scale(1)} 50%{transform:scale(1.06)} }
+.ai-hero-inner .agenda-card.now .ac-tag {
+  background: rgba(120,53,15,.15) !important;
+  color: #78350f !important;
+}
+.ai-hero-inner .agenda-card.done { opacity: .35; }
 .ai-hero-inner .agenda-card.reminder {
   background: linear-gradient(135deg, rgba(253,230,138,.2), rgba(251,191,36,.15));
   border-color: rgba(253,230,138,.35);
