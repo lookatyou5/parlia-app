@@ -1,0 +1,855 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<title>Logopedia · Parlia</title>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#faf5ff; --card:#ffffff; --ink:#1a0a2e; --muted:#6b5780;
+  --border:#efe5fb; --violet:#7e22ce; --violet-d:#6b21a8; --violet-l:#f5ebff;
+  --fuchsia:#c026d3; --ok:#10b981; --warn:#f59e0b; --bad:#ef4444;
+  --radius:20px; --shadow:0 4px 20px rgba(126,34,206,.08), 0 1px 3px rgba(0,0,0,.04);
+  --top-h:56px;
+}
+html,body{
+  width:100vw; min-height:100%;
+  font-family:'Plus Jakarta Sans',sans-serif;
+  background:var(--bg); color:var(--ink);
+  -webkit-font-smoothing:antialiased;
+  overscroll-behavior-y:contain;
+}
+body{padding-top:var(--top-h); padding-bottom:40px}
+
+/* ── BACKGROUND MESH ── */
+.mesh{position:fixed;inset:0;z-index:0;pointer-events:none;overflow:hidden}
+.blob{position:absolute;border-radius:50%;filter:blur(80px);opacity:.35}
+.blob1{width:340px;height:340px;top:-100px;right:-80px;background:radial-gradient(circle,#e9d5ff,#fbcfe8)}
+.blob2{width:260px;height:260px;bottom:40px;left:-60px;background:radial-gradient(circle,#ddd6fe,#c4b5fd)}
+
+/* ── TOPBAR ── */
+.topbar{
+  position:fixed; top:0; left:0; right:0; z-index:100;
+  height:var(--top-h);
+  background:rgba(250,245,255,.92);
+  backdrop-filter:blur(16px); -webkit-backdrop-filter:blur(16px);
+  border-bottom:1px solid var(--border);
+  display:flex; align-items:center; padding:0 12px; gap:10px;
+}
+.back-btn{
+  width:40px; height:40px; border-radius:14px;
+  background:var(--violet-l); color:var(--violet);
+  display:flex; align-items:center; justify-content:center;
+  font-size:1.15rem; font-weight:800;
+  border:none; cursor:pointer; flex-shrink:0;
+  -webkit-tap-highlight-color:transparent;
+  text-decoration:none;
+}
+.back-btn:active{transform:scale(.94)}
+.topbar-title{
+  font-family:'Bricolage Grotesque',sans-serif;
+  font-size:1rem; font-weight:800; flex:1; color:var(--ink);
+  display:flex; align-items:center; gap:8px;
+}
+.topbar-title .dot{
+  width:8px; height:8px; border-radius:50%;
+  background:var(--violet); box-shadow:0 0 0 4px rgba(126,34,206,.15);
+}
+.topbar-end{
+  font-size:.68rem; font-weight:800;
+  background:var(--violet-l); color:var(--violet);
+  border-radius:20px; padding:5px 10px;
+}
+
+/* ── MAIN CONTAINER ── */
+.wrap{
+  position:relative; z-index:1;
+  max-width:560px; margin:0 auto; padding:16px 16px 24px;
+}
+
+/* ── AGENT HERO (Ana) ── */
+.agent-hero{
+  background:linear-gradient(135deg,#7e22ce 0%,#c026d3 55%,#db2777 100%);
+  border-radius:var(--radius);
+  padding:20px 18px;
+  color:white;
+  position:relative; overflow:hidden;
+  box-shadow:0 10px 32px rgba(126,34,206,.25);
+  margin-bottom:16px;
+}
+.agent-hero::before{
+  content:''; position:absolute; inset:0;
+  background:radial-gradient(circle at 85% 15%, rgba(255,255,255,.22), transparent 45%);
+  pointer-events:none;
+}
+.agent-header{
+  display:flex; align-items:center; gap:12px; position:relative;
+}
+.agent-avatar{
+  width:48px; height:48px; border-radius:50%;
+  background:rgba(255,255,255,.18);
+  border:2px solid rgba(255,255,255,.3);
+  display:flex; align-items:center; justify-content:center;
+  font-size:1.6rem;
+  flex-shrink:0;
+  position:relative;
+}
+.agent-avatar::after{
+  content:''; position:absolute; inset:-6px; border-radius:50%;
+  border:1.5px solid rgba(255,255,255,.2);
+  animation:pulseRing 2.4s ease-in-out infinite;
+}
+@keyframes pulseRing{0%,100%{transform:scale(1);opacity:.7} 50%{transform:scale(1.08);opacity:.3}}
+.agent-meta{flex:1; min-width:0}
+.agent-name{font-size:1rem; font-weight:800; letter-spacing:.01em}
+.agent-role{font-size:.72rem; font-weight:600; opacity:.8; display:flex; align-items:center; gap:6px}
+.agent-online{width:7px; height:7px; border-radius:50%; background:#4ade80; box-shadow:0 0 0 3px rgba(74,222,128,.3)}
+.agent-mic{
+  width:38px; height:38px; border-radius:50%;
+  background:rgba(255,255,255,.15); border:1px solid rgba(255,255,255,.25);
+  display:flex; align-items:center; justify-content:center;
+  cursor:pointer; color:white; font-size:.95rem;
+  -webkit-tap-highlight-color:transparent;
+}
+.agent-mic.off{opacity:.55}
+.agent-mic:active{transform:scale(.92)}
+
+.agent-bubble{
+  margin-top:14px; position:relative;
+  background:rgba(255,255,255,.14);
+  border:1px solid rgba(255,255,255,.22);
+  border-radius:6px 18px 18px 18px;
+  padding:12px 14px;
+  font-size:.95rem; font-weight:500; line-height:1.5;
+  min-height:46px;
+  animation:fadeUp .3s ease;
+}
+@keyframes fadeUp{from{opacity:0;transform:translateY(6px)} to{opacity:1;transform:none}}
+.cursor{display:inline-block; width:2px; height:.9em; background:rgba(255,255,255,.85); margin-left:1px; vertical-align:text-bottom; animation:blk .75s step-end infinite}
+@keyframes blk{0%,100%{opacity:1}50%{opacity:0}}
+.typing{display:flex; gap:5px; padding:6px 0}
+.typing span{width:7px; height:7px; border-radius:50%; background:rgba(255,255,255,.7); animation:td 1.1s ease-in-out infinite}
+.typing span:nth-child(2){animation-delay:.18s} .typing span:nth-child(3){animation-delay:.36s}
+@keyframes td{0%,100%{opacity:.3;transform:scale(.7)} 50%{opacity:1;transform:scale(1)}}
+
+/* ── CATEGORY CHIPS (welcome screen) ── */
+.cat-grid{
+  display:grid; grid-template-columns:1fr 1fr; gap:10px;
+  margin-top:4px;
+}
+.cat-card{
+  background:var(--card); border:1px solid var(--border);
+  border-radius:16px; padding:14px 12px;
+  cursor:pointer; text-align:left;
+  transition:transform .15s, box-shadow .15s, border-color .15s;
+  -webkit-tap-highlight-color:transparent;
+  box-shadow:var(--shadow);
+}
+.cat-card:active{transform:scale(.97)}
+.cat-card:hover{border-color:var(--violet); box-shadow:0 8px 24px rgba(126,34,206,.12)}
+.cat-icon{
+  width:38px; height:38px; border-radius:12px;
+  display:flex; align-items:center; justify-content:center;
+  font-size:1.25rem; margin-bottom:8px;
+}
+.cat-title{font-size:.92rem; font-weight:800; color:var(--ink); margin-bottom:2px}
+.cat-sub{font-size:.72rem; font-weight:600; color:var(--muted); line-height:1.35}
+
+/* ── EXERCISE VIEW ── */
+.exercise-card{
+  background:var(--card);
+  border:1px solid var(--border);
+  border-radius:var(--radius);
+  padding:18px 16px;
+  box-shadow:var(--shadow);
+  margin-bottom:14px;
+}
+.ex-progress{
+  display:flex; gap:4px; margin-bottom:14px;
+}
+.ex-progress-dot{
+  flex:1; height:4px; border-radius:3px;
+  background:var(--border);
+  transition:background .25s;
+}
+.ex-progress-dot.done{background:var(--ok)}
+.ex-progress-dot.active{background:var(--violet)}
+
+.ex-instruction{
+  font-size:.78rem; font-weight:700; color:var(--violet);
+  text-transform:uppercase; letter-spacing:.05em;
+  margin-bottom:10px;
+}
+.ex-word{
+  font-size:2.2rem; font-weight:800; color:var(--ink);
+  line-height:1.15; text-align:center;
+  padding:14px 0 8px;
+  font-family:'Bricolage Grotesque',sans-serif;
+  word-break:break-word;
+}
+.ex-word.small{font-size:1.35rem}
+.ex-hint{
+  text-align:center; font-size:.8rem; font-weight:600;
+  color:var(--muted); margin-bottom:6px;
+}
+
+/* ── SEMAFORO ── */
+.semaforo{
+  display:flex; justify-content:center; gap:10px;
+  margin:14px 0 10px;
+}
+.sf-light{
+  width:24px; height:24px; border-radius:50%;
+  background:var(--border); transition:all .25s;
+  border:1px solid rgba(0,0,0,.04);
+}
+.sf-light.on.red{background:var(--bad); box-shadow:0 0 14px rgba(239,68,68,.55)}
+.sf-light.on.yellow{background:var(--warn); box-shadow:0 0 14px rgba(245,158,11,.55)}
+.sf-light.on.green{background:var(--ok); box-shadow:0 0 14px rgba(16,185,129,.55)}
+.sf-feedback{
+  text-align:center; font-size:.85rem; font-weight:700;
+  min-height:22px; margin-top:2px;
+  color:var(--muted);
+}
+.sf-feedback.green{color:var(--ok)}
+.sf-feedback.yellow{color:var(--warn)}
+.sf-feedback.red{color:var(--bad)}
+.sf-heard{
+  font-size:.72rem; font-weight:600; color:var(--muted);
+  text-align:center; margin-top:4px; min-height:16px;
+  font-style:italic;
+}
+
+/* ── RECORD / MIC BUTTON ── */
+.mic-area{
+  display:flex; justify-content:center; margin:14px 0 8px;
+}
+.mic-big{
+  width:88px; height:88px; border-radius:50%;
+  background:linear-gradient(135deg,#7e22ce,#c026d3);
+  color:white; border:none; cursor:pointer;
+  font-size:2rem;
+  display:flex; align-items:center; justify-content:center;
+  box-shadow:0 8px 28px rgba(126,34,206,.35);
+  position:relative;
+  -webkit-tap-highlight-color:transparent;
+  transition:transform .1s;
+}
+.mic-big:active{transform:scale(.94)}
+.mic-big.recording{
+  animation:micPulse 1.1s ease-in-out infinite;
+  background:linear-gradient(135deg,#ef4444,#f97316);
+}
+.mic-big.recording::before{
+  content:''; position:absolute; inset:-8px; border-radius:50%;
+  border:2px solid rgba(239,68,68,.4);
+  animation:micRing 1.4s ease-out infinite;
+}
+@keyframes micPulse{0%,100%{box-shadow:0 8px 28px rgba(239,68,68,.45)} 50%{box-shadow:0 8px 38px rgba(239,68,68,.7)}}
+@keyframes micRing{0%{transform:scale(1);opacity:.8} 100%{transform:scale(1.3);opacity:0}}
+.mic-big:disabled{opacity:.5; cursor:not-allowed}
+
+.ex-status{
+  text-align:center; font-size:.8rem; font-weight:700;
+  color:var(--muted); margin-top:6px; min-height:18px;
+}
+
+/* ── EXERCISE ACTION BUTTONS ── */
+.ex-actions{
+  display:grid; grid-template-columns:1fr 1fr; gap:8px;
+  margin-top:14px;
+}
+.btn{
+  padding:13px 14px; border-radius:14px; border:none;
+  font-family:inherit; font-size:.9rem; font-weight:700;
+  cursor:pointer; -webkit-tap-highlight-color:transparent;
+  transition:transform .1s, background .15s;
+}
+.btn:active{transform:scale(.97)}
+.btn-ghost{
+  background:var(--violet-l); color:var(--violet);
+}
+.btn-primary{
+  background:linear-gradient(135deg,#7e22ce,#c026d3);
+  color:white;
+  box-shadow:0 4px 14px rgba(126,34,206,.3);
+}
+.btn-primary:disabled{opacity:.5; filter:saturate(.6); box-shadow:none; cursor:not-allowed}
+.btn-full{grid-column:1/-1}
+
+/* ── SESSION COMPLETE CARD ── */
+.complete-card{
+  background:linear-gradient(135deg,#4ade80,#10b981);
+  color:white; border-radius:var(--radius);
+  padding:22px 18px; text-align:center;
+  box-shadow:0 10px 32px rgba(16,185,129,.25);
+}
+.complete-card h2{font-size:1.3rem; font-weight:800; margin-bottom:6px; font-family:'Bricolage Grotesque',sans-serif}
+.complete-card p{font-size:.9rem; font-weight:600; opacity:.95; margin-bottom:14px}
+.complete-stats{
+  display:flex; gap:10px; margin:12px 0;
+}
+.complete-stat{
+  flex:1; background:rgba(255,255,255,.18);
+  border:1px solid rgba(255,255,255,.22);
+  border-radius:14px; padding:10px 8px;
+}
+.complete-stat-val{font-size:1.4rem; font-weight:800; font-family:'Bricolage Grotesque',sans-serif}
+.complete-stat-lbl{font-size:.66rem; font-weight:700; opacity:.85; text-transform:uppercase; letter-spacing:.04em}
+
+/* ── SMALL HELPERS ── */
+.hidden{display:none !important}
+.notice{
+  background:#fef3c7; border:1px solid #fcd34d;
+  color:#78350f; padding:10px 12px; border-radius:12px;
+  font-size:.8rem; font-weight:600; margin-bottom:12px;
+  line-height:1.45;
+}
+</style>
+</head>
+<body>
+
+<div class="mesh"><div class="blob blob1"></div><div class="blob blob2"></div></div>
+
+<header class="topbar">
+  <a href="home.html" class="back-btn" aria-label="Volver">←</a>
+  <div class="topbar-title">
+    <span class="dot"></span>
+    <span>Logopedia</span>
+  </div>
+  <button class="topbar-end hidden" id="endBtn" onclick="endSession()">Terminar</button>
+</header>
+
+<main class="wrap">
+
+  <!-- ═══ AGENT (Ana) — sempre visibile in alto ═══ -->
+  <section class="agent-hero">
+    <div class="agent-header">
+      <div class="agent-avatar">🎙️</div>
+      <div class="agent-meta">
+        <div class="agent-name">Ana · logopeda IA</div>
+        <div class="agent-role">
+          <span class="agent-online"></span>
+          <span id="agentStatus">Lista para empezar</span>
+        </div>
+      </div>
+      <div class="agent-mic" id="ttsToggle" onclick="toggleTTS()" title="Voz de Ana">🔊</div>
+    </div>
+    <div class="agent-bubble" id="agentBubble">
+      <div class="typing"><span></span><span></span><span></span></div>
+    </div>
+  </section>
+
+  <!-- ═══ SCREEN 1 — selezione categoria ═══ -->
+  <section id="screenCategories">
+    <div class="cat-grid">
+      <button class="cat-card" onclick="chooseCategory('pronunciacion')">
+        <div class="cat-icon" style="background:#fdf4ff; color:#a21caf">🗣️</div>
+        <div class="cat-title">Pronunciación</div>
+        <div class="cat-sub">Articular palabras con claridad (R, S, consonantes difíciles).</div>
+      </button>
+      <button class="cat-card" onclick="chooseCategory('fluidez')">
+        <div class="cat-icon" style="background:#eef2ff; color:#4f46e5">🌬️</div>
+        <div class="cat-title">Fluidez</div>
+        <div class="cat-sub">Respiración y ritmo: frases seguidas sin pausas.</div>
+      </button>
+      <button class="cat-card" onclick="chooseCategory('voz')">
+        <div class="cat-icon" style="background:#fef3c7; color:#b45309">🎚️</div>
+        <div class="cat-title">Voz</div>
+        <div class="cat-sub">Controlar volumen, tono y proyección.</div>
+      </button>
+      <button class="cat-card" onclick="chooseCategory('comprension')">
+        <div class="cat-icon" style="background:#d1fae5; color:#047857">🧩</div>
+        <div class="cat-title">Comprensión</div>
+        <div class="cat-sub">Memoria de palabras y evocación por categorías.</div>
+      </button>
+    </div>
+  </section>
+
+  <!-- ═══ SCREEN 2 — esercizio in corso ═══ -->
+  <section id="screenExercise" class="hidden">
+    <div class="exercise-card">
+      <div class="ex-progress" id="exProgress"></div>
+      <div class="ex-instruction" id="exInstruction">—</div>
+      <div class="ex-word" id="exWord">—</div>
+      <div class="ex-hint" id="exHint"></div>
+
+      <div class="semaforo">
+        <div class="sf-light" id="sfRed"></div>
+        <div class="sf-light" id="sfYellow"></div>
+        <div class="sf-light" id="sfGreen"></div>
+      </div>
+      <div class="sf-feedback" id="sfFeedback">Pulsa el micrófono y habla</div>
+      <div class="sf-heard" id="sfHeard"></div>
+
+      <div class="mic-area">
+        <button class="mic-big" id="micBtn" onclick="toggleRecord()" aria-label="Grabar voz">🎤</button>
+      </div>
+      <div class="ex-status" id="exStatus"></div>
+
+      <div class="ex-actions">
+        <button class="btn btn-ghost" id="repeatBtn" onclick="repeatExercise()">↻ Repetir</button>
+        <button class="btn btn-primary" id="nextBtn" onclick="nextExercise()" disabled>Siguiente →</button>
+      </div>
+    </div>
+
+    <button class="btn btn-ghost btn-full" onclick="backToCategories()">← Cambiar categoría</button>
+  </section>
+
+  <!-- ═══ SCREEN 3 — sessione completata ═══ -->
+  <section id="screenComplete" class="hidden">
+    <div class="complete-card">
+      <h2 id="completeTitle">¡Bien hecho! 🎉</h2>
+      <p id="completeMsg">Has completado la sesión.</p>
+      <div class="complete-stats">
+        <div class="complete-stat">
+          <div class="complete-stat-val" id="statDone">0</div>
+          <div class="complete-stat-lbl">Ejercicios</div>
+        </div>
+        <div class="complete-stat">
+          <div class="complete-stat-val" id="statGreen">0</div>
+          <div class="complete-stat-lbl">Acertadas</div>
+        </div>
+        <div class="complete-stat">
+          <div class="complete-stat-val" id="statScore">0%</div>
+          <div class="complete-stat-lbl">Precisión</div>
+        </div>
+      </div>
+      <div style="display:flex; gap:8px; margin-top:10px">
+        <button class="btn btn-ghost btn-full" style="background:rgba(255,255,255,.2); color:white" onclick="backToCategories()">Otra categoría</button>
+        <button class="btn btn-ghost btn-full" style="background:rgba(255,255,255,.25); color:white" onclick="repeatSession()">Repetir</button>
+      </div>
+    </div>
+  </section>
+
+  <div id="noSpeechNotice" class="notice hidden">
+    ⚠️ Tu navegador no soporta reconocimiento de voz. Puedes seguir haciendo los ejercicios en voz alta y marcarlos como hechos con el botón "Siguiente".
+  </div>
+
+</main>
+
+<script src="userData.js"></script>
+<script>
+// ═══════════════════════════════════════════════════════════════
+//  PARLIA · LOGOPEDIA
+//  Agente IA "Ana" + esercizi guidati con riconoscimento vocale
+// ═══════════════════════════════════════════════════════════════
+
+const PROXY = 'https://voci-ai-proxy.luca-peltrini.workers.dev/v1/messages';
+
+// ── User data
+const _ud = (window.ParliaUser && ParliaUser.get()) || { personal:{}, memory:{} };
+const USER_NAME = (_ud.personal && _ud.personal.userName) || '';
+
+// ── State
+const state = {
+  category: null,
+  exercises: [],
+  idx: 0,
+  results: [],      // [{id, ok:'green'|'yellow'|'red'|'skip', heard:''}]
+  recording: false,
+  ttsOn: true,
+  recognition: null,
+  currentWord: '',
+};
+
+// ═══ EXERCISE BANK ═══
+// Ogni esercizio: { type, word (da pronunciare), hint, instruction, match? }
+// type 'say'   → confronto fonetico esatto/approssimato con parola/frase
+// type 'list'  → l'utente deve nominare N elementi (match.min oggetti)
+const EXERCISES = {
+  pronunciacion: [
+    { type:'say', word:'Pájaro',      instruction:'Di esta palabra',    hint:'Marca bien la P y la J' },
+    { type:'say', word:'Carretera',   instruction:'Di esta palabra',    hint:'La RR fuerte vibra la lengua' },
+    { type:'say', word:'Ferrocarril', instruction:'Di esta palabra',    hint:'Con RR suave al final' },
+    { type:'say', word:'Mariposa',    instruction:'Di esta palabra',    hint:'Suave y marcando cada sílaba' },
+    { type:'say', word:'Paralelepípedo', instruction:'Di esta palabra', hint:'Despacio, sílaba a sílaba' },
+    { type:'say', word:'El perro de Roque no tiene rabo', instruction:'Di esta frase', hint:'Trabalenguas clásico — con calma' },
+  ],
+  fluidez: [
+    { type:'say', word:'Hoy hace un día precioso',                 instruction:'Di la frase en un solo respiro', hint:'Respira antes, suelta todo junto' },
+    { type:'say', word:'Me gusta el café por la mañana',           instruction:'Frase completa sin pausas',       hint:'Mantén el ritmo constante' },
+    { type:'say', word:'Uno dos tres cuatro cinco seis siete',     instruction:'Cuenta del uno al siete',         hint:'Ritmo uniforme, todo seguido' },
+    { type:'say', word:'La casa de mi abuela está junto al mar',   instruction:'Frase larga, todo seguido',       hint:'Ancla la respiración al inicio' },
+    { type:'say', word:'Lunes martes miércoles jueves viernes',    instruction:'Di los días laborables',          hint:'Sin pararte entre palabras' },
+  ],
+  voz: [
+    { type:'say', word:'Hola',         instruction:'Dilo con VOZ SUAVE',   hint:'Como si susurraras a alguien cerca' },
+    { type:'say', word:'Hola',         instruction:'Dilo con VOZ FUERTE',  hint:'Proyecta, como llamando a alguien' },
+    { type:'say', word:'¿Cómo estás?', instruction:'Tono de pregunta real',hint:'Sube el tono al final' },
+    { type:'say', word:'Estoy bien',   instruction:'Tono afirmativo firme',hint:'Baja el tono al final, seguro' },
+    { type:'say', word:'Aaaa',         instruction:'Sostén la A 4 segundos',hint:'Voz estable, no tiembles' },
+    { type:'say', word:'Mmmm',         instruction:'Sostén la M con boca cerrada',hint:'Nota la vibración en los labios' },
+  ],
+  comprension: [
+    { type:'list', word:'3 frutas',           instruction:'Nombra 3 frutas',          hint:'Ej: manzana, pera, plátano…', match:{ min:3 } },
+    { type:'list', word:'3 colores',          instruction:'Nombra 3 colores',         hint:'Los que quieras',             match:{ min:3 } },
+    { type:'list', word:'3 animales',         instruction:'Nombra 3 animales',        hint:'De granja, casa o salvajes',  match:{ min:3 } },
+    { type:'list', word:'3 prendas de ropa',  instruction:'Nombra 3 prendas',         hint:'Camisa, pantalón…',           match:{ min:3 } },
+    { type:'list', word:'Días de la semana',  instruction:'Di los 7 días',            hint:'De lunes a domingo',          match:{ min:5 } },
+    { type:'list', word:'3 cosas de la cocina', instruction:'Nombra 3 objetos de cocina', hint:'Cuchara, plato…',         match:{ min:3 } },
+  ]
+};
+
+const CATEGORY_META = {
+  pronunciacion: { emoji:'🗣️', label:'Pronunciación', color:'#a21caf' },
+  fluidez:       { emoji:'🌬️', label:'Fluidez',       color:'#4f46e5' },
+  voz:           { emoji:'🎚️', label:'Voz',           color:'#b45309' },
+  comprension:   { emoji:'🧩', label:'Comprensión',   color:'#047857' },
+};
+
+// ═══════════════════════════════════════════════════════════════
+//  UI · Ana (agent bubble + TTS)
+// ═══════════════════════════════════════════════════════════════
+function setAgentStatus(txt){
+  const el = document.getElementById('agentStatus');
+  if (el) el.textContent = txt;
+}
+function showTyping(){
+  const b = document.getElementById('agentBubble');
+  if (b) b.innerHTML = '<div class="typing"><span></span><span></span><span></span></div>';
+}
+function sayAgent(text, opts={}){
+  const b = document.getElementById('agentBubble');
+  if (!b) return;
+  b.innerHTML = '';
+  // Type effect
+  let i = 0;
+  const iv = setInterval(() => {
+    if (i <= text.length) {
+      b.innerHTML = text.slice(0, i) + '<span class="cursor"></span>';
+      i++;
+    } else {
+      b.innerHTML = text;
+      clearInterval(iv);
+      if (opts.speak !== false) speak(text);
+    }
+  }, 22);
+}
+
+function toggleTTS(){
+  state.ttsOn = !state.ttsOn;
+  const el = document.getElementById('ttsToggle');
+  if (el){
+    el.textContent = state.ttsOn ? '🔊' : '🔇';
+    el.classList.toggle('off', !state.ttsOn);
+  }
+  if (!state.ttsOn) { try{ speechSynthesis.cancel(); }catch(e){} }
+}
+function speak(text){
+  if (!state.ttsOn) return;
+  try{
+    speechSynthesis.cancel();
+    const u = new SpeechSynthesisUtterance(text);
+    u.lang='es-ES'; u.rate=0.95; u.pitch=1.05; u.volume=1;
+    const vs = speechSynthesis.getVoices();
+    const v = vs.find(v => v.name.includes('Lucía')||v.name.includes('Lucia')||(v.lang==='es-ES'&&v.localService)) || vs.find(v => v.lang==='es-ES');
+    if (v) u.voice = v;
+    speechSynthesis.speak(u);
+  } catch(e){}
+}
+
+// ═══════════════════════════════════════════════════════════════
+//  SCREEN NAVIGATION
+// ═══════════════════════════════════════════════════════════════
+function showScreen(name){
+  ['screenCategories','screenExercise','screenComplete'].forEach(id => {
+    document.getElementById(id).classList.toggle('hidden', id !== 'screen'+name);
+  });
+  const endBtn = document.getElementById('endBtn');
+  if (endBtn) endBtn.classList.toggle('hidden', name === 'Categories');
+  window.scrollTo({top:0, behavior:'smooth'});
+}
+
+function chooseCategory(cat){
+  state.category = cat;
+  state.exercises = shuffle(EXERCISES[cat].slice()).slice(0, 5);
+  state.idx = 0;
+  state.results = [];
+  const meta = CATEGORY_META[cat];
+  setAgentStatus(meta.label);
+  sayAgent(`Perfecto${USER_NAME?', '+USER_NAME:''}. Vamos a practicar ${meta.label.toLowerCase()}. Haremos ${state.exercises.length} ejercicios, tómate tu tiempo.`);
+  showScreen('Exercise');
+  setTimeout(() => renderExercise(), 600);
+}
+
+function backToCategories(){
+  try{ if (state.recognition) state.recognition.abort(); }catch(e){}
+  state.recording = false;
+  state.category = null;
+  setAgentStatus('Lista para empezar');
+  sayAgent(greetingText());
+  showScreen('Categories');
+}
+
+function endSession(){
+  if (!confirm('¿Terminar la sesión?')) return;
+  backToCategories();
+}
+
+function shuffle(a){ for (let i=a.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [a[i],a[j]]=[a[j],a[i]]; } return a; }
+
+// ═══════════════════════════════════════════════════════════════
+//  EXERCISE RENDERING + SEMAFORO
+// ═══════════════════════════════════════════════════════════════
+function renderExercise(){
+  const ex = state.exercises[state.idx];
+  if (!ex) return showComplete();
+  state.currentWord = ex.word;
+  document.getElementById('exInstruction').textContent = ex.instruction;
+  const w = document.getElementById('exWord');
+  w.textContent = ex.word;
+  w.classList.toggle('small', ex.word.length > 18);
+  document.getElementById('exHint').textContent = ex.hint || '';
+  // Progress dots
+  const prog = document.getElementById('exProgress');
+  prog.innerHTML = '';
+  state.exercises.forEach((_, i) => {
+    const d = document.createElement('div');
+    d.className = 'ex-progress-dot';
+    if (i < state.idx) d.classList.add('done');
+    else if (i === state.idx) d.classList.add('active');
+    prog.appendChild(d);
+  });
+  // Reset semaforo + UI
+  resetSemaforo();
+  document.getElementById('sfFeedback').textContent = 'Pulsa el micrófono y habla';
+  document.getElementById('sfFeedback').className = 'sf-feedback';
+  document.getElementById('sfHeard').textContent = '';
+  document.getElementById('exStatus').textContent = '';
+  document.getElementById('nextBtn').disabled = true;
+  document.getElementById('micBtn').disabled = false;
+}
+
+function resetSemaforo(){
+  ['sfRed','sfYellow','sfGreen'].forEach(id => {
+    const el = document.getElementById(id);
+    el.classList.remove('on','red','yellow','green');
+  });
+}
+function setSemaforo(level){
+  resetSemaforo();
+  if (level === 'red')    document.getElementById('sfRed').classList.add('on','red');
+  if (level === 'yellow') document.getElementById('sfYellow').classList.add('on','yellow');
+  if (level === 'green')  document.getElementById('sfGreen').classList.add('on','green');
+}
+
+function nextExercise(){
+  state.idx++;
+  if (state.idx >= state.exercises.length) { showComplete(); return; }
+  const encouragement = agentCheerLine();
+  sayAgent(encouragement);
+  setTimeout(() => renderExercise(), 300);
+}
+
+function repeatExercise(){
+  resetSemaforo();
+  document.getElementById('sfFeedback').textContent = 'Vuelve a intentarlo, respira y habla claro';
+  document.getElementById('sfFeedback').className = 'sf-feedback';
+  document.getElementById('sfHeard').textContent = '';
+  document.getElementById('nextBtn').disabled = true;
+  document.getElementById('micBtn').disabled = false;
+}
+
+function agentCheerLine(){
+  const last = state.results[state.results.length-1];
+  if (!last) return '¡Vamos con la siguiente!';
+  if (last.ok === 'green')  return ['¡Muy bien!', 'Perfecto, así.', '¡Excelente pronunciación!', '¡Clarísimo!'][Math.floor(Math.random()*4)];
+  if (last.ok === 'yellow') return ['Casi, casi. Vamos con otra.', 'Bien, vas mejorando.', 'Ya casi lo tienes.'][Math.floor(Math.random()*3)];
+  if (last.ok === 'red')    return ['No pasa nada, seguimos.', 'Tranquila, probamos otra.', 'Sigamos, lo importante es practicar.'][Math.floor(Math.random()*3)];
+  return 'Siguiente.';
+}
+
+// ═══════════════════════════════════════════════════════════════
+//  RESULTADO / COMPLETE
+// ═══════════════════════════════════════════════════════════════
+function showComplete(){
+  const done = state.results.length;
+  const green = state.results.filter(r => r.ok==='green').length;
+  const yellow = state.results.filter(r => r.ok==='yellow').length;
+  const score = done ? Math.round((green*100 + yellow*50) / done) : 0;
+  document.getElementById('statDone').textContent = done;
+  document.getElementById('statGreen').textContent = green;
+  document.getElementById('statScore').textContent = score + '%';
+  let title = '¡Bien hecho! 🎉', msg = 'Sesión completada.';
+  if (score >= 85)      { title = '¡Excelente! 🌟'; msg = 'Has estado fantástica hoy.'; }
+  else if (score >= 60) { title = '¡Muy bien! 💪'; msg = 'Buen trabajo, sigue así.'; }
+  else                  { title = '¡Buen esfuerzo! 🌱'; msg = 'Lo importante es practicar cada día.'; }
+  document.getElementById('completeTitle').textContent = title;
+  document.getElementById('completeMsg').textContent = msg;
+  setAgentStatus('Sesión terminada');
+  sayAgent(`${title.replace(/[!¡🎉🌟💪🌱]/g,'').trim()} ${USER_NAME?USER_NAME+', ':''}has completado ${done} ejercicios con ${score}% de precisión.`);
+  // Salva statistica
+  try{
+    const log = JSON.parse(localStorage.getItem('parlia_logo_log')||'[]');
+    log.push({ date:new Date().toISOString(), category:state.category, done, green, yellow, score });
+    if (log.length > 100) log.splice(0, log.length-100);
+    localStorage.setItem('parlia_logo_log', JSON.stringify(log));
+  } catch(e){}
+  showScreen('Complete');
+}
+
+function repeatSession(){
+  if (!state.category) return backToCategories();
+  chooseCategory(state.category);
+}
+
+// ═══════════════════════════════════════════════════════════════
+//  SPEECH RECOGNITION (Web Speech API)
+// ═══════════════════════════════════════════════════════════════
+const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+const SPEECH_SUPPORTED = !!SR;
+
+function initRecognition(){
+  if (!SPEECH_SUPPORTED) return null;
+  const r = new SR();
+  r.lang = 'es-ES';
+  r.continuous = false;
+  r.interimResults = false;
+  r.maxAlternatives = 3;
+  return r;
+}
+
+function toggleRecord(){
+  if (!SPEECH_SUPPORTED){
+    // Fallback: nessun STT — abilita semplicemente "Siguiente" come skip
+    document.getElementById('sfFeedback').textContent = 'Bien (sin reconocimiento de voz)';
+    document.getElementById('sfFeedback').className = 'sf-feedback yellow';
+    setSemaforo('yellow');
+    state.results.push({ word:state.currentWord, ok:'yellow', heard:'—' });
+    document.getElementById('nextBtn').disabled = false;
+    return;
+  }
+  if (state.recording){ stopRecord(); return; }
+  startRecord();
+}
+
+function startRecord(){
+  try{ if (state.recognition) state.recognition.abort(); }catch(e){}
+  const r = initRecognition();
+  if (!r) return;
+  state.recognition = r;
+  state.recording = true;
+  const btn = document.getElementById('micBtn');
+  btn.classList.add('recording');
+  btn.textContent = '■';
+  document.getElementById('exStatus').textContent = 'Escuchando… habla ahora';
+  document.getElementById('sfFeedback').textContent = 'Grabando…';
+  document.getElementById('sfFeedback').className = 'sf-feedback';
+
+  r.onresult = (e) => {
+    const alts = [];
+    const res = e.results[0];
+    for (let i=0; i<res.length; i++) alts.push(res[i].transcript);
+    evaluate(alts);
+  };
+  r.onerror = (e) => {
+    stopRecord();
+    document.getElementById('exStatus').textContent = (e.error==='no-speech') ? 'No se ha escuchado nada' : 'Error: '+e.error;
+    document.getElementById('sfFeedback').textContent = 'Inténtalo de nuevo';
+  };
+  r.onend = () => { stopRecord(); };
+  try { r.start(); }
+  catch(err){ stopRecord(); document.getElementById('exStatus').textContent = 'No se pudo iniciar el micrófono'; }
+}
+
+function stopRecord(){
+  state.recording = false;
+  const btn = document.getElementById('micBtn');
+  btn.classList.remove('recording');
+  btn.textContent = '🎤';
+  try{ if (state.recognition) state.recognition.stop(); }catch(e){}
+}
+
+function evaluate(alternatives){
+  const ex = state.exercises[state.idx];
+  if (!ex) return;
+  const heard = alternatives[0] || '';
+  document.getElementById('sfHeard').textContent = heard ? `Oído: "${heard}"` : '';
+  let level, msg;
+  if (ex.type === 'list'){
+    const count = countDistinctWords(heard);
+    const need = (ex.match && ex.match.min) || 3;
+    if (count >= need)       { level='green';  msg=`¡Perfecto! ${count} elementos.`; }
+    else if (count >= need-1){ level='yellow'; msg=`Casi: oí ${count} elementos.`; }
+    else                     { level='red';    msg=`Solo ${count} elementos, inténtalo otra vez.`; }
+  } else {
+    // 'say' — confronto fonetico
+    let best = 0;
+    alternatives.forEach(a => { const s = similarity(a, ex.word); if (s>best) best=s; });
+    if (best >= 0.82)      { level='green';  msg='¡Muy bien pronunciado!'; }
+    else if (best >= 0.55) { level='yellow'; msg='Casi, repite con más claridad.'; }
+    else                   { level='red';    msg='No se entendió bien, vamos otra vez.'; }
+  }
+  setSemaforo(level);
+  document.getElementById('sfFeedback').textContent = msg;
+  document.getElementById('sfFeedback').className = 'sf-feedback ' + level;
+  document.getElementById('exStatus').textContent = '';
+  document.getElementById('nextBtn').disabled = false;
+  state.results.push({ word:state.currentWord, ok:level, heard });
+}
+
+// ── Similarity (normalize + Levenshtein ratio)
+function norm(s){
+  return (s||'')
+    .toLowerCase()
+    .normalize('NFD').replace(/[\u0300-\u036f]/g,'') // strip accents
+    .replace(/[¿?¡!.,;:]/g,'')
+    .replace(/\s+/g,' ')
+    .trim();
+}
+function similarity(a, b){
+  a = norm(a); b = norm(b);
+  if (!a || !b) return 0;
+  if (a === b) return 1;
+  const d = levenshtein(a, b);
+  return 1 - d / Math.max(a.length, b.length);
+}
+function levenshtein(a, b){
+  const m=a.length, n=b.length;
+  if (!m) return n; if (!n) return m;
+  const dp = Array.from({length:m+1}, () => new Array(n+1).fill(0));
+  for (let i=0;i<=m;i++) dp[i][0]=i;
+  for (let j=0;j<=n;j++) dp[0][j]=j;
+  for (let i=1;i<=m;i++){
+    for (let j=1;j<=n;j++){
+      const c = a[i-1] === b[j-1] ? 0 : 1;
+      dp[i][j] = Math.min(dp[i-1][j]+1, dp[i][j-1]+1, dp[i-1][j-1]+c);
+    }
+  }
+  return dp[m][n];
+}
+function countDistinctWords(s){
+  const STOP = new Set(['y','o','u','e','a','al','del','de','la','el','los','las','un','una','por','para','con','sin','que','en','mi','tu','su']);
+  const toks = norm(s).split(/\s+/).filter(w => w.length >= 2 && !STOP.has(w));
+  return new Set(toks).size;
+}
+
+// ═══════════════════════════════════════════════════════════════
+//  GREETING + INIT
+// ═══════════════════════════════════════════════════════════════
+function greetingText(){
+  const h = new Date().getHours();
+  let phase = 'Hola';
+  if (h < 12) phase = 'Buenos días';
+  else if (h < 20) phase = 'Buenas tardes';
+  else phase = 'Buenas noches';
+  const name = USER_NAME ? ', '+USER_NAME : '';
+  return `${phase}${name}. Soy Ana, tu logopeda. ¿Qué quieres practicar hoy?`;
+}
+
+window.addEventListener('load', () => {
+  if (!SPEECH_SUPPORTED) document.getElementById('noSpeechNotice').classList.remove('hidden');
+  // Carica voci TTS (necessario per prima selezione)
+  try { speechSynthesis.getVoices(); } catch(e){}
+  if (speechSynthesis && speechSynthesis.onvoiceschanged !== undefined){
+    speechSynthesis.onvoiceschanged = () => {};
+  }
+  setTimeout(() => sayAgent(greetingText()), 400);
+});
+</script>
+
+</body>
+</html>
