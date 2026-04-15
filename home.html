@@ -6,10 +6,10 @@
 <title>Parlia</title>
 <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <!-- Stili specifici di ogni pagina della home (?v= cache-bust su ogni deploy) -->
-<link rel="stylesheet" href="inicio.css?v=20260414q">
-<link rel="stylesheet" href="aac.css?v=20260414q">
-<link rel="stylesheet" href="rehab.css?v=20260414q">
-<link rel="stylesheet" href="perfil.css?v=20260414q">
+<link rel="stylesheet" href="inicio.css?v=20260414r">
+<link rel="stylesheet" href="aac.css?v=20260414r">
+<link rel="stylesheet" href="rehab.css?v=20260414r">
+<link rel="stylesheet" href="perfil.css?v=20260414r">
 <style>
 *, *::before, *::after { box-sizing: border-box !important; margin: 0; padding: 0; }
 
@@ -1761,8 +1761,9 @@ function _buildSystem(ctx) {
   lines.push(`2. Si hay sol → invita a algo ligero que le guste. Si llueve → algo cálido dentro casa. Si es noche → tono calmo. Si es fin de semana → no menciones sesiones.`);
   lines.push(`3. VARÍA los temas entre mensajes: NO hablar siempre de sesiones/rehabilitación. Las sesiones son solo un contexto entre muchos (música, planes, recuerdos, curiosidades, sentimientos, clima, familia…).`);
   lines.push(`4. Tono: cálido, humano, conciso. Adáptalo a sus notas personales si existen. Nunca clínico ni corporativo.`);
-  lines.push(`5. LONGITUD VARIABLE — IMPORTANTE: alterna mensajes cortos (4-10 palabras, solo una frase) con mensajes medios (12-22 palabras, dos frasecitas). Haz la mayoría CORTOS y directos, casuales como un WhatsApp de un amigo. Evita monólogos.`);
-  lines.push(`6. No terminar SIEMPRE con una pregunta — a veces basta una frase corta y cálida. Que sea natural, no formulaico.`);
+  lines.push(`5. LONGITUD (REGLA ESTRICTA): la MAYORÍA de tus mensajes deben tener 1 sola frase de 4-12 palabras. Rara vez 2 frasecitas (máx 18 palabras TOTALES). NUNCA superar 18 palabras. Piensa en un WhatsApp rápido, no en un párrafo.`);
+  lines.push(`6. Ejemplos buenos de longitud: "Hola Laura, ¿rumba contigo?" (4 palabras) · "Qué sol hoy, ¿sales a caminar?" (6) · "Buenas noches. Descansa bien 🌙" (4) · "Me alegra, eso anima el día." (6). Nunca monólogos.`);
+  lines.push(`7. No terminar SIEMPRE con una pregunta — a veces basta una frase corta y cálida. Que sea natural, no formulaico.`);
 
   // ── REGLAS ESTRICTAS DE FORMATO ──
   lines.push(`\n=== FORMATO OBLIGATORIO ===`);
@@ -1834,7 +1835,7 @@ async function _sendMsg(userText) {
   let raw='';
   try {
     const res=await fetch(PROXY,{method:'POST',headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({model:'claude-haiku-4-5-20251001',max_tokens:180,system:_buildSystem(ctx),messages:_history.slice(-14)})});
+      body:JSON.stringify({model:'claude-haiku-4-5-20251001',max_tokens:90,system:_buildSystem(ctx),messages:_history.slice(-14)})});
     const data=await res.json();
     if (data.content?.[0]?.text) raw=data.content[0].text.trim();
   } catch(e){}
