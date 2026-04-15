@@ -54,6 +54,7 @@
   z-index: -1;
   pointer-events: none;
   animation: aiCoreGlow 6s ease-in-out infinite alternate;
+  transition: opacity .35s ease;
 }
 @keyframes aiCoreFloat { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-6px)} }
 @keyframes aiCoreGlow  { 0%{opacity:.7;transform:scale(.96) rotate(0deg)} 100%{opacity:1;transform:scale(1.06) rotate(4deg)} }

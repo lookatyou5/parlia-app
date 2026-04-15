@@ -6,10 +6,10 @@
 <title>Parlia</title>
 <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <!-- Stili specifici di ogni pagina della home (?v= cache-bust su ogni deploy) -->
-<link rel="stylesheet" href="inicio.css?v=20260414v">
-<link rel="stylesheet" href="aac.css?v=20260414v">
-<link rel="stylesheet" href="rehab.css?v=20260414v">
-<link rel="stylesheet" href="perfil.css?v=20260414v">
+<link rel="stylesheet" href="inicio.css?v=20260414w">
+<link rel="stylesheet" href="aac.css?v=20260414w">
+<link rel="stylesheet" href="rehab.css?v=20260414w">
+<link rel="stylesheet" href="perfil.css?v=20260414w">
 <style>
 *, *::before, *::after { box-sizing: border-box !important; margin: 0; padding: 0; }
 
@@ -86,7 +86,8 @@ html, body {
   overflow-x: auto; overflow-y: hidden;
   -webkit-overflow-scrolling: touch;
   scroll-snap-type: x mandatory;
-  scroll-behavior: smooth;
+  /* scroll-behavior: smooth rimosso: interferiva col momentum nativo.
+     Per i goTo() usiamo scrollTo({behavior:'smooth'}) esplicito. */
   scrollbar-width: none;
   z-index: 1;
   overscroll-behavior-x: contain;
@@ -118,9 +119,9 @@ html, body {
   backface-visibility: hidden;
 }
 .page::-webkit-scrollbar { display: none; }
-/* Durante lo swipe/scroll tra pagine, mettiamo in pausa tutte le animazioni
-   costose (gradient animati, orbit rings, glow) → i 60/120 FPS restano per il
-   gesto, non li mangiano le animazioni decorative. */
+/* Durante lo swipe/scroll tra pagine, tagliamo TUTTO il costo decorativo:
+   animazioni, blur, filter, backdrop-filter, box-shadow pulsanti.
+   Così la GPU ha tutti i frame disponibili per il gesto. */
 body.is-scrolling .ai-hero,
 body.is-scrolling .ai-core-wrap,
 body.is-scrolling .ai-core-wrap::before,
@@ -130,13 +131,27 @@ body.is-scrolling .ai-orb-halo,
 body.is-scrolling .ai-bar,
 body.is-scrolling .meteo-widget,
 body.is-scrolling .agenda-card,
-body.is-scrolling .blob { animation-play-state: paused !important; }
-/* Rimuove temporaneamente il costoso backdrop-filter durante lo scroll */
+body.is-scrolling .nav,
+body.is-scrolling .blob,
+body.is-scrolling .ai-online,
+body.is-scrolling .cursor-blink,
+body.is-scrolling .typing-dots span,
+body.is-scrolling .agenda-card.now,
+body.is-scrolling .agenda-card.now .ac-now-badge { animation-play-state: paused !important; }
+/* Rimuove i filtri costosi (blur, backdrop) durante lo scroll */
 body.is-scrolling .ai-hero-inner .agenda-card,
-body.is-scrolling .meteo-widget {
+body.is-scrolling .meteo-widget,
+body.is-scrolling .nav-fade {
   backdrop-filter: none !important;
   -webkit-backdrop-filter: none !important;
 }
+/* Nascondi completamente gli elementi decorativi più pesanti (glow, mesh blobs,
+   grid pattern) mentre si swipa → il contenuto principale resta visibile e
+   leggero da compositare. Al fine-scroll tornano visibili. */
+body.is-scrolling .ai-core-wrap::before,
+body.is-scrolling .ai-hero-grid,
+body.is-scrolling .ai-orbit-ring,
+body.is-scrolling .mesh { opacity: 0; transition: opacity .25s ease; }
 .page::-webkit-scrollbar { display: none; }
 
 /* ── NAV ── */
