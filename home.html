@@ -6,10 +6,10 @@
 <title>Parlia</title>
 <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <!-- Stili specifici di ogni pagina della home (?v= cache-bust su ogni deploy) -->
-<link rel="stylesheet" href="inicio.css?v=20260414w">
-<link rel="stylesheet" href="aac.css?v=20260414w">
-<link rel="stylesheet" href="rehab.css?v=20260414w">
-<link rel="stylesheet" href="perfil.css?v=20260414w">
+<link rel="stylesheet" href="inicio.css?v=20260414x">
+<link rel="stylesheet" href="aac.css?v=20260414x">
+<link rel="stylesheet" href="rehab.css?v=20260414x">
+<link rel="stylesheet" href="perfil.css?v=20260414x">
 <style>
 *, *::before, *::after { box-sizing: border-box !important; margin: 0; padding: 0; }
 
@@ -131,7 +131,6 @@ body.is-scrolling .ai-orb-halo,
 body.is-scrolling .ai-bar,
 body.is-scrolling .meteo-widget,
 body.is-scrolling .agenda-card,
-body.is-scrolling .nav,
 body.is-scrolling .blob,
 body.is-scrolling .ai-online,
 body.is-scrolling .cursor-blink,
@@ -140,8 +139,7 @@ body.is-scrolling .agenda-card.now,
 body.is-scrolling .agenda-card.now .ac-now-badge { animation-play-state: paused !important; }
 /* Rimuove i filtri costosi (blur, backdrop) durante lo scroll */
 body.is-scrolling .ai-hero-inner .agenda-card,
-body.is-scrolling .meteo-widget,
-body.is-scrolling .nav-fade {
+body.is-scrolling .meteo-widget {
   backdrop-filter: none !important;
   -webkit-backdrop-filter: none !important;
 }
@@ -155,49 +153,36 @@ body.is-scrolling .mesh { opacity: 0; transition: opacity .25s ease; }
 .page::-webkit-scrollbar { display: none; }
 
 /* ── NAV ── */
-/* Navbar fluttuante — NESSUN contenitore opaco. Il contenuto della home scorre
-   anche sotto di essa (vedi .pages-wrap bottom:0) e resta visibile sfocato. */
+/* Navbar — pill SOLIDA bianca, senza trasparenze/blur (zero costo GPU) */
 .nav {
   position: fixed; bottom: 0; left: 0; right: 0; z-index: 100;
   height: var(--nav-h);
-  padding: 0 14px 20px;
-  display: flex; align-items: flex-end; justify-content: space-around;
-  background: transparent; border-top: none;
+  padding: 0 12px 14px;
+  display: flex; align-items: flex-end; justify-content: center;
   pointer-events: none;
-  animation: navFloat 6s ease-in-out infinite;
-  transform: translateZ(0);
+  background: transparent;
 }
-/* Sfumatura morbida di sfondo: il contenuto dietro si vede, ma attenuato
-   per non interferire con la leggibilità degli item. È fuori della .nav
-   così non anima con la float animation. */
-.nav-fade {
-  position: fixed; bottom: 0; left: 0; right: 0; z-index: 99;
-  height: var(--nav-h);
-  pointer-events: none;
-  background: linear-gradient(180deg,
-    rgba(245,246,250,0) 0%,
-    rgba(245,246,250,.35) 35%,
-    rgba(245,246,250,.7) 75%,
-    rgba(245,246,250,.88) 100%);
-  backdrop-filter: blur(6px);
-  -webkit-backdrop-filter: blur(6px);
-  -webkit-mask-image: linear-gradient(180deg, transparent 0%, black 30%, black 100%);
-          mask-image: linear-gradient(180deg, transparent 0%, black 30%, black 100%);
+.nav-inner {
+  pointer-events: auto;
+  display: flex; gap: 4px; align-items: center;
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
+  border-radius: 28px;
+  padding: 6px 8px;
+  box-shadow: 0 6px 18px rgba(0,0,0,.08), 0 1px 3px rgba(0,0,0,.05);
+  width: 100%; max-width: 420px;
+  justify-content: space-around;
 }
-@keyframes navFloat { 0%,100%{transform:translateY(0) translateZ(0)} 50%{transform:translateY(-3px) translateZ(0)} }
-body.is-scrolling .nav { animation-play-state: paused; }
-body.is-scrolling .nav-fade { backdrop-filter: none; -webkit-backdrop-filter: none; }
 
 .nav-copyright { position: fixed; bottom: 3px; left: 0; right: 0; text-align: center; font-size: 0.56rem; color: #c4c4c4; font-weight: 600; letter-spacing: .02em; pointer-events: none; z-index: 99; }
 
 .nav-item {
   pointer-events: auto;
-  display: flex; flex-direction: column; align-items: center; gap: 3px;
-  cursor: pointer; padding: 10px 18px; border-radius: 100px;
-  transition: all .25s cubic-bezier(.4,0,.2,1);
+  display: flex; flex-direction: column; align-items: center; gap: 2px;
+  cursor: pointer; padding: 7px 14px; border-radius: 22px;
+  transition: background .2s, color .2s;
   -webkit-tap-highlight-color: transparent;
   position: relative;
-  /* Non-attivi: nessun background */
   background: transparent;
 }
 .nav-item:active { transform: scale(.92); }
@@ -692,26 +677,25 @@ body.is-scrolling .nav-fade { backdrop-filter: none; -webkit-backdrop-filter: no
   </div><!-- /track -->
 </div><!-- /pages-wrap -->
 
-<!-- Fade sfocato dietro la nav — il contenuto sotto si vede in trasparenza -->
-<div class="nav-fade"></div>
-
-<!-- NAV fluttuante (senza sfondo, solo item; l'attivo ha il suo pill con gradient) -->
+<!-- NAV — pill solida bianca, leggera per la GPU -->
 <div class="nav">
-  <div class="nav-item active" id="nav0" onclick="goTo(0)">
-    <div class="nav-icon">🏠</div>
-    <div class="nav-lbl">Inicio</div>
-  </div>
-  <div class="nav-item" id="nav1" onclick="goTo(1)">
-    <div class="nav-icon">🗣️</div>
-    <div class="nav-lbl">AAC</div>
-  </div>
-  <div class="nav-item" id="nav2" onclick="goTo(2)">
-    <div class="nav-icon">🧠</div>
-    <div class="nav-lbl">Rehab</div>
-  </div>
-  <div class="nav-item" id="nav3" onclick="goTo(3)">
-    <div class="nav-icon">👤</div>
-    <div class="nav-lbl">Perfil</div>
+  <div class="nav-inner">
+    <div class="nav-item active" id="nav0" onclick="goTo(0)">
+      <div class="nav-icon">🏠</div>
+      <div class="nav-lbl">Inicio</div>
+    </div>
+    <div class="nav-item" id="nav1" onclick="goTo(1)">
+      <div class="nav-icon">🗣️</div>
+      <div class="nav-lbl">AAC</div>
+    </div>
+    <div class="nav-item" id="nav2" onclick="goTo(2)">
+      <div class="nav-icon">🧠</div>
+      <div class="nav-lbl">Rehab</div>
+    </div>
+    <div class="nav-item" id="nav3" onclick="goTo(3)">
+      <div class="nav-icon">👤</div>
+      <div class="nav-lbl">Perfil</div>
+    </div>
   </div>
 </div>
 <div class="nav-copyright">© 2026 Parlia.app</div>
