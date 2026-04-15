@@ -511,19 +511,22 @@ function showTyping(){
   const b = document.getElementById('agentBubble');
   if (b) b.innerHTML = '<div class="typing"><span></span><span></span><span></span></div>';
 }
+let _typeIV = null;
 function sayAgent(text, opts={}){
   const b = document.getElementById('agentBubble');
   if (!b) return;
+  // Annulla typing precedente + TTS in corso → evita typing sovrapposti (scatti)
+  if (_typeIV){ clearInterval(_typeIV); _typeIV = null; }
+  try { speechSynthesis.cancel(); } catch(e){}
   b.innerHTML = '';
-  // Type effect
   let i = 0;
-  const iv = setInterval(() => {
+  _typeIV = setInterval(() => {
     if (i <= text.length) {
       b.innerHTML = text.slice(0, i) + '<span class="cursor"></span>';
       i++;
     } else {
       b.innerHTML = text;
-      clearInterval(iv);
+      clearInterval(_typeIV); _typeIV = null;
       if (opts.speak !== false) speak(text);
     }
   }, 22);
@@ -560,28 +563,35 @@ function showScreen(name){
   });
   const endBtn = document.getElementById('endBtn');
   if (endBtn) endBtn.classList.toggle('hidden', name === 'Categories');
-  window.scrollTo({top:0, behavior:'smooth'});
+  window.scrollTo(0, 0);
 }
 
 function chooseCategory(cat){
+  // Annulla eventuali STT/TTS/typing in corso dalla categoria precedente
+  try { if (state.recognition) state.recognition.abort(); } catch(e){}
+  state.recording = false;
+  try { speechSynthesis.cancel(); } catch(e){}
   state.category = cat;
   state.exercises = shuffle(EXERCISES[cat].slice()).slice(0, 5);
   state.idx = 0;
   state.results = [];
   const meta = CATEGORY_META[cat];
   setAgentStatus(meta.label);
-  sayAgent(`Perfecto${USER_NAME?', '+USER_NAME:''}. Vamos a practicar ${meta.label.toLowerCase()}. Haremos ${state.exercises.length} ejercicios, tómate tu tiempo.`);
+  // Render immediato → niente flash della categoria precedente
   showScreen('Exercise');
-  setTimeout(() => renderExercise(), 600);
+  renderExercise();
+  // Ana parla in parallelo mentre l'utente vede già il primo esercizio
+  sayAgent(`Perfecto${USER_NAME?', '+USER_NAME:''}. Vamos a practicar ${meta.label.toLowerCase()}.`);
 }
 
 function backToCategories(){
   try{ if (state.recognition) state.recognition.abort(); }catch(e){}
+  try { speechSynthesis.cancel(); } catch(e){}
   state.recording = false;
   state.category = null;
   setAgentStatus('Lista para empezar');
-  sayAgent(greetingText());
   showScreen('Categories');
+  sayAgent(greetingText());
 }
 
 function endSession(){
@@ -639,9 +649,9 @@ function setSemaforo(level){
 function nextExercise(){
   state.idx++;
   if (state.idx >= state.exercises.length) { showComplete(); return; }
-  const encouragement = agentCheerLine();
-  sayAgent(encouragement);
-  setTimeout(() => renderExercise(), 300);
+  // Render immediato — Ana commenta in parallelo
+  renderExercise();
+  sayAgent(agentCheerLine());
 }
 
 function repeatExercise(){
