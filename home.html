@@ -1615,20 +1615,31 @@ function _showCtxBadge(ctx) {
   if (label) {txt.textContent=label;dot.style.background=color;badge.style.display='flex';}
 }
 function _buildSystem(ctx) {
-  const lines=[
-    `Eres Parlia AI, asistente conversacional dentro de una app de rehabilitación neurológica.`,
-    `Hablas con ${profile.userName||'el usuario'}, en rehabilitación en el Institut Guttmann, Barcelona.`,
-    `Hora actual: ${String(_H).padStart(2,'0')}:${String(_M).padStart(2,'0')} (${ctx.timeStr}).`,
-  ];
-  if (ctx.now)   lines.push(`Ahora está en sesión de ${ctx.now.label}.`);
-  if (ctx.soon)  {const[sh,sm]=ctx.soon.time.split(':').map(Number);lines.push(`En ${sh*60+sm-ctx.cur} minutos tiene ${ctx.soon.label}.`);}
-  if (ctx.done)  lines.push(`Acaba de terminar ${ctx.done.label} hace menos de 10 minutos.`);
-  if (ctx.allDone.length>0) lines.push(`Sesiones completadas hoy: ${ctx.allDone.map(s=>s.label).join(', ')}.`);
-  if (ctx.allDone.length===_sessions.length) lines.push(`Ha completado TODAS las sesiones del día.`);
-  if (ctx.next&&!ctx.soon) lines.push(`Próxima sesión: ${ctx.next.label} a las ${ctx.next.time}.`);
-  if (window._meteoCtx) lines.push(window._meteoCtx);
-  // Memory context injection (from unified parlia_user_data)
   const mp=_ud.memory, pers=_ud.personal;
+  // Fase della giornata (per saluti/conversazione contestuale)
+  const hour = _H;
+  let phase = 'mañana';
+  if (hour >= 12 && hour < 15) phase = 'mediodía';
+  else if (hour >= 15 && hour < 20) phase = 'tarde';
+  else if (hour >= 20 || hour < 6) phase = 'noche';
+  const weekday = ['domingo','lunes','martes','miércoles','jueves','viernes','sábado'][new Date().getDay()];
+  const isWeekend = ['sábado','domingo'].includes(weekday);
+
+  const lines = [];
+  lines.push(`Eres Parlia AI, compañero conversacional de ${profile.userName||'el usuario'} dentro de una app de rehabilitación neurológica (Institut Guttmann, Barcelona).`);
+  lines.push(`Tu objetivo: conversaciones BREVES, cálidas y REALMENTE contextuales — no un asistente robótico que recita datos.`);
+
+  // ── CONTEXTO DIRECTO (hora, meteo, agenda) ──
+  lines.push(`\n=== CONTEXTO AHORA ===`);
+  lines.push(`Día: ${weekday}${isWeekend?' (fin de semana)':''} · Hora: ${String(_H).padStart(2,'0')}:${String(_M).padStart(2,'0')} (${phase}).`);
+  if (window._meteoCtx) lines.push(`Meteo: ${window._meteoCtx}`);
+  if (ctx.now)   lines.push(`Ahora está en sesión de ${ctx.now.label}.`);
+  if (ctx.soon)  {const[sh,sm]=ctx.soon.time.split(':').map(Number);lines.push(`En ${sh*60+sm-ctx.cur} min tiene ${ctx.soon.label}.`);}
+  if (ctx.done)  lines.push(`Acaba de terminar ${ctx.done.label} hace menos de 10 min.`);
+  if (ctx.next&&!ctx.soon&&!ctx.now) lines.push(`Próxima sesión: ${ctx.next.label} a las ${ctx.next.time}.`);
+  if (ctx.allDone.length===_sessions.length) lines.push(`Ha completado TODAS las sesiones del día.`);
+
+  // ── CONOCIMIENTO PERSONAL (memoria) ──
   const memLines=[];
   if(pers.age) memLines.push(`Edad: ${pers.age}.`);
   if(pers.condicion&&pers.condicion.length) memLines.push(`Condición: ${pers.condicion.join(', ')}.`);
@@ -1638,14 +1649,32 @@ function _buildSystem(ctx) {
   if(mp.interests&&mp.interests.length) memLines.push(`Intereses: ${mp.interests.join(', ')}.`);
   if(mp.family&&mp.family.length) memLines.push(`Familia/mascotas: ${mp.family.join(', ')}.`);
   if(mp.profession) memLines.push(`Profesión: ${mp.profession}.`);
-  if(mp.birthplace) memLines.push(`Lugar de origen: ${mp.birthplace}.`);
-  if(mp.notas) memLines.push(`Tono y preferencias de conversación: ${mp.notas}.`);
-  if(_mem.mood_log.last_mood) memLines.push(`Último estado de ánimo: "${_mem.mood_log.last_mood}" (${_mem.mood_log.last_mood_date}).`);
-  if(_mem.interaction_stats.opens>1) memLines.push(`Ha abierto la app ${_mem.interaction_stats.opens} veces.`);
-  if(memLines.length) lines.push(`\nCONOCIMIENTO PERSONAL del usuario (úsalo de forma natural, no recites la lista):\n${memLines.join(' ')}`);
-  lines.push(`\nESTILO: Varía los temas. NO hables siempre de sesiones o rehabilitación. Usa su vida personal (hobbies, música, comida, notas), el tiempo, el momento del día, sentimientos, curiosidades, planes. Las sesiones son solo un contexto posible entre muchos.`);
-  lines.push(`\nREGLAS ABSOLUTAS:\n1. NUNCA repitas lo que ya dijiste.\n2. Responde SIEMPRE al último mensaje.\n3. No repitas preguntas.\n4. Máx 18 palabras.\n5. Escribe en nueva línea: CHIPS: y 3-4 opciones separadas por |\n6. Chips = respuestas directas a TU mensaje. Nunca genéricos.\n7. Sin asteriscos ni markdown.\n8. Evita hablar de sesiones más de 1 vez de cada 3 mensajes.`);
-  return lines.join(' ');
+  if(mp.birthplace) memLines.push(`Origen: ${mp.birthplace}.`);
+  if(mp.notas) memLines.push(`Tono preferido por ${profile.userName||'el usuario'}: ${mp.notas}.`);
+  if(_mem.mood_log.last_mood) memLines.push(`La última vez dijo sentirse: "${_mem.mood_log.last_mood}" (${_mem.mood_log.last_mood_date}).`);
+  if(_mem.interaction_stats.opens>1) memLines.push(`Nº aperturas totales: ${_mem.interaction_stats.opens}.`);
+  if (memLines.length) {
+    lines.push(`\n=== CONOCIMIENTO PERSONAL ===`);
+    lines.push(memLines.join(' '));
+  }
+
+  // ── REGLAS DE AWARENESS ──
+  lines.push(`\n=== REGLAS DE CONVERSACIÓN ===`);
+  lines.push(`1. SIEMPRE usa al menos UNO de estos elementos reales en tu mensaje: meteo del momento, hora/fase del día, un hobby/interés, la última emoción, una sesión reciente, un detalle familiar, comida/música. No los recites — entrelázalos naturalmente.`);
+  lines.push(`2. Si hay sol → invita a algo ligero que le guste. Si llueve → algo cálido dentro casa. Si es noche → tono calmo. Si es fin de semana → no menciones sesiones.`);
+  lines.push(`3. VARÍA los temas entre mensajes: NO hablar siempre de sesiones/rehabilitación. Las sesiones son solo un contexto entre muchos (música, planes, recuerdos, curiosidades, sentimientos, clima, familia…).`);
+  lines.push(`4. Tono: cálido, humano, conciso. Adáptalo a sus notas personales si existen. Nunca clínico ni corporativo.`);
+  lines.push(`5. Tu mensaje: máximo 22 palabras. Termina SIEMPRE con una pregunta breve y abierta.`);
+
+  // ── REGLAS ESTRICTAS DE FORMATO ──
+  lines.push(`\n=== FORMATO OBLIGATORIO ===`);
+  lines.push(`- Sin markdown, sin asteriscos, sin emojis excesivos (máx 1-2).`);
+  lines.push(`- Segunda línea exacta: "CHIPS: opción1 | opción2 | opción3 | opción4"`);
+  lines.push(`- CHIPS son EXACTAMENTE las posibles respuestas directas a tu pregunta final. Si preguntas "¿qué tal?" → chips de ánimo. Si preguntas sobre comida → chips de platos. NUNCA chips genéricos tipo "Sí", "No", "Ok" solos.`);
+  lines.push(`- 3 o 4 chips, cada uno máx 4 palabras, naturales como frases que ${profile.userName||'el usuario'} diría realmente.`);
+  lines.push(`- NO repitas preguntas ni frases ya usadas en este historial.`);
+  lines.push(`- Responde SIEMPRE al último mensaje del usuario (si existe).`);
+  return lines.join('\n');
 }
 async function _sendMsg(userText) {
   if (_IS_NIGHT || _isTyping) return;
@@ -1658,30 +1687,35 @@ async function _sendMsg(userText) {
     const thread = document.getElementById('chatThread');
     if (thread) thread.innerHTML = '';
     _history = [];
-    // Vary the greeting prompt to avoid repetition
-    const mp=_mem.user_profile;
-    const variants=[`Salúdame de forma cálida y breve.`];
-    if(mp.hobbies&&mp.hobbies.length){
-      const h=mp.hobbies[Math.floor(Math.random()*mp.hobbies.length)];
-      variants.push(`Salúdame y pregúntame algo sobre mi hobby: ${h}.`);
-    }
-    if(mp.musica) variants.push(`Salúdame y menciona música (sabes que me gusta ${mp.musica}).`);
-    if(mp.comida) variants.push(`Salúdame y comenta algo ligero sobre comida (me gusta ${mp.comida}).`);
-    if(mp.family&&mp.family.length){
-      const f=mp.family[Math.floor(Math.random()*mp.family.length)];
-      variants.push(`Salúdame y pregúntame por ${f}.`);
-    }
-    if(mp.interests&&mp.interests.length){
-      const it=mp.interests[Math.floor(Math.random()*mp.interests.length)];
-      variants.push(`Salúdame y comparte una curiosidad sobre ${it}.`);
-    }
-    if(mp.birthplace) variants.push(`Salúdame y menciona algo cálido sobre ${mp.birthplace}.`);
-    if(mp.notas) variants.push(`Salúdame teniendo en cuenta mis preferencias de conversación (sin recitarlas).`);
-    variants.push(`Salúdame y pregúntame cómo me siento hoy.`);
-    variants.push(`Salúdame y cuéntame una curiosidad breve o un pensamiento positivo.`);
-    variants.push(`Salúdame y pregúntame qué planes tengo hoy.`);
-    if(_mem.mood_log.last_mood) variants.push(`Salúdame recordando que la última vez dije que me sentía "${_mem.mood_log.last_mood}".`);
-    const prompt=variants[Math.floor(Math.random()*variants.length)];
+    // Saluto iniziale context-aware: costruisce un prompt che combina ora + meteo
+    // + uno degli elementi di memoria in modo RICCO, così il modello ha materiale
+    // concreto da intrecciare (invece di ricevere solo "salúdame").
+    const mp = _mem.user_profile;
+    const hints = [];
+    // Elemento di "ancoraggio" personale — scegli casualmente uno dei campi noti
+    const pool = [];
+    if (mp.hobbies && mp.hobbies.length) pool.push(`mi hobby ${mp.hobbies[Math.floor(Math.random()*mp.hobbies.length)]}`);
+    if (mp.musica) pool.push(`la música que me gusta (${mp.musica})`);
+    if (mp.comida) pool.push(`mi comida favorita (${mp.comida})`);
+    if (mp.family && mp.family.length) pool.push(`${mp.family[Math.floor(Math.random()*mp.family.length)]} (persona/mascota en mi vida)`);
+    if (_ud.memory.interests && _ud.memory.interests.length) pool.push(`mi interés en ${_ud.memory.interests[Math.floor(Math.random()*_ud.memory.interests.length)]}`);
+    if (_ud.memory.birthplace) pool.push(`mi ciudad de origen ${_ud.memory.birthplace}`);
+    if (_mem.mood_log.last_mood) pool.push(`lo que sentí la última vez ("${_mem.mood_log.last_mood}")`);
+    const anchor = pool.length ? pool[Math.floor(Math.random()*pool.length)] : null;
+
+    // Tipi di saluto variati (il modello sceglie cosa farne)
+    const tones = [
+      'ligero y curioso',
+      'cálido y tranquilo',
+      'positivo y alegre',
+      'cercano como un amigo',
+      'sutil y reflexivo'
+    ];
+    const tone = tones[Math.floor(Math.random()*tones.length)];
+
+    let prompt = `Salúdame ahora con un tono ${tone}.`;
+    if (anchor) prompt += ` Intégralo de forma natural con ${anchor}.`;
+    prompt += ` Usa también el momento del día (hora actual) y el meteo si existe. Sé breve, humano. Termina con una pregunta abierta a la que pueda responder con un chip. NO recites datos, intégralos.`;
     _history.push({role:'user',content:prompt});
   }
   _addBubble('ai','',true); _showChipSkeleton();
