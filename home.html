@@ -6,10 +6,10 @@
 <title>Parlia</title>
 <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <!-- Stili specifici di ogni pagina della home (?v= cache-bust su ogni deploy) -->
-<link rel="stylesheet" href="inicio.css?v=20260414y">
-<link rel="stylesheet" href="aac.css?v=20260414y">
-<link rel="stylesheet" href="rehab.css?v=20260414y">
-<link rel="stylesheet" href="perfil.css?v=20260414y">
+<link rel="stylesheet" href="inicio.css?v=20260414z">
+<link rel="stylesheet" href="aac.css?v=20260414z">
+<link rel="stylesheet" href="rehab.css?v=20260414z">
+<link rel="stylesheet" href="perfil.css?v=20260414z">
 <style>
 *, *::before, *::after { box-sizing: border-box !important; margin: 0; padding: 0; }
 
@@ -1579,7 +1579,10 @@ function _updateSessionPill(){
   const ctx = (typeof _getCtx === 'function') ? _getCtx() : null;
   if (!ctx) { pill.style.display = 'none'; return; }
   let shown = null;
-  if (ctx.now) {
+  if (ctx.dayOver) {
+    // Giornata terminata: tutte le sessioni passate, niente "next" da mostrare
+    shown = { tag:'HOY',      emoji: '🎉',                    text: 'Día completado' };
+  } else if (ctx.now) {
     shown = { tag:'AHORA',    emoji: ctx.now.emoji || '⏱️',  text: ctx.now.label };
   } else if (ctx.soon) {
     shown = { tag:'PRÓXIMO',  emoji: ctx.soon.emoji || '⏰', text: `${ctx.soon.label} · ${ctx.soon.time}` };
@@ -1597,13 +1600,14 @@ function _updateSessionPill(){
     pill.style.display = 'none';
   }
 }
-const _sessions=[
-  {time:'09:00',end:9*60+30,  label:'Fisioterapia',       emoji:'🏋️'},
-  {time:'11:00',end:11*60+30, label:'Terapia ocupacional',emoji:'🖐️'},
-  {time:'13:00',end:13*60+30, label:'Logopedia',           emoji:'🎤'},
-  {time:'13:30',end:14*60,    label:'Bicicleta estática',  emoji:'🚴'},
-  {time:'17:00',end:17*60+30, label:'Estimulación',        emoji:'🧩'},
-];
+// ── STESSE sessioni di buildAgenda (riusiamo SESSIONS, con emoji fallback)
+// Così session pill e agenda sono sempre coerenti.
+const _sessions = (typeof SESSIONS !== 'undefined' ? SESSIONS : []).map(s => ({
+  time: s.time,
+  end: s.end,
+  label: s.label,
+  emoji: s.emoji || '📅'
+}));
 let _history=[], _isTyping=false;
 
 function _getCtx() {
@@ -1614,7 +1618,9 @@ function _getCtx() {
   const done=_sessions.slice().reverse().find(s=>cur>s.end&&cur-s.end<=10);
   const next=_sessions.find(s=>{const[sh,sm]=s.time.split(':').map(Number);return cur<sh*60+sm;});
   const allDone=_sessions.filter(s=>cur>s.end);
-  return {timeStr,now,soon,done,next,allDone,cur};
+  // Flag: giornata terminata (tutte le sessioni passate)
+  const dayOver = _sessions.length > 0 && allDone.length === _sessions.length && !now;
+  return {timeStr,now,soon,done,next,allDone,cur,dayOver};
 }
 function _showCtxBadge(ctx) {
   const badge=document.getElementById('ctxBadge'),dot=document.getElementById('ctxDot'),txt=document.getElementById('ctxTxt');
@@ -1730,11 +1736,14 @@ function _buildSystem(ctx) {
   lines.push(`\n=== CONTEXTO AHORA ===`);
   lines.push(`Día: ${weekday}${isWeekend?' (fin de semana)':''} · Hora: ${String(_H).padStart(2,'0')}:${String(_M).padStart(2,'0')} (${phase}).`);
   if (window._meteoCtx) lines.push(`Meteo: ${window._meteoCtx}`);
-  if (ctx.now)   lines.push(`Ahora está en sesión de ${ctx.now.label}.`);
-  if (ctx.soon)  {const[sh,sm]=ctx.soon.time.split(':').map(Number);lines.push(`En ${sh*60+sm-ctx.cur} min tiene ${ctx.soon.label}.`);}
-  if (ctx.done)  lines.push(`Acaba de terminar ${ctx.done.label} hace menos de 10 min.`);
-  if (ctx.next&&!ctx.soon&&!ctx.now) lines.push(`Próxima sesión: ${ctx.next.label} a las ${ctx.next.time}.`);
-  if (ctx.allDone.length===_sessions.length) lines.push(`Ha completado TODAS las sesiones del día.`);
+  if (ctx.dayOver) {
+    lines.push(`La jornada de sesiones ya ha terminado por hoy (la última acabó a las 16:00). NO hables de próximas sesiones ni horarios. Mañana será otro día.`);
+  } else {
+    if (ctx.now)   lines.push(`Ahora está en sesión de ${ctx.now.label}.`);
+    if (ctx.soon)  {const[sh,sm]=ctx.soon.time.split(':').map(Number);lines.push(`En ${sh*60+sm-ctx.cur} min tiene ${ctx.soon.label}.`);}
+    if (ctx.done)  lines.push(`Acaba de terminar ${ctx.done.label} hace menos de 10 min.`);
+    if (ctx.next&&!ctx.soon&&!ctx.now) lines.push(`Próxima sesión: ${ctx.next.label} a las ${ctx.next.time}.`);
+  }
 
   // ── CONOCIMIENTO PERSONAL (memoria) ──
   const memLines=[];
