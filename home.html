@@ -6,10 +6,10 @@
 <title>Parlia</title>
 <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <!-- Stili specifici di ogni pagina della home (?v= cache-bust su ogni deploy) -->
-<link rel="stylesheet" href="inicio.css?v=20260414n">
-<link rel="stylesheet" href="aac.css?v=20260414n">
-<link rel="stylesheet" href="rehab.css?v=20260414n">
-<link rel="stylesheet" href="perfil.css?v=20260414n">
+<link rel="stylesheet" href="inicio.css?v=20260414o">
+<link rel="stylesheet" href="aac.css?v=20260414o">
+<link rel="stylesheet" href="rehab.css?v=20260414o">
+<link rel="stylesheet" href="perfil.css?v=20260414o">
 <style>
 *, *::before, *::after { box-sizing: border-box !important; margin: 0; padding: 0; }
 
@@ -1643,11 +1643,35 @@ function _applyAiMode(){
   document.querySelectorAll('.ai-mode-opt').forEach(el => {
     el.classList.toggle('on', el.dataset.mode === mode);
   });
-  // Se passiamo a 'chips' e Parlia ha appena detto qualcosa senza che l'utente
+  // Se passiamo a 'chips' e Parlia ha già detto qualcosa senza che l'utente
   // abbia ancora risposto, generiamo on-demand i chips per l'ultima frase.
-  if (mode === 'chips' && _lastAiText && !_hasChipsForLastAi && !_isTyping) {
-    _regenerateChipsForLastMessage();
-  }
+  if (mode === 'chips' && !_isTyping) _tryShowChipsForLastAi();
+}
+
+// Recupera il testo dell'ultima bolla AI dal DOM — fallback resiliente se
+// la variabile _lastAiText è vuota (race condition) o si è perso lo stato.
+function _lastAiTextFromDom(){
+  const thread = document.getElementById('chatThread');
+  if (!thread) return '';
+  const bubbles = thread.querySelectorAll('.bubble-ai');
+  if (!bubbles.length) return '';
+  const last = bubbles[bubbles.length - 1];
+  // Escludi la loading bubble (solo dots)
+  if (last.id === '_loadingBubble') return '';
+  return (last.textContent || '').replace(/▍/g, '').trim();
+}
+
+// Se c'è un'ultima frase AI senza risposta dell'utente, mostra i chip
+// (rigenerandoli se mancano). Chiamato quando si switcha a 'chips'.
+function _tryShowChipsForLastAi(){
+  // Non sovrascrivere se ci sono già chip caricati nel DOM
+  const chipsEl = document.getElementById('aiChips');
+  if (chipsEl && chipsEl.querySelector('.ai-chip')) { _hasChipsForLastAi = true; return; }
+  // Trova il testo dell'ultima bolla AI
+  let text = _lastAiText || _lastAiTextFromDom();
+  if (!text) return; // niente su cui lavorare
+  _lastAiText = text;
+  _regenerateChipsForLastMessage();
 }
 
 // Memoria: ultima frase di Parlia + se ha già chips mostrati
