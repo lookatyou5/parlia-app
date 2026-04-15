@@ -6,10 +6,10 @@
 <title>Parlia</title>
 <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <!-- Stili specifici di ogni pagina della home (?v= cache-bust su ogni deploy) -->
-<link rel="stylesheet" href="inicio.css?v=20260414o">
-<link rel="stylesheet" href="aac.css?v=20260414o">
-<link rel="stylesheet" href="rehab.css?v=20260414o">
-<link rel="stylesheet" href="perfil.css?v=20260414o">
+<link rel="stylesheet" href="inicio.css?v=20260414p">
+<link rel="stylesheet" href="aac.css?v=20260414p">
+<link rel="stylesheet" href="rehab.css?v=20260414p">
+<link rel="stylesheet" href="perfil.css?v=20260414p">
 <style>
 *, *::before, *::after { box-sizing: border-box !important; margin: 0; padding: 0; }
 
@@ -1760,7 +1760,8 @@ function _buildSystem(ctx) {
   lines.push(`2. Si hay sol → invita a algo ligero que le guste. Si llueve → algo cálido dentro casa. Si es noche → tono calmo. Si es fin de semana → no menciones sesiones.`);
   lines.push(`3. VARÍA los temas entre mensajes: NO hablar siempre de sesiones/rehabilitación. Las sesiones son solo un contexto entre muchos (música, planes, recuerdos, curiosidades, sentimientos, clima, familia…).`);
   lines.push(`4. Tono: cálido, humano, conciso. Adáptalo a sus notas personales si existen. Nunca clínico ni corporativo.`);
-  lines.push(`5. Tu mensaje: máximo 22 palabras. Termina SIEMPRE con una pregunta breve y abierta.`);
+  lines.push(`5. LONGITUD VARIABLE — IMPORTANTE: alterna mensajes cortos (4-10 palabras, solo una frase) con mensajes medios (12-22 palabras, dos frasecitas). Haz la mayoría CORTOS y directos, casuales como un WhatsApp de un amigo. Evita monólogos.`);
+  lines.push(`6. No terminar SIEMPRE con una pregunta — a veces basta una frase corta y cálida. Que sea natural, no formulaico.`);
 
   // ── REGLAS ESTRICTAS DE FORMATO ──
   lines.push(`\n=== FORMATO OBLIGATORIO ===`);
@@ -1768,11 +1769,11 @@ function _buildSystem(ctx) {
   if (_getAiMode() === 'texto') {
     // Mode C — texto libero, nessun chip
     lines.push(`- Responde SOLO con texto natural, sin "CHIPS:" ni bloques con opciones. El usuario escribirá libremente, conversa como un amigo.`);
-    lines.push(`- Puedes alargar un poco la respuesta si la conversación lo pide, hasta 35 palabras.`);
+    lines.push(`- Varía también aquí la longitud: prefiere respuestas cortas (1 frase), algunas medias (2 frases). Máximo absoluto 30 palabras.`);
   } else {
     // Mode A — chips obligatori
     lines.push(`- Segunda línea exacta: "CHIPS: opción1 | opción2 | opción3 | opción4"`);
-    lines.push(`- CHIPS son EXACTAMENTE las posibles respuestas directas a tu pregunta final. Si preguntas "¿qué tal?" → chips de ánimo. Si preguntas sobre comida → chips de platos. NUNCA chips genéricos tipo "Sí", "No", "Ok" solos.`);
+    lines.push(`- CHIPS son EXACTAMENTE las posibles respuestas directas a tu pregunta/frase final. Si preguntas "¿qué tal?" → chips de ánimo. Si dices algo sobre comida → chips de platos. NUNCA chips genéricos tipo "Sí", "No", "Ok" solos.`);
     lines.push(`- 3 o 4 chips, cada uno máx 4 palabras, naturales como frases que ${profile.userName||'el usuario'} diría realmente.`);
   }
   lines.push(`- NO repitas preguntas ni frases ya usadas en este historial.`);
