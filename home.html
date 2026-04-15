@@ -807,6 +807,17 @@ if ('scrollRestoration' in history) try { history.scrollRestoration = 'manual'; 
     document.getElementById('page1').innerHTML = aac;
     document.getElementById('page2').innerHTML = rehab;
     document.getElementById('page3').innerHTML = perfil;
+    // ── Safety-net: forza il link a logopedia.html sulla card Logopedia anche
+    // se il partial rehab.html arriva da cache con il vecchio onclick toast().
+    try {
+      document.querySelectorAll('#page2 .rehab-card').forEach(card => {
+        const nameEl = card.querySelector('.rehab-name');
+        if (nameEl && /logopedia/i.test(nameEl.textContent || '')) {
+          card.setAttribute('onclick', "location.href='logopedia.html'");
+          card.style.cursor = 'pointer';
+        }
+      });
+    } catch(e){ console.warn('[parlia] logopedia wiring failed:', e); }
   } catch(err){
     console.error('[parlia] partials load failed:', err);
   }
