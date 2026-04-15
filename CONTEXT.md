@@ -20,6 +20,7 @@ Parlia è una PWA (app web progressiva) per comunicazione aumentativa (AAC) dest
 - `userData.js` — data layer condiviso `parlia_user_data` con migrazione legacy
 - `memoriaAI.html` — redirect a `profile.html` (mantiene compat con bookmark)
 - `comunicador.html` — comunicador AAC standalone
+- `logopedia.html` — **pagina standalone di logopedia** con agente IA "Ana" + esercizi guidati per livello/profilo
 - `tutorial.html` — tutorial interattivo standalone con tour guidato
 - `roadmap.html` — roadmap interna (accessibile da ⚙️ nella home)
 - `manifest.json` — PWA manifest (start_url: /)
@@ -206,7 +207,8 @@ Dopo le 16:00 (`dayOver`): session pill nascosta + agenda-done-card nella Tu dí
 ## Rehab (page 2)
 - Titolo "Rehabilitación · Tus herramientas de terapia"
 - 🎯 **Objetivo de hoy** (card gialla — focus della pagina, AI-generated via `loadGoal()`)
-- 🗣️ Logopedia · 🧠 Estimulación · 📊 Mis progresos (card cliccabili)
+- 🗣️ **Logopedia** → apre `logopedia.html` (safety-net JS in `home.html` forza `location.href` anche se il partial rehab.html è cached)
+- 🧠 Estimulación · 📊 Mis progresos (card cliccabili, ancora toast)
 - 📅 Próxima sesión
 
 ## Navbar — pill solida
@@ -228,6 +230,78 @@ Tap sul widget meteo → overlay scuro (`rgba(10,15,40,.5)`) + blur 10px → car
 
 ## SOS overlay
 Tap sul 🆘 in topbar → overlay scuro (niente backdrop-filter — causava flash nero su Chrome Android) → card bottom sheet con 5 frasi SOS (`speakSOS()`).
+
+## Sessione 15 aprile 2026 (sera) — Logopedia IA personalizzata
+Creata la pagina **`logopedia.html`** standalone (file unico autocontenuto, HTML+CSS+JS inline ~1200 righe).
+
+### Agente IA "Ana"
+- Avatar 🎙️ con alone pulsante, nome "Ana · logopeda IA", stato dinamico, online dot verde
+- Bolla testo con **typing effect** (22ms/char) + **TTS** in spagnolo (voce Lucía se disponibile)
+- `sayAgent(text)` annulla typing precedente + `speechSynthesis.cancel()` prima di partire → niente typer sovrapposti (causa "scatti" iniziali, poi risolto)
+- Toggle 🔊/🔇 per disabilitare voce
+
+### Flusso
+1. **Welcome screen**: profile bar (nivel + sonidos) + 4 card categoria + bottone ⚙️ "Ajustar"
+2. **Assessment screen** (aperto automaticamente al primo ingresso, o on-demand):
+   - Scelta livello 1→5 con descrizione
+   - Se L1/L2: griglia chip selezionabili (vocali + sillabe M, P/T, L/N/S) → caregiver marca solo quello che l'utente sa dire
+3. **Exercise screen**: progress dots · instruction · word grande · hint · semaforo · mic · repetir/siguiente
+4. **Complete screen**: stats (ejercicios/acertadas/precisión) + "Otra categoría" / "Repetir"
+
+### Profilo logopedico (`parlia_logo_profile` in localStorage)
+```js
+{
+  level: 2,                                          // 1..5
+  sounds: ['a','e','o','ma','na','la','lo'],         // suoni che sa dire
+  assessed: true
+}
+```
+**Default**: L3 + tutte le 5 vocali. **Caso Laura**: L2 con solo A/E/O + MA/NA/LA/LO → le verranno proposti SOLO esercizi con questi suoni.
+
+### Exercise bank per livelli (4 categorie)
+Ogni esercizio ha `{ type, level, sound?, word, instruction, hint, match? }`.
+
+| Livello | Pronunciación | Fluidez | Voz | Comprensión |
+|---|---|---|---|---|
+| **L1** | Vocali A/E/I/O/U | Sostieni A/O 3s | Sostieni vocali suave/fuerte | Ripeti una vocale |
+| **L2** | Sillabe MA/PA/TA/LA/NA/SA + E/O | Sillaba ripetuta 3× (Ma-ma-ma) | Sillaba con volume | Ripeti sillaba |
+| **L3** | Parole 2 sil (Mamá, Casa, Pato) | Contare 1-3, frasi corte | Parole con tono | Nominare 1 oggetto |
+| **L4** | Pájaro, Mariposa, Carretera | Frasi medie, contare 1-5 | Entonación (pregunta/afirmación) | Nominare 3 (frutas, colores, animales) |
+| **L5** | Trabalenguas (El perro de Roque…) | Frasi lunghe seguite | Frasi lunghe con tono | Días semana, 5 frutas |
+
+### pickExercises(cat) — selezione adattiva
+```js
+// 1. Filtra: skip ex con level > userLevel + 1; skip L1/L2 con sound non in state.logo.sounds
+// 2. Mix: 3 al livello corrente + 1 più facile + 1 di sfida (livello+1)
+// 3. Fallback: se pool vuoto (profilo troppo restrittivo) → bank completo
+```
+
+### Semaforo + valutazione
+- `say` type: similarity (Levenshtein) con norm (lowercase + strip accenti + strip puntuazione)
+  - ≥ 82% → verde
+  - ≥ 55% → giallo
+  - < 55% → rosso
+- `list` type: `countDistinctWords(heard)` vs `match.min` (ignora stopwords)
+
+### Riconoscimento vocale
+- `webkitSpeechRecognition` (es-ES), `maxAlternatives: 3`
+- Fallback se il browser non supporta: notice giallo + pulsante skip
+- Aborta su `chooseCategory`/`backToCategories` per evitare conflitti
+
+### Stats persistite
+`parlia_logo_log` in localStorage: array delle ultime 100 sessioni `{ date, category, done, green, yellow, score }`.
+
+### Fix integrazione con Rehab
+- `components/rehab.html`: la card Logopedia ora ha `onclick="location.href='logopedia.html'"` (era un toast)
+- **Safety-net JS** in `home.html` (dopo l'inject dei partial): ricerca `.rehab-card` con `.rehab-name` "Logopedia" e forza `location.href` → funziona anche se il partial arriva da cache
+- Bumpata cache-bust partial `V = '20260415a'`
+
+### Bugfix durante la sessione
+- Flicker cambio categoria: tolti `setTimeout` 600ms/300ms → render esercizio immediato, Ana parla in parallelo
+- Scatti typing: clearInterval del typer precedente in `sayAgent`
+- Scroll jank: `window.scrollTo(0,0)` istantaneo (era smooth)
+
+---
 
 ## Sessione 15 aprile 2026 — Parlia AI aware + mode A/C + agenda 10-16
 - **Home Inicio ristrutturata**: AI Core come orbita fluttuante con agenda fusa dentro (divider "Tu día" + glass cards). Objetivo spostato in Rehab.
