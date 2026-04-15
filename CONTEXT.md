@@ -157,6 +157,92 @@ Vista read-only come dashboard:
 - Comando deploy: `git push` (nient'altro necessario!)
 - Dominio: app.parlia.app (CNAME configurato)
 
+## Home (home.html) — layout attuale della pagina Inicio
+Ordine dei blocchi (dall'alto):
+1. **Widget Tutorial** (viola) — link a `tutorial.html`
+2. **Widget Meteo** — card full-width con gradient cielo dinamico (sunny/rainy/cloudy/night/ecc.), temp grande, descrizione + località, tap → apre popup meteo centrato con scena animata
+3. **Parlia AI Core (orbital)** — card centrale animata:
+   - Orb avatar pulsante con barre audio animate
+   - Session pill "AHORA · X" (se c'è sessione in corso) / "PRÓXIMO · X · HH:MM" / "DESPUÉS · X · HH:MM"; nascosta se dayOver
+   - Mode toggle 💬 / ✏️ + TTS 🔇 + ✕ end-chat
+   - Chat thread (ultime bolle AI + user)
+   - Chips di risposta (mode 💬) o input testo (mode ✏️)
+   - Agenda integrata sotto il divider "📅 Tu día" — card glass semi-trasparenti scrollabili, AHORA con glow verde smeraldo pulsante, chip "+ Recordatorio" in coda. A fine giornata: card celebrativa "🎉 ¡Todas las sesiones completadas!"
+4. **Profile card** — link a `profile.html`
+
+## Parlia AI — modalità e comportamento
+Due modalità utente (salvate in `parlia_user_data.functions.aiMode`):
+- **💬 chips (default)**: il modello genera `CHIPS: a|b|c|d` per tap rapido
+- **✏️ texto**: input libero, risposte testuali
+Switch texto→chips su una risposta AI non ancora risposta → rigenera i chips on-demand (chiamata API dedicata).
+
+Bottone **✕ end chat**: svuota history + thread, ferma TTS, mostra placeholder "Conversación pausada" con "Saludar de nuevo" → evita loop buonanotte.
+
+### System prompt context-aware
+Il prompt inviato a Claude Haiku 4.5 include:
+- **CONTEXTO AHORA**: giorno della settimana, fase della giornata (mañana/mediodía/tarde/noche), weekend sì/no, ora esatta, meteo corrente, sessione in corso/prossima/recentemente terminata, `dayOver` (dopo 16:00)
+- **CONOCIMIENTO PERSONAL**: edad, condición, hobbies, música, comida, intereses, familia, profesión, origen, tono preferito, ultimo mood, numero aperture
+- **Reglas di awareness** (intreccia almeno 1 elemento reale, adatta tono al meteo/ora, varia temi)
+- **Longitud**: max 18 parole, per lo più 4-12 (WhatsApp-style), non sempre termina con domanda
+- **Format**: in mode chips richiede `CHIPS:` al fondo; in mode texto vieta il format CHIPS
+
+`max_tokens: 90` hard cap API.
+
+## Agenda
+Sessioni feriali (lun-ven) 10:00 → 16:00 con copertura continua, definite in `SESSIONS` (home.html). L'array `_sessions` dell'AI hero è derivato da `SESSIONS` per coerenza.
+
+Calendario:
+| Orario | Sessione |
+|---|---|
+| 10:00-11:00 | 🏋️ Fisioterapia |
+| 11:15-12:00 | 🖐️ Terapia ocupacional |
+| 12:15-13:00 | 🎤 Logopedia |
+| 13:00-14:00 | 🥗 Almuerzo |
+| 14:15-15:15 | 🚴 Bicicleta estática |
+| 15:30-16:00 | 🧩 Estimulación |
+
+Dopo le 16:00 (`dayOver`): session pill nascosta + agenda-done-card nella Tu día + system prompt istruisce Parlia AI a non menzionare orari.
+
+## Rehab (page 2)
+- Titolo "Rehabilitación · Tus herramientas de terapia"
+- 🎯 **Objetivo de hoy** (card gialla — focus della pagina, AI-generated via `loadGoal()`)
+- 🗣️ Logopedia · 🧠 Estimulación · 📊 Mis progresos (card cliccabili)
+- 📅 Próxima sesión
+
+## Navbar — pill solida
+- Posizione: fixed bottom, centrata
+- Sfondo bianco pieno (`#ffffff`), border grigio, border-radius 28px
+- **Niente backdrop-filter** (rimosso per zero costo GPU durante swipe)
+- Item attivo: gradient blu→viola con shadow colorata
+- Copyright `© 2026 Parlia.app` sotto come testo fisso
+
+## Performance swipe tra pagine
+- `scroll-snap-type: x mandatory` + scroll nativo (niente smooth CSS, solo momentum)
+- `contain: layout paint style` + `translateZ(0)` su ogni `.page`
+- `body.is-scrolling` attivato durante scroll + 180ms dopo ultimo evento
+- Durante scroll vengono: messe in pausa TUTTE le animazioni decorative, nascosti (opacity 0) mesh blob + halo AI core + orbit rings + grid pattern, rimosso backdrop-filter residuo
+- Ritorno con transition .25s fade morbido
+
+## Meteo popup (centrato)
+Tap sul widget meteo → overlay scuro (`rgba(10,15,40,.5)`) + blur 10px → card scura centrata verticalmente + orizzontalmente con entrata elastica `cubic-bezier(.34,1.56,.64,1)`. Close button ✕ in alto a destra + tap sul backdrop.
+
+## SOS overlay
+Tap sul 🆘 in topbar → overlay scuro (niente backdrop-filter — causava flash nero su Chrome Android) → card bottom sheet con 5 frasi SOS (`speakSOS()`).
+
+## Sessione 15 aprile 2026 — Parlia AI aware + mode A/C + agenda 10-16
+- **Home Inicio ristrutturata**: AI Core come orbita fluttuante con agenda fusa dentro (divider "Tu día" + glass cards). Objetivo spostato in Rehab.
+- **Meteo widget** sotto il tutorial in cima a Inicio (rimossa la pillola in topbar). Click apre popup centrato blurred.
+- **Navbar** passata da glass a pill solida bianca (zero backdrop-filter per swipe fluido).
+- **Parlia AI context-aware**: system prompt con CONTEXTO + CONOCIMIENTO PERSONAL strutturati, awareness meteo/ora/memoria, regole longitud strict (4-18 parole, stile WhatsApp), max_tokens 90.
+- **Mode selector 💬/✏️**: chips vs texto libero, salvato in `parlia_user_data.functions.aiMode`, regenerazione chips on-demand al switch.
+- **Bottone ✕ end chat**: placeholder "Conversación pausada" con CTA "Saludar de nuevo" → ferma loop infiniti tipo buonanotte.
+- **Agenda ricostruita 10-16** con 6 sessioni continue. Unificato `_sessions` con `SESSIONS`.
+- **AHORA card** con glow verde smeraldo pulsante (prima giallo) + testo scuro leggibile.
+- **dayOver**: dopo 16:00 mostra card celebrativa "¡Todas las sesiones completadas!" dentro Tu día; session pill in alto nascosta per non duplicare.
+- **Performance swipe**: GPU layers + contain + aggressive hide di mesh/glow/rings durante scroll.
+- **SOS overlay**: rimosso backdrop-filter (causava flash nero).
+- **Tutorial**: widget Perfil preview aggiornato (rimosso hero memoria secondaria, focus su editing profilo).
+
 ## Sessione 14 aprile 2026 — Modularizzazione + back gesture + PWA
 - **Modularizzazione home.html**: estratto HTML e CSS di ogni pagina del carosello in file separati.
   - 4 partial: `components/{inicio,aac,rehab,perfil}.html`
