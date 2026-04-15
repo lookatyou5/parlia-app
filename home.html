@@ -6,10 +6,10 @@
 <title>Parlia</title>
 <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <!-- Stili specifici di ogni pagina della home (?v= cache-bust su ogni deploy) -->
-<link rel="stylesheet" href="inicio.css?v=20260414p">
-<link rel="stylesheet" href="aac.css?v=20260414p">
-<link rel="stylesheet" href="rehab.css?v=20260414p">
-<link rel="stylesheet" href="perfil.css?v=20260414p">
+<link rel="stylesheet" href="inicio.css?v=20260414q">
+<link rel="stylesheet" href="aac.css?v=20260414q">
+<link rel="stylesheet" href="rehab.css?v=20260414q">
+<link rel="stylesheet" href="perfil.css?v=20260414q">
 <style>
 *, *::before, *::after { box-sizing: border-box !important; margin: 0; padding: 0; }
 
@@ -1537,6 +1537,7 @@ function initAIHero() {
               <div class="ai-mode-opt" data-mode="texto" onclick="setAiMode('texto')" title="Escribir respuesta">✏️</div>
             </div>
             <div class="ai-tts-btn" id="ttsBtn" onclick="toggleTTS()">🔇</div>
+            <div class="ai-end-btn" id="aiEndBtn" onclick="endAiChat()" title="Terminar conversación">✕</div>
           </div>
           <div class="ai-session-pill" id="aiSessionPill" style="display:none">
             <span class="ai-session-pill-dot"></span>
@@ -1863,6 +1864,39 @@ async function _sendMsg(userText) {
       if (f) f.focus();
     }
   });
+}
+
+// Termina la conversazione: svuota history + thread, mostra placeholder con
+// bottone "Saludar de nuevo" → evita loop infiniti tipo buonanotte/risposta.
+function endAiChat(){
+  _history = [];
+  _lastAiText = '';
+  _hasChipsForLastAi = false;
+  _isTyping = false;
+  const thread = document.getElementById('chatThread');
+  const chipsEl = document.getElementById('aiChips');
+  if (chipsEl) chipsEl.innerHTML = '';
+  if (thread) {
+    thread.innerHTML = `
+      <div class="ai-chat-ended">
+        <div class="ai-chat-ended-icon">💭</div>
+        <div class="ai-chat-ended-text">Conversación pausada</div>
+        <button class="ai-chat-ended-btn" onclick="restartAiChat()">Saludar de nuevo</button>
+      </div>`;
+  }
+  const status = document.getElementById('aiStatusText');
+  if (status) status.textContent = 'En pausa';
+  // Ferma eventuale TTS in corso
+  try { window.speechSynthesis && window.speechSynthesis.cancel(); } catch(e){}
+}
+
+// Riapre una nuova conversazione fresh dopo endAiChat()
+function restartAiChat(){
+  const thread = document.getElementById('chatThread');
+  if (thread) thread.innerHTML = '';
+  _lastAiText = '';
+  _hasChipsForLastAi = false;
+  _sendMsg(null);
 }
 
 // Invio messaggio testuale (mode 'texto')
@@ -2314,7 +2348,7 @@ Object.assign(window, {
   toggleSettings, closeSettings,
   openMeteo, closeMeteo, closeMeteoBtn,
   replayLast, selCat, selSub, tapFrase, toggleTTS,
-  setAiMode, sendAiText
+  setAiMode, sendAiText, endAiChat, restartAiChat
 });
 
 } // fine runApp()
