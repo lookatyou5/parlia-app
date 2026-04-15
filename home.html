@@ -6,10 +6,10 @@
 <title>Parlia</title>
 <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <!-- Stili specifici di ogni pagina della home (?v= cache-bust su ogni deploy) -->
-<link rel="stylesheet" href="inicio.css?v=20260414s">
-<link rel="stylesheet" href="aac.css?v=20260414s">
-<link rel="stylesheet" href="rehab.css?v=20260414s">
-<link rel="stylesheet" href="perfil.css?v=20260414s">
+<link rel="stylesheet" href="inicio.css?v=20260414t">
+<link rel="stylesheet" href="aac.css?v=20260414t">
+<link rel="stylesheet" href="rehab.css?v=20260414t">
+<link rel="stylesheet" href="perfil.css?v=20260414t">
 <style>
 *, *::before, *::after { box-sizing: border-box !important; margin: 0; padding: 0; }
 
@@ -1097,13 +1097,14 @@ function updateProgress() {
 }
 
 // ── AGENDA ──
-// Sessioni solo per giorni feriali (lun-ven)
+// Sessioni feriali (lun-ven) 10:00 → 16:00 con copertura quasi continua
 const SESSIONS = [
-  {time:'09:00',end:9*60+30,  label:'Fisioterapia',       sub:'Gimnasio Guttmann', tag:'Rehab',  tagBg:'#f0fdfa',tagColor:'#0d9488'},
-  {time:'11:00',end:11*60+30, label:'Terapia ocupacional',sub:'Sala 3 · planta 2', tag:'Terapia',tagBg:'#f5f3ff',tagColor:'#7c3aed'},
-  {time:'13:00',end:13*60+30, label:'Logopedia',          sub:'Dra. Martínez',     tag:'Voz',    tagBg:'#eff6ff',tagColor:'#2563eb'},
-  {time:'13:30',end:14*60,    label:'Bicicleta estática', sub:'Sala ejercicios',   tag:'Cardio', tagBg:'#fff7ed',tagColor:'#ea580c'},
-  {time:'17:00',end:17*60+30, label:'Estimulación',       sub:'Con Parlia AI',     tag:'IA',     tagBg:'#f5f3ff',tagColor:'#6366f1'},
+  {time:'10:00',end:11*60,     label:'Fisioterapia',        sub:'Gimnasio Guttmann', tag:'Rehab',  tagBg:'#f0fdfa',tagColor:'#0d9488', emoji:'🏋️'},
+  {time:'11:15',end:12*60,     label:'Terapia ocupacional', sub:'Sala 3 · planta 2', tag:'Terapia',tagBg:'#f5f3ff',tagColor:'#7c3aed', emoji:'🖐️'},
+  {time:'12:15',end:13*60,     label:'Logopedia',           sub:'Dra. Martínez',     tag:'Voz',    tagBg:'#eff6ff',tagColor:'#2563eb', emoji:'🎤'},
+  {time:'13:00',end:14*60,     label:'Almuerzo',            sub:'Comedor planta 1',  tag:'Descanso',tagBg:'#fef9c3',tagColor:'#92400e', emoji:'🥗'},
+  {time:'14:15',end:15*60+15,  label:'Bicicleta estática',  sub:'Sala ejercicios',   tag:'Cardio', tagBg:'#fff7ed',tagColor:'#ea580c', emoji:'🚴'},
+  {time:'15:30',end:16*60,     label:'Estimulación',        sub:'Con Parlia AI',     tag:'IA',     tagBg:'#f5f3ff',tagColor:'#6366f1', emoji:'🧩'},
 ];
 
 const REMINDER_KEY = 'parlia_reminders';
