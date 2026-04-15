@@ -299,6 +299,65 @@ body{padding-top:var(--top-h); padding-bottom:40px}
 .complete-stat-val{font-size:1.4rem; font-weight:800; font-family:'Bricolage Grotesque',sans-serif}
 .complete-stat-lbl{font-size:.66rem; font-weight:700; opacity:.85; text-transform:uppercase; letter-spacing:.04em}
 
+/* ── PROFILE BAR (on welcome screen) ── */
+.profile-bar{
+  display:flex; align-items:center; gap:10px;
+  background:var(--card); border:1px solid var(--border);
+  border-radius:16px; padding:10px 12px;
+  box-shadow:var(--shadow);
+  margin-bottom:12px;
+}
+.pb-info{flex:1; min-width:0}
+.pb-lbl{font-size:.62rem; font-weight:800; color:var(--muted); text-transform:uppercase; letter-spacing:.05em}
+.pb-val{font-size:.9rem; font-weight:800; color:var(--ink); margin-top:2px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis}
+
+/* ── LEVEL GRID (assessment) ── */
+.level-grid{
+  display:flex; flex-direction:column; gap:8px;
+}
+.level-opt{
+  background:var(--card); border:2px solid var(--border);
+  border-radius:14px; padding:12px 14px;
+  text-align:left; cursor:pointer;
+  font-family:inherit; color:var(--ink);
+  transition:border-color .15s, background .15s;
+  -webkit-tap-highlight-color:transparent;
+}
+.level-opt.selected{
+  border-color:var(--violet);
+  background:linear-gradient(135deg, var(--violet-l), #fdf4ff);
+  box-shadow:0 4px 14px rgba(126,34,206,.15);
+}
+.lo-lbl{font-size:.95rem; font-weight:800}
+.lo-sub{font-size:.74rem; font-weight:600; color:var(--muted); margin-top:2px}
+
+/* ── SOUND CHIPS ── */
+.sound-group-title{
+  font-size:.75rem; font-weight:800; color:var(--violet);
+  text-transform:uppercase; letter-spacing:.04em;
+  margin:14px 0 6px;
+}
+.sound-grid{
+  display:flex; flex-wrap:wrap; gap:6px;
+}
+.sound-chip{
+  background:#f5f0ff; border:2px solid var(--border);
+  border-radius:12px; padding:8px 12px;
+  font-size:.82rem; font-weight:800;
+  color:var(--ink); cursor:pointer;
+  font-family:inherit;
+  -webkit-tap-highlight-color:transparent;
+  transition:all .15s;
+  min-width:48px; text-align:center;
+}
+.sound-chip.on{
+  background:linear-gradient(135deg,#7e22ce,#c026d3);
+  border-color:var(--violet-d);
+  color:white;
+  box-shadow:0 2px 8px rgba(126,34,206,.3);
+}
+.sound-chip:active{transform:scale(.95)}
+
 /* ── SMALL HELPERS ── */
 .hidden{display:none !important}
 .notice{
@@ -344,6 +403,20 @@ body{padding-top:var(--top-h); padding-bottom:40px}
 
   <!-- ═══ SCREEN 1 — selezione categoria ═══ -->
   <section id="screenCategories">
+
+    <!-- Barra profilo: livello + ajusta -->
+    <div class="profile-bar">
+      <div class="pb-info">
+        <div class="pb-lbl">Nivel actual</div>
+        <div class="pb-val" id="pbLevel">—</div>
+      </div>
+      <div class="pb-info">
+        <div class="pb-lbl">Sonidos</div>
+        <div class="pb-val" id="pbSounds">—</div>
+      </div>
+      <button class="btn btn-ghost" style="padding:10px 14px;font-size:.8rem" onclick="openAssessment()">⚙️ Ajustar</button>
+    </div>
+
     <div class="cat-grid">
       <button class="cat-card" onclick="chooseCategory('pronunciacion')">
         <div class="cat-icon" style="background:#fdf4ff; color:#a21caf">🗣️</div>
@@ -424,6 +497,63 @@ body{padding-top:var(--top-h); padding-bottom:40px}
     </div>
   </section>
 
+  <!-- ═══ SCREEN 4 — assessment (nivel + sonidos que puede decir) ═══ -->
+  <section id="screenAssessment" class="hidden">
+    <div class="exercise-card">
+      <div class="ex-instruction">Perfil logopédico</div>
+      <div style="font-size:1rem;font-weight:700;margin-bottom:6px">¿Qué nivel es adecuado?</div>
+      <div style="font-size:.8rem;font-weight:600;color:var(--muted);margin-bottom:12px;line-height:1.5">
+        Elige el nivel de partida. Los ejercicios se adaptan automáticamente.
+      </div>
+      <div class="level-grid" id="levelGrid">
+        <button class="level-opt" data-lvl="1">
+          <div class="lo-lbl">1 · Vocales</div>
+          <div class="lo-sub">Solo sonidos: A E I O U</div>
+        </button>
+        <button class="level-opt" data-lvl="2">
+          <div class="lo-lbl">2 · Sílabas</div>
+          <div class="lo-sub">MA, PA, LA, NA…</div>
+        </button>
+        <button class="level-opt" data-lvl="3">
+          <div class="lo-lbl">3 · Palabras simples</div>
+          <div class="lo-sub">Mamá, casa, pato…</div>
+        </button>
+        <button class="level-opt" data-lvl="4">
+          <div class="lo-lbl">4 · Palabras largas</div>
+          <div class="lo-sub">Pájaro, mariposa…</div>
+        </button>
+        <button class="level-opt" data-lvl="5">
+          <div class="lo-lbl">5 · Frases</div>
+          <div class="lo-sub">Trabalenguas, conversación</div>
+        </button>
+      </div>
+
+      <div id="soundsSection">
+        <div style="font-size:.95rem;font-weight:800;margin:18px 0 4px">Sonidos que puede pronunciar</div>
+        <div style="font-size:.76rem;font-weight:600;color:var(--muted);margin-bottom:10px;line-height:1.5">
+          Marca solo los que el usuario consigue decir claramente hoy. Los ejercicios de nivel 1-2 usarán estos.
+        </div>
+
+        <div class="sound-group-title">Vocales</div>
+        <div class="sound-grid" id="vowelGrid"></div>
+
+        <div class="sound-group-title">Sílabas con M</div>
+        <div class="sound-grid" id="mGrid"></div>
+
+        <div class="sound-group-title">Sílabas con P / T</div>
+        <div class="sound-grid" id="ptGrid"></div>
+
+        <div class="sound-group-title">Sílabas con L / N / S</div>
+        <div class="sound-grid" id="lnsGrid"></div>
+      </div>
+
+      <div class="ex-actions" style="margin-top:18px">
+        <button class="btn btn-ghost" onclick="cancelAssessment()">Cancelar</button>
+        <button class="btn btn-primary" onclick="saveAssessment()">Guardar perfil</button>
+      </div>
+    </div>
+  </section>
+
   <div id="noSpeechNotice" class="notice hidden">
     ⚠️ Tu navegador no soporta reconocimiento de voz. Puedes seguir haciendo los ejercicios en voz alta y marcarlos como hechos con el botón "Siguiente".
   </div>
@@ -443,6 +573,28 @@ const PROXY = 'https://voci-ai-proxy.luca-peltrini.workers.dev/v1/messages';
 const _ud = (window.ParliaUser && ParliaUser.get()) || { personal:{}, memory:{} };
 const USER_NAME = (_ud.personal && _ud.personal.userName) || '';
 
+// ── Logopedia profile (persisted separately — granular therapy data)
+// level:    1..5  (vocali / sillabe / parole 2-sil / parole complesse / frasi)
+// sounds:   lista di suoni che l'utente riesce a dire (vocali + sillabe)
+// assessed: true dopo il primo assessment
+const LOGO_KEY = 'parlia_logo_profile';
+const DEFAULT_SOUNDS = ['a','e','i','o','u']; // default: tutte le vocali
+function loadLogoProfile(){
+  try {
+    const raw = localStorage.getItem(LOGO_KEY);
+    if (raw){
+      const p = JSON.parse(raw);
+      if (!Array.isArray(p.sounds)) p.sounds = DEFAULT_SOUNDS.slice();
+      if (typeof p.level !== 'number') p.level = 3;
+      return p;
+    }
+  } catch(e){}
+  return { level:3, sounds:DEFAULT_SOUNDS.slice(), assessed:false };
+}
+function saveLogoProfile(p){
+  try { localStorage.setItem(LOGO_KEY, JSON.stringify(p)); } catch(e){}
+}
+
 // ── State
 const state = {
   category: null,
@@ -453,43 +605,118 @@ const state = {
   ttsOn: true,
   recognition: null,
   currentWord: '',
+  logo: loadLogoProfile(),
 };
 
 // ═══ EXERCISE BANK ═══
-// Ogni esercizio: { type, word (da pronunciare), hint, instruction, match? }
-// type 'say'   → confronto fonetico esatto/approssimato con parola/frase
-// type 'list'  → l'utente deve nominare N elementi (match.min oggetti)
+// Ogni esercizio: { type, word, instruction, hint, level, sound? }
+// type  'say'  → confronto fonetico esatto/approssimato
+// type  'list' → nominare N elementi di una categoria (match.min)
+// level 1..5   → dalla semplice vocale alla frase complessa
+// sound        → chiave univoca del fonema/sillaba (per filtro su profilo)
 const EXERCISES = {
   pronunciacion: [
-    { type:'say', word:'Pájaro',      instruction:'Di esta palabra',    hint:'Marca bien la P y la J' },
-    { type:'say', word:'Carretera',   instruction:'Di esta palabra',    hint:'La RR fuerte vibra la lengua' },
-    { type:'say', word:'Ferrocarril', instruction:'Di esta palabra',    hint:'Con RR suave al final' },
-    { type:'say', word:'Mariposa',    instruction:'Di esta palabra',    hint:'Suave y marcando cada sílaba' },
-    { type:'say', word:'Paralelepípedo', instruction:'Di esta palabra', hint:'Despacio, sílaba a sílaba' },
-    { type:'say', word:'El perro de Roque no tiene rabo', instruction:'Di esta frase', hint:'Trabalenguas clásico — con calma' },
+    // ─ L1 · vocali singole (Laura che dice solo A/E/O usa solo questi)
+    { type:'say', level:1, sound:'a', word:'A', instruction:'Di la vocal A', hint:'Boca bien abierta, claro y firme' },
+    { type:'say', level:1, sound:'e', word:'E', instruction:'Di la vocal E', hint:'Labios estirados hacia los lados' },
+    { type:'say', level:1, sound:'i', word:'I', instruction:'Di la vocal I', hint:'Sonrisa, lengua arriba' },
+    { type:'say', level:1, sound:'o', word:'O', instruction:'Di la vocal O', hint:'Labios redondos, como un círculo' },
+    { type:'say', level:1, sound:'u', word:'U', instruction:'Di la vocal U', hint:'Labios hacia adelante, beso' },
+    // ─ L2 · sillabe CV
+    { type:'say', level:2, sound:'ma', word:'MA', instruction:'Di la sílaba MA', hint:'Labios juntos → abrir' },
+    { type:'say', level:2, sound:'me', word:'ME', instruction:'Di la sílaba ME', hint:'Labios juntos → sonrisa' },
+    { type:'say', level:2, sound:'mo', word:'MO', instruction:'Di la sílaba MO', hint:'Labios juntos → redondos' },
+    { type:'say', level:2, sound:'pa', word:'PA', instruction:'Di la sílaba PA', hint:'Explosión de aire en labios' },
+    { type:'say', level:2, sound:'pe', word:'PE', instruction:'Di la sílaba PE', hint:'P suave + E' },
+    { type:'say', level:2, sound:'po', word:'PO', instruction:'Di la sílaba PO', hint:'P + labios redondos' },
+    { type:'say', level:2, sound:'ta', word:'TA', instruction:'Di la sílaba TA', hint:'Lengua toca detrás de los dientes' },
+    { type:'say', level:2, sound:'te', word:'TE', instruction:'Di la sílaba TE', hint:'T + sonrisa' },
+    { type:'say', level:2, sound:'to', word:'TO', instruction:'Di la sílaba TO', hint:'T + O redonda' },
+    { type:'say', level:2, sound:'la', word:'LA', instruction:'Di la sílaba LA', hint:'Lengua arriba, suave' },
+    { type:'say', level:2, sound:'le', word:'LE', instruction:'Di la sílaba LE', hint:'Suave, lengua arriba' },
+    { type:'say', level:2, sound:'lo', word:'LO', instruction:'Di la sílaba LO', hint:'Lengua arriba + O' },
+    { type:'say', level:2, sound:'na', word:'NA', instruction:'Di la sílaba NA', hint:'Nasal, suave' },
+    { type:'say', level:2, sound:'ne', word:'NE', instruction:'Di la sílaba NE', hint:'Nasal + E' },
+    { type:'say', level:2, sound:'no', word:'NO', instruction:'Di la sílaba NO', hint:'Nasal + O redonda' },
+    { type:'say', level:2, sound:'sa', word:'SA', instruction:'Di la sílaba SA', hint:'S larga y suave' },
+    { type:'say', level:2, sound:'se', word:'SE', instruction:'Di la sílaba SE', hint:'S + sonrisa' },
+    { type:'say', level:2, sound:'so', word:'SO', instruction:'Di la sílaba SO', hint:'S + O' },
+    // ─ L3 · parole 2 sillabe semplici
+    { type:'say', level:3, word:'Mamá',   instruction:'Di la palabra',  hint:'Mmm… mmá — dos veces' },
+    { type:'say', level:3, word:'Papá',   instruction:'Di la palabra',  hint:'P fuerte las dos veces' },
+    { type:'say', level:3, word:'Lola',   instruction:'Di la palabra',  hint:'Lengua arriba, dos veces' },
+    { type:'say', level:3, word:'Casa',   instruction:'Di la palabra',  hint:'C suave + sa' },
+    { type:'say', level:3, word:'Mesa',   instruction:'Di la palabra',  hint:'M + E + sa' },
+    { type:'say', level:3, word:'Pato',   instruction:'Di la palabra',  hint:'Pa + to, claro' },
+    { type:'say', level:3, word:'Luna',   instruction:'Di la palabra',  hint:'Lu + na, suave' },
+    { type:'say', level:3, word:'Sopa',   instruction:'Di la palabra',  hint:'So + pa, lento' },
+    // ─ L4 · parole complesse
+    { type:'say', level:4, word:'Pájaro',      instruction:'Di esta palabra', hint:'Marca la P y la J' },
+    { type:'say', level:4, word:'Mariposa',    instruction:'Di esta palabra', hint:'Suave, sílaba a sílaba' },
+    { type:'say', level:4, word:'Carretera',   instruction:'Di esta palabra', hint:'La RR fuerte vibra' },
+    { type:'say', level:4, word:'Ferrocarril', instruction:'Di esta palabra', hint:'Con RR al final' },
+    // ─ L5 · frasi/trabalenguas
+    { type:'say', level:5, word:'El perro de Roque no tiene rabo', instruction:'Di la frase', hint:'Trabalenguas clásico, con calma' },
+    { type:'say', level:5, word:'Tres tristes tigres',             instruction:'Di la frase', hint:'Marca cada T' },
   ],
   fluidez: [
-    { type:'say', word:'Hoy hace un día precioso',                 instruction:'Di la frase en un solo respiro', hint:'Respira antes, suelta todo junto' },
-    { type:'say', word:'Me gusta el café por la mañana',           instruction:'Frase completa sin pausas',       hint:'Mantén el ritmo constante' },
-    { type:'say', word:'Uno dos tres cuatro cinco seis siete',     instruction:'Cuenta del uno al siete',         hint:'Ritmo uniforme, todo seguido' },
-    { type:'say', word:'La casa de mi abuela está junto al mar',   instruction:'Frase larga, todo seguido',       hint:'Ancla la respiración al inicio' },
-    { type:'say', word:'Lunes martes miércoles jueves viernes',    instruction:'Di los días laborables',          hint:'Sin pararte entre palabras' },
+    // ─ L1 · soffio singolo
+    { type:'say', level:1, sound:'a', word:'Aaa', instruction:'Sostén la A 3 segundos', hint:'Un soplo continuo, sin cortar' },
+    { type:'say', level:1, sound:'o', word:'Ooo', instruction:'Sostén la O 3 segundos', hint:'Voz estable, no tiembles' },
+    // ─ L2 · sillaba ripetuta
+    { type:'say', level:2, sound:'ma', word:'Ma-ma-ma',  instruction:'Repite MA 3 veces seguidas', hint:'Ritmo constante' },
+    { type:'say', level:2, sound:'pa', word:'Pa-pa-pa',  instruction:'Repite PA 3 veces seguidas', hint:'Sin parar' },
+    { type:'say', level:2, sound:'la', word:'La-la-la',  instruction:'Repite LA 3 veces seguidas', hint:'Suave y seguido' },
+    // ─ L3 · contare / frasi corte
+    { type:'say', level:3, word:'Uno dos tres',           instruction:'Cuenta del 1 al 3',        hint:'Todo seguido' },
+    { type:'say', level:3, word:'Hola mamá',              instruction:'Frase corta en un respiro', hint:'Sin pausa en medio' },
+    { type:'say', level:3, word:'Me gusta',               instruction:'Frase corta',               hint:'Dos palabras seguidas' },
+    // ─ L4 · frasi medie
+    { type:'say', level:4, word:'Hoy hace un día precioso',          instruction:'Frase seguida, un respiro', hint:'Respira antes, suelta todo' },
+    { type:'say', level:4, word:'Uno dos tres cuatro cinco',         instruction:'Cuenta hasta 5',            hint:'Ritmo uniforme' },
+    { type:'say', level:4, word:'Me gusta el café por la mañana',    instruction:'Frase seguida',             hint:'Sin pausas largas' },
+    // ─ L5 · frasi lunghe
+    { type:'say', level:5, word:'La casa de mi abuela está junto al mar', instruction:'Frase larga, un respiro', hint:'Ancla la respiración' },
+    { type:'say', level:5, word:'Lunes martes miércoles jueves viernes',  instruction:'Días laborables seguidos', hint:'No pares entre palabras' },
   ],
   voz: [
-    { type:'say', word:'Hola',         instruction:'Dilo con VOZ SUAVE',   hint:'Como si susurraras a alguien cerca' },
-    { type:'say', word:'Hola',         instruction:'Dilo con VOZ FUERTE',  hint:'Proyecta, como llamando a alguien' },
-    { type:'say', word:'¿Cómo estás?', instruction:'Tono de pregunta real',hint:'Sube el tono al final' },
-    { type:'say', word:'Estoy bien',   instruction:'Tono afirmativo firme',hint:'Baja el tono al final, seguro' },
-    { type:'say', word:'Aaaa',         instruction:'Sostén la A 4 segundos',hint:'Voz estable, no tiembles' },
-    { type:'say', word:'Mmmm',         instruction:'Sostén la M con boca cerrada',hint:'Nota la vibración en los labios' },
+    // ─ L1 · sostener vocali
+    { type:'say', level:1, sound:'a', word:'Aaa', instruction:'Sostén la A con voz suave',  hint:'Como un susurro' },
+    { type:'say', level:1, sound:'a', word:'AAA', instruction:'Sostén la A con voz fuerte', hint:'Proyecta, no grites' },
+    { type:'say', level:1, sound:'o', word:'Ooo', instruction:'Sostén la O',                hint:'Voz estable' },
+    // ─ L2 · sillaba con volume
+    { type:'say', level:2, sound:'ma', word:'Ma',  instruction:'Di MA con voz suave',  hint:'Suave como un secreto' },
+    { type:'say', level:2, sound:'ma', word:'MA',  instruction:'Di MA con voz fuerte', hint:'Proyecta la voz' },
+    { type:'say', level:2, sound:'mm', word:'Mmm', instruction:'Sostén la M con boca cerrada', hint:'Nota la vibración en los labios' },
+    // ─ L3 · parole con tono
+    { type:'say', level:3, word:'Hola', instruction:'Di HOLA con voz suave',  hint:'Como a alguien cerca' },
+    { type:'say', level:3, word:'Hola', instruction:'Di HOLA con voz fuerte', hint:'Como llamando lejos' },
+    // ─ L4 · intonazione frase
+    { type:'say', level:4, word:'¿Cómo estás?', instruction:'Tono de pregunta real', hint:'Sube el tono al final' },
+    { type:'say', level:4, word:'Estoy bien',   instruction:'Tono afirmativo firme', hint:'Baja el tono al final' },
+    // ─ L5 · frasi lunghe con tono
+    { type:'say', level:5, word:'Buenos días, ¿qué tal estás?', instruction:'Con entonación natural', hint:'Alegre y cálido' },
   ],
   comprension: [
-    { type:'list', word:'3 frutas',           instruction:'Nombra 3 frutas',          hint:'Ej: manzana, pera, plátano…', match:{ min:3 } },
-    { type:'list', word:'3 colores',          instruction:'Nombra 3 colores',         hint:'Los que quieras',             match:{ min:3 } },
-    { type:'list', word:'3 animales',         instruction:'Nombra 3 animales',        hint:'De granja, casa o salvajes',  match:{ min:3 } },
-    { type:'list', word:'3 prendas de ropa',  instruction:'Nombra 3 prendas',         hint:'Camisa, pantalón…',           match:{ min:3 } },
-    { type:'list', word:'Días de la semana',  instruction:'Di los 7 días',            hint:'De lunes a domingo',          match:{ min:5 } },
-    { type:'list', word:'3 cosas de la cocina', instruction:'Nombra 3 objetos de cocina', hint:'Cuchara, plato…',         match:{ min:3 } },
+    // ─ L1 · ripetere una singola vocale/sillaba
+    { type:'say', level:1, sound:'a', word:'A', instruction:'Repite lo que digo: A',  hint:'Solo la vocal' },
+    { type:'say', level:1, sound:'o', word:'O', instruction:'Repite lo que digo: O',  hint:'Solo la vocal' },
+    // ─ L2 · ripetere sillaba
+    { type:'say', level:2, sound:'ma', word:'MA', instruction:'Repite: MA', hint:'Una sílaba' },
+    { type:'say', level:2, sound:'la', word:'LA', instruction:'Repite: LA', hint:'Una sílaba' },
+    // ─ L3 · nominare 1 elemento
+    { type:'list', level:3, word:'1 fruta',    instruction:'Nombra una fruta',    hint:'Ej: manzana', match:{ min:1 } },
+    { type:'list', level:3, word:'1 color',    instruction:'Nombra un color',     hint:'El que quieras', match:{ min:1 } },
+    { type:'list', level:3, word:'1 animal',   instruction:'Nombra un animal',    hint:'El que prefieras', match:{ min:1 } },
+    // ─ L4 · nominare 3
+    { type:'list', level:4, word:'3 frutas',           instruction:'Nombra 3 frutas',  hint:'Manzana, pera…',   match:{ min:3 } },
+    { type:'list', level:4, word:'3 colores',          instruction:'Nombra 3 colores', hint:'Los que quieras',  match:{ min:3 } },
+    { type:'list', level:4, word:'3 animales',         instruction:'Nombra 3 animales',hint:'Perro, gato…',     match:{ min:3 } },
+    { type:'list', level:4, word:'3 prendas de ropa',  instruction:'Nombra 3 prendas', hint:'Camisa, pantalón', match:{ min:3 } },
+    { type:'list', level:4, word:'3 cosas de la cocina',instruction:'Nombra 3 objetos de cocina', hint:'Cuchara, plato', match:{ min:3 } },
+    // ─ L5 · evocazione più ampia
+    { type:'list', level:5, word:'Días de la semana',  instruction:'Di los 7 días',   hint:'De lunes a domingo', match:{ min:5 } },
+    { type:'list', level:5, word:'5 frutas',           instruction:'Nombra 5 frutas', hint:'Tómate tu tiempo',   match:{ min:5 } },
   ]
 };
 
@@ -558,12 +785,38 @@ function speak(text){
 //  SCREEN NAVIGATION
 // ═══════════════════════════════════════════════════════════════
 function showScreen(name){
-  ['screenCategories','screenExercise','screenComplete'].forEach(id => {
+  ['screenCategories','screenExercise','screenComplete','screenAssessment'].forEach(id => {
     document.getElementById(id).classList.toggle('hidden', id !== 'screen'+name);
   });
   const endBtn = document.getElementById('endBtn');
-  if (endBtn) endBtn.classList.toggle('hidden', name === 'Categories');
+  if (endBtn) endBtn.classList.toggle('hidden', name === 'Categories' || name === 'Assessment');
   window.scrollTo(0, 0);
+}
+
+// Seleziona esercizi adatti al livello + suoni del profilo utente.
+// Strategia: include esercizi <= level+1 (un po' di sfida), per L1/L2 filtra sui
+// suoni conosciuti (Laura: solo a/e/o/ma/na/la/lo → niente esercizi di /u/ /pa/…).
+function pickExercises(cat){
+  const all = EXERCISES[cat] || [];
+  const lvl = state.logo.level || 3;
+  const sounds = state.logo.sounds || DEFAULT_SOUNDS;
+  const filtered = all.filter(ex => {
+    // Skip esercizi troppo difficili (più di 1 livello sopra)
+    if (ex.level > lvl + 1) return false;
+    // Per L1/L2 con `sound` definito → includi solo se l'utente conosce quel suono
+    if (ex.level <= 2 && ex.sound && !sounds.includes(ex.sound)) return false;
+    return true;
+  });
+  // Preferisci esercizi al livello corrente, con 1-2 di sfida al livello superiore
+  const atLevel = filtered.filter(e => e.level === lvl);
+  const below   = filtered.filter(e => e.level < lvl);
+  const above   = filtered.filter(e => e.level === lvl + 1);
+  const pool = shuffle(atLevel.slice()).slice(0, 3)
+    .concat(shuffle(below.slice()).slice(0, 1))
+    .concat(shuffle(above.slice()).slice(0, 1));
+  // Fallback: se dopo il filtro è vuoto (es. profilo troppo restrittivo) → usa il bank non filtrato
+  if (!pool.length) return shuffle(all.slice()).slice(0, 5);
+  return shuffle(pool).slice(0, 5);
 }
 
 function chooseCategory(cat){
@@ -572,7 +825,7 @@ function chooseCategory(cat){
   state.recording = false;
   try { speechSynthesis.cancel(); } catch(e){}
   state.category = cat;
-  state.exercises = shuffle(EXERCISES[cat].slice()).slice(0, 5);
+  state.exercises = pickExercises(cat);
   state.idx = 0;
   state.results = [];
   const meta = CATEGORY_META[cat];
@@ -850,6 +1103,97 @@ function greetingText(){
   return `${phase}${name}. Soy Ana, tu logopeda. ¿Qué quieres practicar hoy?`;
 }
 
+// ═══════════════════════════════════════════════════════════════
+//  ASSESSMENT (profilo logopedico)
+// ═══════════════════════════════════════════════════════════════
+const SOUND_GROUPS = {
+  vowel: ['a','e','i','o','u'],
+  m:     ['ma','me','mi','mo','mu'],
+  pt:    ['pa','pe','po','ta','te','to'],
+  lns:   ['la','le','lo','na','ne','no','sa','se','so'],
+};
+
+// Buffer temporaneo mentre è aperto lo screen assessment
+let _assessDraft = null;
+
+function renderProfileBar(){
+  const p = state.logo;
+  const lvlLbl = document.getElementById('pbLevel');
+  const sndLbl = document.getElementById('pbSounds');
+  const names = { 1:'1 · Vocales', 2:'2 · Sílabas', 3:'3 · Palabras', 4:'4 · Palabras largas', 5:'5 · Frases' };
+  if (lvlLbl) lvlLbl.textContent = names[p.level] || '—';
+  if (sndLbl) sndLbl.textContent = (p.sounds||[]).map(s => s.toUpperCase()).join(' ') || '—';
+}
+
+function renderSoundGrid(containerId, sounds){
+  const el = document.getElementById(containerId);
+  if (!el) return;
+  el.innerHTML = '';
+  sounds.forEach(s => {
+    const b = document.createElement('button');
+    b.className = 'sound-chip' + (_assessDraft.sounds.includes(s) ? ' on' : '');
+    b.textContent = s.toUpperCase();
+    b.type = 'button';
+    b.onclick = () => {
+      const i = _assessDraft.sounds.indexOf(s);
+      if (i >= 0) _assessDraft.sounds.splice(i, 1);
+      else _assessDraft.sounds.push(s);
+      b.classList.toggle('on');
+    };
+    el.appendChild(b);
+  });
+}
+
+function renderLevelGrid(){
+  document.querySelectorAll('#levelGrid .level-opt').forEach(el => {
+    const lvl = parseInt(el.dataset.lvl, 10);
+    el.classList.toggle('selected', lvl === _assessDraft.level);
+    el.onclick = () => {
+      _assessDraft.level = lvl;
+      renderLevelGrid();
+      // Sezione suoni è rilevante solo per L1/L2
+      document.getElementById('soundsSection').style.display = (lvl <= 2) ? '' : 'none';
+    };
+  });
+  document.getElementById('soundsSection').style.display = (_assessDraft.level <= 2) ? '' : 'none';
+}
+
+function openAssessment(){
+  // Clona profilo corrente in draft (modifiche annullabili con "Cancelar")
+  _assessDraft = {
+    level: state.logo.level || 3,
+    sounds: (state.logo.sounds || DEFAULT_SOUNDS).slice(),
+  };
+  renderLevelGrid();
+  renderSoundGrid('vowelGrid', SOUND_GROUPS.vowel);
+  renderSoundGrid('mGrid',     SOUND_GROUPS.m);
+  renderSoundGrid('ptGrid',    SOUND_GROUPS.pt);
+  renderSoundGrid('lnsGrid',   SOUND_GROUPS.lns);
+  showScreen('Assessment');
+  setAgentStatus('Configurando perfil');
+  sayAgent('Marca lo que puedes decir bien ahora. Así adapto los ejercicios a ti.');
+}
+
+function cancelAssessment(){
+  _assessDraft = null;
+  showScreen('Categories');
+  sayAgent(greetingText());
+}
+
+function saveAssessment(){
+  if (!_assessDraft) return;
+  // Se livello 1/2 senza suoni selezionati → fallback vocali default (evita bank vuoto)
+  if (_assessDraft.level <= 2 && !_assessDraft.sounds.length) {
+    _assessDraft.sounds = DEFAULT_SOUNDS.slice();
+  }
+  state.logo = { level: _assessDraft.level, sounds: _assessDraft.sounds, assessed: true };
+  saveLogoProfile(state.logo);
+  _assessDraft = null;
+  renderProfileBar();
+  showScreen('Categories');
+  sayAgent(`Perfil guardado. Nivel ${state.logo.level}. ¿Qué practicamos?`);
+}
+
 window.addEventListener('load', () => {
   if (!SPEECH_SUPPORTED) document.getElementById('noSpeechNotice').classList.remove('hidden');
   // Carica voci TTS (necessario per prima selezione)
@@ -857,7 +1201,16 @@ window.addEventListener('load', () => {
   if (speechSynthesis && speechSynthesis.onvoiceschanged !== undefined){
     speechSynthesis.onvoiceschanged = () => {};
   }
-  setTimeout(() => sayAgent(greetingText()), 400);
+  renderProfileBar();
+  // Prima visita: apri assessment invece del saluto standard
+  if (!state.logo.assessed) {
+    setTimeout(() => {
+      sayAgent(`${USER_NAME?'Hola '+USER_NAME+'. ':''}Soy Ana. Antes de empezar, dime qué sonidos puedes decir para adaptar los ejercicios a ti.`);
+      setTimeout(() => openAssessment(), 1200);
+    }, 400);
+  } else {
+    setTimeout(() => sayAgent(greetingText()), 400);
+  }
 });
 </script>
 
