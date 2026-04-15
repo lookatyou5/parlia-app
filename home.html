@@ -6,10 +6,10 @@
 <title>Parlia</title>
 <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <!-- Stili specifici di ogni pagina della home (?v= cache-bust su ogni deploy) -->
-<link rel="stylesheet" href="inicio.css?v=20260414z">
-<link rel="stylesheet" href="aac.css?v=20260414z">
-<link rel="stylesheet" href="rehab.css?v=20260414z">
-<link rel="stylesheet" href="perfil.css?v=20260414z">
+<link rel="stylesheet" href="inicio.css?v=20260414aa">
+<link rel="stylesheet" href="aac.css?v=20260414aa">
+<link rel="stylesheet" href="rehab.css?v=20260414aa">
+<link rel="stylesheet" href="perfil.css?v=20260414aa">
 <style>
 *, *::before, *::after { box-sizing: border-box !important; margin: 0; padding: 0; }
 
@@ -1170,6 +1170,24 @@ function buildAgenda() {
   }
 
   // Giorno feriale normale
+  // Se TUTTE le sessioni sono passate → mostra messaggio celebrativo invece
+  // delle card tutte sbarrate
+  const allPast = SESSIONS.every(s => cur > s.end);
+  if (allPast) {
+    scroll.innerHTML = `
+      <div class="agenda-done-card">
+        <div class="agenda-done-icon">🎉</div>
+        <div class="agenda-done-body">
+          <div class="agenda-done-title">¡Todas las sesiones completadas!</div>
+          <div class="agenda-done-sub">Excelente trabajo hoy. Mañana seguimos.</div>
+        </div>
+      </div>
+      ${reminders}${addChip}`;
+    document.getElementById('nextSession').textContent = '¡Todas las sesiones completadas hoy! 🎉';
+    try { _updateSessionPill(); } catch(e){}
+    return;
+  }
+
   const sessionCards = SESSIONS.map(s => {
     const [sh,sm] = s.time.split(':').map(Number);
     const start = sh*60+sm;
@@ -1580,8 +1598,10 @@ function _updateSessionPill(){
   if (!ctx) { pill.style.display = 'none'; return; }
   let shown = null;
   if (ctx.dayOver) {
-    // Giornata terminata: tutte le sessioni passate, niente "next" da mostrare
-    shown = { tag:'HOY',      emoji: '🎉',                    text: 'Día completado' };
+    // Giornata terminata — il messaggio celebrativo è dentro la "Tu día",
+    // qui sopra nascondiamo la pill per non duplicare.
+    pill.style.display = 'none';
+    return;
   } else if (ctx.now) {
     shown = { tag:'AHORA',    emoji: ctx.now.emoji || '⏱️',  text: ctx.now.label };
   } else if (ctx.soon) {

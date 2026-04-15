@@ -380,6 +380,22 @@ body.is-scrolling .ai-hero-inner .agenda-card.now { animation-play-state: paused
 .ai-hero-inner .agenda-card .ac-label { color: white; font-size: .74rem; font-weight: 800; }
 .ai-hero-inner .agenda-card .ac-sub { color: rgba(255,255,255,.55); font-size: .56rem; }
 .ai-hero-inner .agenda-card .ac-now-badge { background: rgba(255,255,255,.35); color: white; }
+/* Card celebrativa quando tutte le sessioni del giorno sono completate */
+.ai-hero-inner .agenda-scroll .agenda-done-card {
+  flex-shrink: 0; min-width: 280px;
+  display: flex; align-items: center; gap: 12px;
+  background: linear-gradient(135deg, rgba(240,253,244,.98), rgba(187,247,208,.9));
+  border: 1.5px solid rgba(52,211,153,.85);
+  border-radius: 16px; padding: 10px 14px;
+  box-shadow: 0 0 22px 4px rgba(52,211,153,.32), 0 6px 20px rgba(16,185,129,.22);
+  animation: agendaNowPulse 2.8s ease-in-out infinite;
+}
+body.is-scrolling .ai-hero-inner .agenda-scroll .agenda-done-card { animation-play-state: paused; }
+.ai-hero-inner .agenda-scroll .agenda-done-icon { font-size: 1.6rem; line-height: 1; flex-shrink: 0; }
+.ai-hero-inner .agenda-scroll .agenda-done-body { flex: 1; min-width: 0; }
+.ai-hero-inner .agenda-scroll .agenda-done-title { font-size: .78rem; font-weight: 800; color: #064e3b; line-height: 1.2; }
+.ai-hero-inner .agenda-scroll .agenda-done-sub { font-size: .62rem; font-weight: 600; color: #047857; margin-top: 2px; line-height: 1.3; }
+
 /* Chip "+ Recordatorio" in coda allo scroll */
 .ai-hero-inner .agenda-scroll .agenda-add-chip {
   flex-shrink: 0; display: flex; align-items: center; justify-content: center;
