@@ -327,33 +327,31 @@ body.ai-mode-texto .ai-text-input { display: flex; }
   color: white;
   transform: translateZ(0);
 }
-/* Card "AHORA" — illuminata con verde emeraldo (matching online dot di Parlia AI) */
+/* Card "AHORA" — glow morbido verde smeraldo, nessun anello duro */
 .ai-hero-inner .agenda-card.now {
   background: linear-gradient(135deg, rgba(240,253,244,.98) 0%, rgba(220,252,231,.95) 55%, rgba(187,247,208,.9) 100%);
-  border: 1.5px solid #34d399;
+  border: 1.5px solid rgba(52,211,153,.85);
+  border-radius: 16px;
   box-shadow:
-    0 0 0 3px rgba(52,211,153,.35),
-    0 0 24px rgba(52,211,153,.5),
-    0 6px 18px rgba(16,185,129,.28),
+    0 0 22px 4px rgba(52,211,153,.35),
+    0 6px 20px rgba(16,185,129,.25),
     0 1px 0 rgba(255,255,255,.9) inset;
   transform: translateY(-2px) scale(1.04);
   transform-origin: center;
-  animation: agendaNowPulse 2.4s ease-in-out infinite;
+  animation: agendaNowPulse 2.8s ease-in-out infinite;
   z-index: 2;
 }
 @keyframes agendaNowPulse {
   0%, 100% {
     box-shadow:
-      0 0 0 3px rgba(52,211,153,.35),
-      0 0 24px rgba(52,211,153,.5),
-      0 6px 18px rgba(16,185,129,.28),
+      0 0 22px 4px rgba(52,211,153,.32),
+      0 6px 20px rgba(16,185,129,.25),
       0 1px 0 rgba(255,255,255,.9) inset;
   }
   50% {
     box-shadow:
-      0 0 0 5px rgba(52,211,153,.22),
-      0 0 36px rgba(52,211,153,.7),
-      0 8px 22px rgba(16,185,129,.4),
+      0 0 34px 6px rgba(52,211,153,.5),
+      0 8px 24px rgba(16,185,129,.35),
       0 1px 0 rgba(255,255,255,.9) inset;
   }
 }
