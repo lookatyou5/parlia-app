@@ -294,6 +294,7 @@ html,body { font-family:'Plus Jakarta Sans',sans-serif; background:var(--bg); co
 
 <div id="toast"></div>
 
+<script src="tts.js?v=20260416d"></script>
 <script>
 const CATS = [
   {
@@ -387,31 +388,18 @@ let lastText = '';
 let _speaking = false;
 
 function speak(text) {
-  if (!text || !window.speechSynthesis) return;
+  if (!text) return;
   const clean = text.replace(/[^\wáéíóúüñÁÉÍÓÚÜÑ\s¿?¡!.,]/g, '').trim();
   if (!clean) return;
   lastText = text;
   updateHero(text);
   const btn = document.getElementById('heroSpeak');
   btn.classList.add('speaking');
-
-  const doSpeak = () => {
-    _speaking = true;
-    const utt = new SpeechSynthesisUtterance(clean);
-    utt.lang = 'es-ES';
-    utt.rate = 0.9;
-    utt.volume = 1;
-    utt.onend = () => { _speaking = false; btn.classList.remove('speaking'); };
-    utt.onerror = () => { _speaking = false; btn.classList.remove('speaking'); };
-    window.speechSynthesis.speak(utt);
-  };
-
-  if (_speaking) {
-    window.speechSynthesis.cancel();
-    _speaking = false;
-    setTimeout(doSpeak, 200);
+  _speaking = true;
+  if (window.speakNeural) {
+    speakNeural(clean, { rate: 0.9, onend: () => { _speaking = false; btn.classList.remove('speaking'); } });
   } else {
-    doSpeak();
+    _speaking = false; btn.classList.remove('speaking');
   }
 }
 

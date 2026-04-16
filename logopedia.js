@@ -45,7 +45,7 @@ function sayAgent(text, opts={}){
   const b = document.getElementById('agentBubble');
   if (!b) return;
   if (_typeIV){ clearInterval(_typeIV); _typeIV = null; }
-  try { speechSynthesis.cancel(); } catch(e){}
+  try { window.stopNeural && stopNeural(); } catch(e){}
   b.innerHTML = '';
   let i = 0;
   _typeIV = setInterval(() => {
@@ -63,19 +63,11 @@ function toggleTTS(){
   state.ttsOn = !state.ttsOn;
   const el = document.getElementById('ttsToggle');
   if (el){ el.textContent = state.ttsOn ? '🔊' : '🔇'; el.classList.toggle('off', !state.ttsOn); }
-  if (!state.ttsOn) { try{ speechSynthesis.cancel(); }catch(e){} }
+  if (!state.ttsOn) { try{ window.stopNeural && stopNeural(); }catch(e){} }
 }
 function speak(text){
   if (!state.ttsOn) return;
-  try{
-    speechSynthesis.cancel();
-    const u = new SpeechSynthesisUtterance(text);
-    u.lang='es-ES'; u.rate=0.95; u.pitch=1.05; u.volume=1;
-    const vs = speechSynthesis.getVoices();
-    const v = vs.find(v => v.name.includes('Lucía')||v.name.includes('Lucia')||(v.lang==='es-ES'&&v.localService)) || vs.find(v => v.lang==='es-ES');
-    if (v) u.voice = v;
-    speechSynthesis.speak(u);
-  } catch(e){}
+  if (window.speakNeural) speakNeural(text, { rate: 0.95 });
 }
 
 // ═══ NAVIGATION ═══
@@ -111,7 +103,7 @@ function pickExercises(cat){
 function chooseCategory(cat){
   try { if (state.recognition) state.recognition.abort(); } catch(e){}
   state.recording = false;
-  try { speechSynthesis.cancel(); } catch(e){}
+  try { window.stopNeural && stopNeural(); } catch(e){}
   state.category = cat;
   const meta = CATEGORY_META[cat];
   setAgentStatus(meta.label);
@@ -139,7 +131,7 @@ function chooseCategory(cat){
 
 function backToCategories(){
   try{ if (state.recognition) state.recognition.abort(); }catch(e){}
-  try { speechSynthesis.cancel(); } catch(e){}
+  try { window.stopNeural && stopNeural(); } catch(e){}
   state.recording = false;
   const hadCategory = !!state.category;
   state.category = null;
@@ -430,8 +422,6 @@ function saveAssessment(){
 // ═══ INIT ═══
 window.addEventListener('load', () => {
   if (!SPEECH_SUPPORTED) document.getElementById('noSpeechNotice').classList.remove('hidden');
-  try { speechSynthesis.getVoices(); } catch(e){}
-  if (speechSynthesis && speechSynthesis.onvoiceschanged !== undefined) speechSynthesis.onvoiceschanged = () => {};
   renderProfileBar();
   if (!state.logo.assessed) {
     setTimeout(() => {

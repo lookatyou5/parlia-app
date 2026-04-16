@@ -28,6 +28,7 @@ Parlia è una PWA (app web progressiva) per comunicazione aumentativa (AAC) dest
 - `roadmap.html` — roadmap interna (accessibile da ⚙️ nella home)
 - `manifest.json` — PWA manifest (start_url: /)
 - `sw.js` — service worker (kill-cache, passa tutto alla rete)
+- `tts.js` — modulo TTS Google Neural2 (`window.speakNeural`/`stopNeural`) con cache, stop precedente, fallback Web Speech
 
 ## Architettura del carosello home (modulare)
 `home.html` al caricamento:
@@ -99,6 +100,7 @@ Vista read-only come dashboard:
 - HTML/CSS/JS puro, niente framework
 - Cloudflare Pages per il deploy (zip diretto)
 - Proxy AI: voci-ai-proxy.luca-peltrini.workers.dev → Anthropic Claude Haiku
+- Proxy TTS: parlia-tts.luca-peltrini.workers.dev → Google Cloud Text-to-Speech (Neural2)
 - Font: Bricolage Grotesque + Plus Jakarta Sans
 - Tema chiaro, colori blu/indigo, --bg: #f5f6fa
 - UI in spagnolo
@@ -469,6 +471,55 @@ Ogni esercizio ha `{ type, level, sound?, word, instruction, hint, match? }`.
 - `targetScroll = Math.max(0, elTopInContent - (desiredElemTop - pageTop))`
 - `deltaScroll = targetScroll - pageEl.scrollTop`; `predictedTop = elRect.top - deltaScroll`
 - Padding 200px temporaneo su pageEl rimosso da `_wtCleanup()` (chiamato in `closeTutorial()` e all'inizio di `_wtRender()`)
+
+## TTS — Google Cloud Text-to-Speech (Neural2)
+Sostituita la Web Speech API con Google TTS Neural2 per voce di alta qualità coerente su tutti i device.
+
+### Architettura
+```
+[Browser Parlia] --POST {text,voice?,rate?}--> [parlia-tts Worker] --+ GOOGLE_TTS_KEY--> [Google TTS API]
+                                                                                                   |
+[Browser] <-- audio/mpeg blob ---------------- [parlia-tts Worker] <-- MP3 base64 ----------------+
+```
+
+### Cloudflare Worker `parlia-tts`
+- URL: `https://parlia-tts.luca-peltrini.workers.dev`
+- Secret: `GOOGLE_TTS_KEY` (env var cifrata, mai nel codice)
+- CORS allowlist: `app.parlia.app`, `laura.parlia.app`, `parlia.app`, localhost
+- Validazione: text required, max 500 char, rate clamp 0.25-2.0
+- Cache header: `public, max-age=86400` (Cloudflare cachea per 24h le frasi ripetute)
+- Default voice: `es-ES-Neural2-H` (femminile), default rate `0.9`
+- Errori: ritorna JSON `{error, detail?}` con codice HTTP appropriato
+
+### Modulo client `tts.js`
+Espone due funzioni globali:
+- `window.speakNeural(text, { voice?, rate?, onend? })` — riproduce audio
+- `window.stopNeural()` — ferma audio corrente + invalida richieste in corso
+
+Caratteristiche:
+- **Cache LRU** (max 60 frasi) con `Map` + `URL.createObjectURL` → frasi AAC ripetute partono istantanee, zero costo Google
+- **Token monotonico** (`_currentToken`) → richieste obsolete non riproducono se nel frattempo è arrivato un altro `speakNeural()`
+- **Stop precedente** automatico: pause + cancel Web Speech residuo
+- **Fallback Web Speech** in caso di: timeout (6s), HTTP error, rete giù → usa `SpeechSynthesisUtterance` con voce Lucía/es-ES (l'app NON resta muta)
+- **Pre-warm voci Web Speech** al load (per fallback istantaneo)
+- **Auto-stop su `visibilitychange`** quando l'app va in background
+
+### Punti d'uso (tutte le chiamate `speechSynthesis.speak()` sostituite)
+- `home.html` → `speakSOS()` (rate 0.85), `aacSpeak()` (rate 0.9), `_speak()` AI hero (rate 0.95)
+- `home.html` → `toggleTTS()` chiama `stopNeural()` quando muto
+- `comunicador.html` → `speak()` (rate 0.9, con `onend` callback per stato bottone)
+- `logopedia.js` → `speak()` (rate 0.95) chiamato da `sayAgent()`; cancel sostituiti con `stopNeural()`
+- `tutorial.html` → `speak(el, text)` AAC demo (rate 0.88, con `onend` callback)
+
+### Costi attesi
+Free tier Google: **1M caratteri Neural2/mese** (rinnovo automatico ogni mese).
+Stima Laura: ~100k char/mese (cache esclusa) → **completamente dentro free tier**.
+Cache lato client + cache lato Worker (24h) abbattono ulteriormente le chiamate effettive.
+
+### Sicurezza
+- API key Google ristretta a SOLO Cloud Text-to-Speech API (anche se trapelasse, danno limitato al free tier TTS)
+- Budget alert GCP $5/mese
+- Key vive solo come secret cifrato nel Worker, mai nel browser, mai nel repo
 
 ## Istruzioni per Claude Code
 - Prima di qualsiasi modifica, fai sempre un commit git con messaggio "backup pre-modifica"

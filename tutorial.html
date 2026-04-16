@@ -470,6 +470,7 @@ html,body { height:100%; overflow:hidden; font-family:'Plus Jakarta Sans',sans-s
   </div>
 </div>
 
+<script src="tts.js?v=20260416d"></script>
 <script>
 const POPUPS = {
   'ai-chat':{ emoji:'🤖', title:'¿Qué es Parlia AI?', body:'Parlia AI es tu asistente personal. Cada día te saluda con un mensaje adaptado a la hora, tu estado de ánimo y tus actividades del día. Puedes responderle tocando los chips — sin escribir nada.' },
@@ -494,19 +495,15 @@ function closePopupOutside(e){ if(e.target===document.getElementById('popup-over
 // AAC
 let _cur=null;
 function speak(el,text){
-  speechSynthesis.cancel();
   if(_cur) _cur.classList.remove('speaking');
   _cur=el; el.classList.add('speaking');
   const bars=[1,2,3,4,5].map(i=>document.getElementById('sb'+i));
   bars.forEach(b=>b.classList.add('on'));
   const lbl=document.getElementById('speakLbl');
   lbl.textContent='🔊 '+text; lbl.style.color='#93c5fd';
-  const u=new SpeechSynthesisUtterance(text);
-  u.lang='es-ES'; u.rate=0.88; u.pitch=1.05;
-  const tryVoice=()=>{ const vs=speechSynthesis.getVoices(); const v=vs.find(v=>v.name.includes('Lucía')||v.name.includes('Lucia')||(v.lang==='es-ES'&&v.localService))||vs.find(v=>v.lang==='es-ES'); if(v) u.voice=v; };
-  if(speechSynthesis.getVoices().length) tryVoice(); else speechSynthesis.onvoiceschanged=tryVoice;
-  u.onend=u.onerror=()=>{ el.classList.remove('speaking'); bars.forEach(b=>b.classList.remove('on')); lbl.textContent='Toca un pictograma ↑'; lbl.style.color=''; _cur=null; };
-  speechSynthesis.speak(u);
+  const reset=()=>{ el.classList.remove('speaking'); bars.forEach(b=>b.classList.remove('on')); lbl.textContent='Toca un pictograma ↑'; lbl.style.color=''; _cur=null; };
+  if (window.speakNeural) speakNeural(text, { rate: 0.88, onend: reset });
+  else reset();
 }
 
 // TOUR
@@ -644,8 +641,6 @@ function goToApp(){
   btn.style.background='linear-gradient(135deg,#16a34a,#0d9488)';
   setTimeout(()=>{ window.location.href='home.html'; },800);
 }
-
-if('speechSynthesis' in window){ speechSynthesis.getVoices(); speechSynthesis.onvoiceschanged=()=>speechSynthesis.getVoices(); }
 
 // Rehab cards highlight animation
 let _animTimers=[];

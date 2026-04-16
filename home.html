@@ -785,6 +785,7 @@ body.is-scrolling .mesh { opacity: 0; transition: opacity .25s ease; }
 <div id="toast"></div>
 
 <script src="userData.js"></script>
+<script src="tts.js?v=20260416d"></script>
 <script>
 // Disabilita lo scroll-restoration del browser (iOS/Safari può ripristinare posizioni stale)
 if ('scrollRestoration' in history) try { history.scrollRestoration = 'manual'; } catch(e){}
@@ -874,13 +875,7 @@ _saveMemory();
 function openSOS(){ document.getElementById('sosOverlay').classList.add('open'); }
 function closeSOS(e){ if(e.target===document.getElementById('sosOverlay')) document.getElementById('sosOverlay').classList.remove('open'); }
 function speakSOS(text){
-  speechSynthesis.cancel();
-  const u=new SpeechSynthesisUtterance(text);
-  u.lang='es-ES'; u.rate=0.85; u.pitch=1.05; u.volume=1;
-  const vs=speechSynthesis.getVoices();
-  const v=vs.find(v=>v.name.includes('Lucía')||v.name.includes('Lucia')||(v.lang==='es-ES'&&v.localService))||vs.find(v=>v.lang==='es-ES');
-  if(v) u.voice=v;
-  speechSynthesis.speak(u);
+  if (window.speakNeural) speakNeural(text, { rate: 0.85 });
 }
 
 function toggleSettings() {
@@ -1471,14 +1466,7 @@ function tapFrase(el, text, accent, faint, textCol) {
 }
 function replayLast() { if (_lastText) aacSpeak(_lastText); }
 function aacSpeak(text) {
-  if (!window.speechSynthesis) return;
-  speechSynthesis.cancel();
-  const utt=new SpeechSynthesisUtterance(text);
-  utt.lang='es-ES'; utt.rate=0.9; utt.volume=1;
-  const voices=speechSynthesis.getVoices();
-  const v=voices.find(v=>v.lang.startsWith('es')&&v.name.toLowerCase().includes('female'))||voices.find(v=>v.lang.startsWith('es'));
-  if (v) utt.voice=v;
-  speechSynthesis.speak(utt);
+  if (window.speakNeural) speakNeural(text, { rate: 0.9 });
 }
 
 // ── TTS (AI hero) ──
@@ -1488,17 +1476,11 @@ function toggleTTS() {
   const btn=document.getElementById('ttsBtn');
   btn.textContent=_ttsOn?'🔊':'🔇';
   btn.style.background=_ttsOn?'rgba(255,255,255,.22)':'rgba(255,255,255,.1)';
-  if (!_ttsOn) speechSynthesis.cancel();
+  if (!_ttsOn) { try { window.stopNeural && stopNeural(); } catch(e){} }
 }
 function _speak(text) {
-  if (!_ttsOn||!window.speechSynthesis) return;
-  speechSynthesis.cancel();
-  const utt=new SpeechSynthesisUtterance(text);
-  utt.lang='es-ES'; utt.rate=0.95; utt.pitch=1.05;
-  const voices=speechSynthesis.getVoices();
-  const v=voices.find(v=>v.lang.startsWith('es')&&v.name.toLowerCase().includes('female'))||voices.find(v=>v.lang.startsWith('es'));
-  if (v) utt.voice=v;
-  speechSynthesis.speak(utt);
+  if (!_ttsOn) return;
+  if (window.speakNeural) speakNeural(text, { rate: 0.95 });
 }
 
 // ── AI CONTEXT-AWARE ──
@@ -1929,7 +1911,7 @@ function endAiChat(){
   const status = document.getElementById('aiStatusText');
   if (status) status.textContent = 'En pausa';
   // Ferma eventuale TTS in corso
-  try { window.speechSynthesis && window.speechSynthesis.cancel(); } catch(e){}
+  try { window.stopNeural && stopNeural(); } catch(e){}
 }
 
 // Riapre una nuova conversazione fresh dopo endAiChat()
