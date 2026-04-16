@@ -132,5 +132,35 @@
     return { done:n, total:t, pct: Math.round(n/t*100) };
   }
 
-  global.ParliaUser = { get:getUserData, save:saveUserData, count:countCompleted, defaults };
+  // ─── LOGO PROFILE (parlia_logo_profile) ───
+  // Schema: { level, sounds[], assessed, difficultPhonemes[] }
+  // difficultPhonemes: lettere/sillabe su cui l'utente sta lavorando (TTS le enfatizza)
+  const LOGO_KEY = 'parlia_logo_profile';
+
+  function getLogoProfile(){
+    const p = readJSON(LOGO_KEY) || {};
+    return {
+      level: p.level || 3,
+      sounds: Array.isArray(p.sounds) ? p.sounds : ['a','e','i','o','u'],
+      difficultPhonemes: Array.isArray(p.difficultPhonemes) ? p.difficultPhonemes : [],
+      assessed: !!p.assessed
+    };
+  }
+  function saveLogoProfile(p){
+    localStorage.setItem(LOGO_KEY, JSON.stringify(p));
+  }
+  function getDifficultPhonemes(){
+    return getLogoProfile().difficultPhonemes;
+  }
+  function setDifficultPhonemes(arr){
+    const p = getLogoProfile();
+    p.difficultPhonemes = Array.isArray(arr) ? arr.map(s => String(s).toLowerCase()).filter(Boolean) : [];
+    saveLogoProfile(p);
+    return p.difficultPhonemes;
+  }
+
+  global.ParliaUser = {
+    get: getUserData, save: saveUserData, count: countCompleted, defaults,
+    getLogoProfile, saveLogoProfile, getDifficultPhonemes, setDifficultPhonemes
+  };
 })(window);
