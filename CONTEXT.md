@@ -287,6 +287,54 @@ Caratteristiche:
 
 ---
 
+## Sessione 16 aprile 2026 (sera, parte 2) — Reto de la Sonrisa: ricalibrazione formule MediaPipe
+Round di fix dopo testing reale degli esercizi facciali. Le formule originali erano basate su euristiche non testate empiricamente; molte avevano falsi positivi (barra che si riempiva a riposo) o falsi negativi (espressione fatta correttamente ma non rilevata).
+
+### Bug fix per esercizio (file `logopedia-sorriso.js`)
+
+**KISS (Beso al aire)** — non riconosceva mai
+- Vecchio: `1 - mW/fW` con soglia 0.7 → richiedeva di stringere la bocca quasi completamente perché i landmark 2D non vedono la protrusione 3D delle labbra
+- Tentativo intermedio: somma pesata `narrow*0.6 + closed*0.4` → falso positivo a riposo (closed era sempre alto a labbra unite)
+- Fix finale: **moltiplicazione (AND gate)** `narrow * closed` con soglia 0.45. Entrambi i segnali devono essere presenti contemporaneamente: bocca stretta (commissure 61↔291) E labbra serrate (sup/inf 13↔14)
+
+**WINK L/R (Guiño izquierdo/derecho)** — funzionavano invertiti
+- Causa: i landmark MediaPipe usano naming **anatomico** (dal punto di vista del viso), ma la camera mostra il viso a **specchio**. L'utente interpreta "ojo derecho" come il proprio occhio destro reale, ma le formule erano scambiate
+- Fix: rinominate variabili `lEAR`/`rEAR` → `rightEAR`/`leftEAR` con commento esplicito; riassegnate `wink-l` e `wink-r` ai landmark anatomici corretti
+- 33,133,159,145 = occhio DESTRO anatomico (= a sinistra dello schermo specchio)
+- 362,263,386,374 = occhio SINISTRO anatomico (= a destra dello schermo specchio)
+
+**NOSE (Arruga la nariz)** — non rilevava lo scrunch
+- Vecchio: `1 - (lipToNose / fH * 8)` dipendeva da `fH` (altezza viso intera), che varia con la distanza dalla camera → sensibile al setup
+- Fix: `1 - (lipToTip / noseToChin) * 2.0` con soglia 0.22. Confronto interno al volto (entrambe distanze interne, scala identica) indipendente da camera/distanza
+
+**CHEEKS (Infla las mejillas)** — non rilevava il gonfiore (formula vecchia), poi triggerava a riposo (primo fix)
+- Vecchio: `fW/noseW` con tempie 234/454 — le tempie NON si muovono col gonfiore
+- Tentativo intermedio: `cheekW(138↔367) / tempW(234↔454)` → partiva da ~0.85 a riposo, troppo vicino alla soglia
+- Fix finale: **`cheekW / mouthW`** con soglia 2.95. Quando si gonfiano le guance: cheekW AUMENTA E mouthW DIMINUISCE (labbra serrate per trattenere l'aria) → ratio cresce in modo molto più marcato del singolo segnale
+
+**BROWS (Sube las cejas)** — triggerava a riposo
+- Causa: soglia 0.18 troppo bassa per visi con sopracciglia naturalmente alte
+- Fix: alzata a 0.24 (formula `(browL+browR)/fH` invariata)
+
+### Soglie attuali finali
+```js
+{
+  smile: 0.42,  cheeks: 2.95, open: 0.07,  kiss: 0.45,
+  'wink-l': 0.35, 'wink-r': 0.35, 'lips-o': 0.55, surprise: 0.35,
+  teeth: 0.4, brows: 0.24, nose: 0.22, tongue: 0.35,
+}
+```
+
+### Lezioni imparate
+- I landmark MediaPipe sono **anatomici**, non screen-relative → attenzione con camera a specchio
+- Per espressioni che combinano più segnali, **moltiplicazione (AND)** è più robusta della somma pesata: evita che un singolo segnale "gratis" alzi lo score
+- Riferimenti **interni al volto** (es. `noseToChin`) sono molto più stabili di riferimenti che includono dimensioni assolute (es. `fH` intera) perché invarianti alla distanza dalla camera
+- Le soglie vanno tarate con **testing reale**: ogni viso ha proporzioni diverse e le euristiche basate solo su MediaPipe docs spesso sbagliano
+
+### Cache-bust durante la sessione: v20260416d → e → f → g → h
+
+---
+
 ## Sessione 16 aprile 2026 — Logopedia: polish + modularizzazione + nuove categorie + MediaPipe
 - **Ana reagisce subito** dopo il risultato (semaforo), non solo al click "Siguiente"
 - **Saluto non ripetitivo**: primo ingresso → presentazione completa; ritorno da categoria → frase breve variata ("¿Qué más practicamos?")
