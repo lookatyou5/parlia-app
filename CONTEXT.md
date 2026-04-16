@@ -236,6 +236,57 @@ Tap sul widget meteo → overlay scuro (`rgba(10,15,40,.5)`) + blur 10px → car
 ## SOS overlay
 Tap sul 🆘 in topbar → overlay scuro (niente backdrop-filter — causava flash nero su Chrome Android) → card bottom sheet con 5 frasi SOS (`speakSOS()`).
 
+## Sessione 16 aprile 2026 (sera) — Google Cloud TTS Neural2
+Sostituita la **Web Speech API** con **Google Cloud Text-to-Speech (Neural2)** per voce di alta qualità coerente su tutti i device. Confermato funzionante in produzione (`app.parlia.app`).
+
+### Setup Google Cloud
+- Progetto GCP con **Cloud Text-to-Speech API** abilitata
+- API key creata e ristretta a SOLO Text-to-Speech (anche se trapelasse, danno limitato)
+- Budget alert $5/mese per sicurezza
+- Free tier: **1M caratteri Neural2/mese**, ricorrente — Parlia ne consuma ~100k (di fatto gratis)
+
+### Cloudflare Worker `parlia-tts` (nuovo, separato da voci-ai-proxy)
+- URL: `https://parlia-tts.luca-peltrini.workers.dev`
+- Secret cifrato: `GOOGLE_TTS_KEY`
+- CORS allowlist: `app.parlia.app`, `laura.parlia.app`, `parlia.app`, localhost
+- Validazione: max 500 char, rate clamp 0.25-2.0
+- Cache HTTP `public, max-age=86400` → frasi ripetute servite da edge cache 24h
+- Default voice: `es-ES-Neural2-H` (femminile naturale), default rate `0.9`
+- Worker separato da `voci-ai-proxy` per isolamento responsabilità + secret + log
+
+### Modulo `tts.js` (nuovo file in repo)
+Globali esposte: `window.speakNeural(text, opts?)` + `window.stopNeural()`.
+
+Caratteristiche:
+- **Cache LRU client** (max 60 frasi) → frasi AAC ripetute istantanee, zero round-trip
+- **Token monotonico** → richieste obsolete scartate se nel frattempo arriva un altro speak
+- **Stop precedente** automatico (pause Audio + cancel Web Speech residuo)
+- **Timeout 6s** → oltre cade su fallback
+- **Fallback Web Speech** automatico in caso di timeout/HTTP error/rete giù → app non resta mai muta (critico per AAC/SOS)
+- **Pre-warm voci** Web Speech al load (per fallback istantaneo)
+- **Auto-stop su `visibilitychange`** quando l'app va in background
+
+### Punti d'uso (tutte le `speechSynthesis.speak()` sostituite)
+- `home.html` → `speakSOS` (rate 0.85), `aacSpeak` (0.9), `_speak` AI hero (0.95), `toggleTTS`/`endAiChat` chiamano `stopNeural()`
+- `comunicador.html` → `speak()` con `onend` callback per stato bottone
+- `logopedia.js` → `speak()` chiamato da `sayAgent()`; tutti i `cancel` sostituiti con `stopNeural()`
+- `tutorial.html` → `speak(el, text)` AAC demo con `onend` callback per reset UI
+- Rimosso pre-warm voci Web Speech ridondante (già fatto in `tts.js`)
+
+### Architettura finale
+```
+[Browser] --POST {text,voice?,rate?}--> [parlia-tts Worker] --+ GOOGLE_TTS_KEY--> [Google TTS API]
+[Browser] <-- audio/mpeg blob ---------- [parlia-tts Worker] <-- MP3 base64 --------+
+```
+
+### Note operative
+- Il `<script src="tts.js?v=...">` deve essere caricato PRIMA degli script che lo usano (subito dopo `userData.js` o equivalente)
+- Per cambiare voce in futuro: `speakNeural(text, { voice: 'es-ES-Chirp3-HD-Despina' })` — l'infrastruttura è già pronta per mix Neural2 + Chirp3 senza modifiche al Worker
+- `home.backup.html` NON aggiornato (snapshot pre-refactor, non in produzione)
+- Deploy: push branch su `main` → Cloudflare Pages auto-deploya in ~1-2 min
+
+---
+
 ## Sessione 16 aprile 2026 — Logopedia: polish + modularizzazione + nuove categorie + MediaPipe
 - **Ana reagisce subito** dopo il risultato (semaforo), non solo al click "Siguiente"
 - **Saluto non ripetitivo**: primo ingresso → presentazione completa; ritorno da categoria → frase breve variata ("¿Qué más practicamos?")
