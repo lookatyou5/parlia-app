@@ -42,11 +42,14 @@ const SORRISO_CHECKS = {
     return fW > 0 ? mW / fW : 0;
   },
   'cheeks': lm => {
-    // Guance gonfie = larghezza zona guance (138↔367) cresce vs larghezza tempie (234↔454)
-    // (le tempie non si muovono, le guance sì → ratio aumenta col gonfiore)
-    const cheekW = _dist(lm[138],lm[367]);
-    const tempW  = _dist(lm[234],lm[454]);
-    return tempW > 0 ? cheekW / tempW : 0;
+    // Guance gonfie: cheekWidth ÷ mouthWidth. Quando si gonfia:
+    // - cheekW (138↔367) AUMENTA (le guance si espandono lateralmente)
+    // - mouthW (61↔291) DIMINUISCE (le labbra si serrano per trattenere l'aria)
+    // → ratio cresce significativamente, segnale più forte di solo cheekW.
+    const cheekW = _dist(lm[138], lm[367]);
+    const mW = _dist(lm[61], lm[291]);
+    if (mW === 0) return 0;
+    return cheekW / mW;
   },
   'open': lm => {
     // Mouth vertical opening vs face height
@@ -134,9 +137,9 @@ const SORRISO_CHECKS = {
   },
 };
 const SORRISO_THRESHOLDS = {
-  'smile':0.42, 'cheeks':0.78, 'open':0.07, 'kiss':0.45,
+  'smile':0.42, 'cheeks':2.95, 'open':0.07, 'kiss':0.45,
   'wink-l':0.35, 'wink-r':0.35, 'lips-o':0.55, 'surprise':0.35,
-  'teeth':0.4, 'brows':0.18, 'nose':0.22, 'tongue':0.35,
+  'teeth':0.4, 'brows':0.24, 'nose':0.22, 'tongue':0.35,
 };
 
 // ── State
