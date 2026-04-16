@@ -250,6 +250,17 @@ body{padding-top:var(--top-h); padding-bottom:40px}
   background-clip:text;
 }
 .ex-word.small{font-size:1.4rem}
+.ex-word-row{display:flex;align-items:center;justify-content:center;gap:10px;}
+.ex-listen-btn{
+  flex-shrink:0; width:42px; height:42px; border-radius:50%;
+  background:rgba(99,102,241,0.12); border:1.5px solid rgba(99,102,241,0.3);
+  font-size:1.15rem; cursor:pointer; transition:all .18s;
+  display:flex; align-items:center; justify-content:center;
+  -webkit-tap-highlight-color:transparent;
+}
+.ex-listen-btn:active{transform:scale(0.92); background:rgba(99,102,241,0.22);}
+.ex-listen-btn.playing{background:rgba(99,102,241,0.3); animation:listenPulse .9s ease-in-out infinite;}
+@keyframes listenPulse{0%,100%{transform:scale(1);} 50%{transform:scale(1.08);}}
 .ex-hint{
   text-align:center; font-size:.82rem; font-weight:600;
   color:var(--muted); margin-bottom:4px;

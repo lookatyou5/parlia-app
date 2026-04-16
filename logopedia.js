@@ -55,7 +55,7 @@ function sayAgent(text, opts={}){
     } else {
       b.innerHTML = text;
       clearInterval(_typeIV); _typeIV = null;
-      if (opts.speak !== false) speak(text);
+      if (opts.speak !== false) speak(text, opts);
     }
   }, 22);
 }
@@ -65,9 +65,37 @@ function toggleTTS(){
   if (el){ el.textContent = state.ttsOn ? '🔊' : '🔇'; el.classList.toggle('off', !state.ttsOn); }
   if (!state.ttsOn) { try{ window.stopNeural && stopNeural(); }catch(e){} }
 }
-function speak(text){
-  if (!state.ttsOn) return;
-  if (window.speakNeural) speakNeural(text, { rate: 0.95 });
+// speak con mode: 'normal' (default), 'cheer' (incoraggiamento), 'word' (slow+emphasis), 'therapeutic' (auto-emphasis fonemi difficili)
+function speak(text, opts){
+  if (!state.ttsOn || !text) return;
+  opts = opts || {};
+  if (!window.speakNeural) return;
+  const mode = opts.mode || 'normal';
+  if (mode === 'cheer' && speakNeural.cheer) {
+    speakNeural.cheer(text, { onend: opts.onend });
+  } else if (mode === 'word' && speakNeural.exerciseWord) {
+    speakNeural.exerciseWord(text, { onend: opts.onend });
+  } else if (mode === 'therapeutic' && speakNeural.therapeutic) {
+    speakNeural.therapeutic(text, { targetWord: opts.targetWord, onend: opts.onend });
+  } else {
+    speakNeural(text, { rate: opts.rate || 0.95, onend: opts.onend });
+  }
+}
+
+// Bottone 👂 — riproduce la parola corrente con emphasis terapeutica
+function listenWord(){
+  const ex = state.exercises[state.idx];
+  if (!ex || !ex.word) return;
+  const btn = document.getElementById('exListenBtn');
+  if (btn) btn.classList.add('playing');
+  const reset = () => { if (btn) btn.classList.remove('playing'); };
+  if (window.speakNeural && speakNeural.therapeutic) {
+    speakNeural.therapeutic(ex.word, { targetWord: ex.word, onend: reset });
+  } else if (window.speakNeural) {
+    speakNeural(ex.word, { rate: 0.85, onend: reset });
+  } else {
+    reset();
+  }
 }
 
 // ═══ NAVIGATION ═══
@@ -222,7 +250,7 @@ function showComplete(){
   document.getElementById('completeTitle').textContent = title;
   document.getElementById('completeMsg').textContent = msg;
   setAgentStatus('Sesión terminada');
-  sayAgent(`${title.replace(/[!¡🎉🌟💪🌱]/g,'').trim()} ${USER_NAME?USER_NAME+', ':''}has completado ${done} ejercicios con ${score}% de precisión.`);
+  sayAgent(`${title.replace(/[!¡🎉🌟💪🌱]/g,'').trim()} ${USER_NAME?USER_NAME+', ':''}has completado ${done} ejercicios con ${score}% de precisión.`, { mode: score >= 60 ? 'cheer' : 'normal' });
   try{
     const log = JSON.parse(localStorage.getItem('parlia_logo_log')||'[]');
     log.push({ date:new Date().toISOString(), category:state.category, done, green, yellow, score });
@@ -316,7 +344,7 @@ function evaluate(alternatives){
   document.getElementById('nextBtn').disabled = false;
   state.results.push({ word:state.currentWord, ok:level, heard });
   const cheer = agentCheerLine(level);
-  if (cheer) sayAgent(cheer);
+  if (cheer) sayAgent(cheer, { mode: level === 'green' ? 'cheer' : 'normal' });
 }
 
 // ═══ SIMILARITY ═══
