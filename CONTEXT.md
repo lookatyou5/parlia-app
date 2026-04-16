@@ -287,8 +287,26 @@ Tap sul 🆘 in topbar → overlay scuro (niente backdrop-filter — causava fla
 1. 🗣️ Pronunciación (STT + similarity Levenshtein)
 2. 🌬️ Fluidez (STT)
 3. 🎚️ Voz (STT)
-4. 😊 Sfida del Sorriso (camera + MediaPipe landmarks)
-5. 💬 Diálogo Guidado (STT + valutazione sforzo)
+4. 😊 Reto de la Sonrisa (camera + MediaPipe landmarks)
+5. 💬 Diálogo Guiado (STT + valutazione sforzo)
+
+### Head Pointer — navigazione con il naso (home.html)
+File: `headpointer.js` + `headpointer.css` — test di navigazione hands-free sulla home.
+
+- **Bottone 👁️** fisso bottom-right per attivare/disattivare
+- **Camera nascosta** (160x120, frontale) + MediaPipe FaceLandmarker per tracciare il naso (landmark 1)
+- **Cursore rosso** (#ff3b30, bordo bianco) segue il naso — alto contrasto su qualsiasi sfondo dell'app
+- **Auto-calibrazione**: alla attivazione, posizione naso = centro schermo
+- **Gain 5.5×**: movimenti minimi della testa → grandi spostamenti cursore (meno stress al collo)
+- **Lerp 0.2** per fluidità, **rendering a 60fps** (solo CSS, costo zero), **detection a 15fps**
+- **Dwell Click (1.5s)**: fermo su elemento cliccabile → anello rosso si riempie a 360° (conic-gradient `--dwell`) → click() + suono pop (Web Audio 880→440Hz) + vibrazione
+  - Elementi riconosciuti: `[onclick], a, button, .nav-item, .ai-chip, .rehab-card, .cat-card, .agenda-card`
+- **Head Swipe**: zone bordo schermo (12% larghezza), 1s di permanenza → `goTo(curPage ± 1)`
+  - Frecce ‹ / › come indicatore visivo
+  - `curPage` esposto via `Object.defineProperty` (getter live dalla closure di `runApp()`)
+- **Zona di Riposo**: top 15% schermo → dwell timer in pausa, cursore grigio
+- **Power-down**: camera + FaceLandmarker chiusi su disattivazione / `visibilitychange` / `pagehide`
+- **i18n**: tutti i testi visibili in spagnolo (nomi variabili interni restano in italiano/inglese)
 
 ## Sessione 15 aprile 2026 (sera) — Logopedia IA personalizzata
 Creata la pagina **`logopedia.html`** standalone (file unico autocontenuto, HTML+CSS+JS inline ~1200 righe).
