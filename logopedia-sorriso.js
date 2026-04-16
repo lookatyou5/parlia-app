@@ -14,21 +14,64 @@ const SORRISO_EXERCISES = [
   { id:'surprise', emoji:'😲', title:'Cara de sorpresa',  instruction:'Abre los ojos y la boca — ¡sorpresa!', holdSec:3 },
 ];
 
-// Blendshape mapping: id → check function returning 0..1 score
-function _bs(shapes, name){ const s = shapes.find(b => b.categoryName === name); return s ? s.score : 0; }
+// Landmark-based expression detection (no blendshapes needed)
+// Uses 478 face mesh points — measures distances between key landmarks.
+function _dist(a,b){ return Math.sqrt((a.x-b.x)**2 + (a.y-b.y)**2); }
+
 const SORRISO_CHECKS = {
-  'smile':    s => (_bs(s,'mouthSmileLeft') + _bs(s,'mouthSmileRight')) / 2,
-  'cheeks':   s => _bs(s,'cheekPuff'),
-  'open':     s => _bs(s,'jawOpen'),
-  'kiss':     s => _bs(s,'mouthPucker'),
-  'wink-l':   s => (_bs(s,'eyeBlinkLeft') > 0.5 && _bs(s,'eyeBlinkRight') < 0.3) ? 1 : 0,
-  'wink-r':   s => (_bs(s,'eyeBlinkRight') > 0.5 && _bs(s,'eyeBlinkLeft') < 0.3) ? 1 : 0,
-  'lips-o':   s => (_bs(s,'mouthFunnel') + _bs(s,'mouthPucker')) / 2,
-  'surprise': s => (_bs(s,'eyeWideLeft') + _bs(s,'eyeWideRight') + _bs(s,'jawOpen')) / 3,
+  'smile': lm => {
+    // Mouth width vs face width — wider = smiling
+    const mW = _dist(lm[61],lm[291]), fW = _dist(lm[234],lm[454]);
+    return fW > 0 ? mW / fW : 0;
+  },
+  'cheeks': lm => {
+    // Face width increase (puffed) — compare current width to mouth-nose ratio
+    const fW = _dist(lm[234],lm[454]), noseW = _dist(lm[129],lm[358]);
+    return noseW > 0 ? fW / noseW : 0;
+  },
+  'open': lm => {
+    // Mouth vertical opening vs face height
+    const mH = _dist(lm[13],lm[14]), fH = _dist(lm[10],lm[152]);
+    return fH > 0 ? mH / fH : 0;
+  },
+  'kiss': lm => {
+    // Mouth gets narrow + lips protrude — narrow mouth ratio
+    const mW = _dist(lm[61],lm[291]), fW = _dist(lm[234],lm[454]);
+    return fW > 0 ? 1 - (mW / fW) : 0;
+  },
+  'wink-l': lm => {
+    // Left eye closed, right open
+    const lH = _dist(lm[159],lm[145]), lW = _dist(lm[33],lm[133]);
+    const rH = _dist(lm[386],lm[374]), rW = _dist(lm[362],lm[263]);
+    const lEAR = lW > 0 ? lH/lW : 0.3;
+    const rEAR = rW > 0 ? rH/rW : 0.3;
+    return (lEAR < 0.18 && rEAR > 0.22) ? 1 : 0;
+  },
+  'wink-r': lm => {
+    const lH = _dist(lm[159],lm[145]), lW = _dist(lm[33],lm[133]);
+    const rH = _dist(lm[386],lm[374]), rW = _dist(lm[362],lm[263]);
+    const lEAR = lW > 0 ? lH/lW : 0.3;
+    const rEAR = rW > 0 ? rH/rW : 0.3;
+    return (rEAR < 0.18 && lEAR > 0.22) ? 1 : 0;
+  },
+  'lips-o': lm => {
+    // Mouth height / width ratio approaching 1.0 = O shape
+    const mW = _dist(lm[61],lm[291]), mH = _dist(lm[13],lm[14]);
+    return mW > 0 ? mH / mW : 0;
+  },
+  'surprise': lm => {
+    // Eyes wide + mouth open
+    const mH = _dist(lm[13],lm[14]), fH = _dist(lm[10],lm[152]);
+    const eyeH = (_dist(lm[159],lm[145]) + _dist(lm[386],lm[374])) / 2;
+    const eyeW = (_dist(lm[33],lm[133]) + _dist(lm[362],lm[263])) / 2;
+    const mOpen = fH > 0 ? mH / fH : 0;
+    const eyeRatio = eyeW > 0 ? eyeH / eyeW : 0;
+    return (mOpen * 5 + eyeRatio) / 2;
+  },
 };
 const SORRISO_THRESHOLDS = {
-  'smile':0.45, 'cheeks':0.3, 'open':0.5, 'kiss':0.4,
-  'wink-l':0.5, 'wink-r':0.5, 'lips-o':0.3, 'surprise':0.3,
+  'smile':0.42, 'cheeks':3.2, 'open':0.07, 'kiss':0.7,
+  'wink-l':0.5, 'wink-r':0.5, 'lips-o':0.55, 'surprise':0.35,
 };
 
 // ── State
@@ -78,23 +121,22 @@ async function _initMediaPipe(){
     const fs = await FilesetResolver.forVisionTasks(MP_CDN + '/wasm');
     _sorriso.faceLandmarker = await FaceLandmarker.createFromOptions(fs, {
       baseOptions: { modelAssetPath:'https://storage.googleapis.com/mediapipe-models/face_landmarker/face_landmarker/float16/1/face_landmarker.task', delegate:'GPU' },
-      runningMode:'VIDEO', outputFaceBlendshapes:true, numFaces:1,
+      runningMode:'VIDEO', outputFaceBlendshapes:false, numFaces:1,
     });
     _sorriso.mpAvailable = true;
-    console.log('FaceLandmarker ready');
+    console.log('FaceLandmarker ready (landmarks mode)');
     return true;
   } catch(e){
-    console.error('FaceLandmarker init failed:', e);
-    // Retry with CPU delegate
+    console.error('FaceLandmarker GPU init failed:', e);
     try {
       const { FaceLandmarker, FilesetResolver } = window._MP;
       const fs = await FilesetResolver.forVisionTasks(MP_CDN + '/wasm');
       _sorriso.faceLandmarker = await FaceLandmarker.createFromOptions(fs, {
         baseOptions: { modelAssetPath:'https://storage.googleapis.com/mediapipe-models/face_landmarker/face_landmarker/float16/1/face_landmarker.task', delegate:'CPU' },
-        runningMode:'VIDEO', outputFaceBlendshapes:true, numFaces:1,
+        runningMode:'VIDEO', outputFaceBlendshapes:false, numFaces:1,
       });
       _sorriso.mpAvailable = true;
-      console.log('FaceLandmarker ready (CPU fallback)');
+      console.log('FaceLandmarker ready (CPU fallback, landmarks mode)');
       return true;
     } catch(e2){ console.error('FaceLandmarker CPU fallback also failed:', e2); return false; }
   }
@@ -155,14 +197,14 @@ function _detectFrame(){
 
   try {
     const result = _sorriso.faceLandmarker.detectForVideo(video, now);
-    if (!result || !result.faceBlendshapes || !result.faceBlendshapes.length){
+    if (!result || !result.faceLandmarks || !result.faceLandmarks.length){
       _updateDetectUI(0, 'No detecto tu cara — acércate');
       return;
     }
-    const shapes = result.faceBlendshapes[0].categories;
+    const lm = result.faceLandmarks[0];
     const checkFn = SORRISO_CHECKS[ex.id];
     const threshold = SORRISO_THRESHOLDS[ex.id] || 0.4;
-    const score = checkFn ? checkFn(shapes) : 0;
+    const score = checkFn ? checkFn(lm) : 0;
 
     if (score >= threshold){
       // Expression detected — accumulate hold progress
