@@ -193,7 +193,6 @@ body{padding-top:var(--top-h); padding-bottom:40px}
 .cat-card:nth-child(1)::before{background:linear-gradient(180deg,#a21caf,#e879f9)}
 .cat-card:nth-child(2)::before{background:linear-gradient(180deg,#4f46e5,#818cf8)}
 .cat-card:nth-child(3)::before{background:linear-gradient(180deg,#b45309,#fbbf24)}
-.cat-card:nth-child(4)::before{background:linear-gradient(180deg,#047857,#34d399)}
 .cat-card:nth-child(1){animation-delay:.05s}
 .cat-card:nth-child(2){animation-delay:.12s}
 .cat-card:nth-child(3){animation-delay:.20s}
@@ -488,11 +487,10 @@ body{padding-top:var(--top-h); padding-bottom:40px}
   font-style:italic;
 }
 
-/* ── Extra cat-card accents for new categories ── */
-.cat-card:nth-child(5)::before{background:linear-gradient(180deg,#e11d48,#fb7185)}
-.cat-card:nth-child(6)::before{background:linear-gradient(180deg,#0284c7,#38bdf8)}
+.cat-card:nth-child(4)::before{background:linear-gradient(180deg,#e11d48,#fb7185)}
+.cat-card:nth-child(5)::before{background:linear-gradient(180deg,#0284c7,#38bdf8)}
+.cat-card:nth-child(4){animation-delay:.28s}
 .cat-card:nth-child(5){animation-delay:.36s}
-.cat-card:nth-child(6){animation-delay:.44s}
 
 /* ── HELPERS ── */
 .hidden{display:none !important}

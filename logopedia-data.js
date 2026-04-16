@@ -90,27 +90,6 @@ const EXERCISES = {
     { type:'say', level:4, word:'Estoy bien',   instruction:'Tono afirmativo firme', hint:'Baja el tono al final' },
     // ─ L5
     { type:'say', level:5, word:'Buenos días, ¿qué tal estás?', instruction:'Con entonación natural', hint:'Alegre y cálido' },
-  ],
-  comprension: [
-    // ─ L1
-    { type:'say', level:1, sound:'a', word:'A', instruction:'Repite lo que digo: A', hint:'Solo la vocal' },
-    { type:'say', level:1, sound:'o', word:'O', instruction:'Repite lo que digo: O', hint:'Solo la vocal' },
-    // ─ L2
-    { type:'say', level:2, sound:'ma', word:'MA', instruction:'Repite: MA', hint:'Una sílaba' },
-    { type:'say', level:2, sound:'la', word:'LA', instruction:'Repite: LA', hint:'Una sílaba' },
-    // ─ L3
-    { type:'list', level:3, word:'1 fruta',  instruction:'Nombra una fruta',  hint:'Ej: manzana', match:{ min:1 } },
-    { type:'list', level:3, word:'1 color',  instruction:'Nombra un color',   hint:'El que quieras', match:{ min:1 } },
-    { type:'list', level:3, word:'1 animal', instruction:'Nombra un animal',  hint:'El que prefieras', match:{ min:1 } },
-    // ─ L4
-    { type:'list', level:4, word:'3 frutas',            instruction:'Nombra 3 frutas',            hint:'Manzana, pera…',   match:{ min:3 } },
-    { type:'list', level:4, word:'3 colores',           instruction:'Nombra 3 colores',           hint:'Los que quieras',  match:{ min:3 } },
-    { type:'list', level:4, word:'3 animales',          instruction:'Nombra 3 animales',          hint:'Perro, gato…',     match:{ min:3 } },
-    { type:'list', level:4, word:'3 prendas de ropa',   instruction:'Nombra 3 prendas',           hint:'Camisa, pantalón', match:{ min:3 } },
-    { type:'list', level:4, word:'3 cosas de la cocina',instruction:'Nombra 3 objetos de cocina', hint:'Cuchara, plato',   match:{ min:3 } },
-    // ─ L5
-    { type:'list', level:5, word:'Días de la semana', instruction:'Di los 7 días',   hint:'De lunes a domingo', match:{ min:5 } },
-    { type:'list', level:5, word:'5 frutas',          instruction:'Nombra 5 frutas', hint:'Tómate tu tiempo',   match:{ min:5 } },
   ]
 };
 
@@ -118,7 +97,6 @@ const CATEGORY_META = {
   pronunciacion: { emoji:'🗣️', label:'Pronunciación', color:'#a21caf' },
   fluidez:       { emoji:'🌬️', label:'Fluidez',       color:'#4f46e5' },
   voz:           { emoji:'🎚️', label:'Voz',           color:'#b45309' },
-  comprension:   { emoji:'🧩', label:'Comprensión',   color:'#047857' },
   sorriso:       { emoji:'😊', label:'Sfida del Sorriso', color:'#e11d48', special:'sorriso' },
   dialogo:       { emoji:'💬', label:'Diálogo Guidado',   color:'#0284c7', special:'dialogo' },
 };
