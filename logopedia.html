@@ -14,7 +14,7 @@
 <div class="mesh"><div class="blob blob1"></div><div class="blob blob2"></div></div>
 
 <header class="topbar">
-  <a href="home.html" class="back-btn" aria-label="Volver">←</a>
+  <a href="home.html" class="back-btn" aria-label="Volver" onclick="event.preventDefault(); if(history.length>1) history.back(); else location.href='home.html';">←</a>
   <div class="topbar-title"><span class="dot"></span><span>Logopedia</span></div>
   <button class="topbar-end hidden" id="endBtn" onclick="endSession()">Terminar</button>
 </header>
