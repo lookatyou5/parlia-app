@@ -27,7 +27,7 @@ const HP = {
   // Rest zone
   REST_TOP: 0.15,       // top 15% of screen
   // Lerp
-  LERP: 0.14,
+  LERP: 0.2,
   // Sensitivity: amplifies small head movements around center
   GAIN: 5.5,
   // Calibration: neutral nose position (set on activation)
@@ -144,7 +144,7 @@ function _hpLoop(){
   const now = performance.now();
 
   // ── Face detection (~10fps — heavy, runs less often)
-  if (now - HP.lastDetect >= 100){
+  if (now - HP.lastDetect >= 66){ // ~15fps detection
     HP.lastDetect = now;
     const video = document.getElementById('hpVideo');
     if (video && HP.faceLandmarker){
