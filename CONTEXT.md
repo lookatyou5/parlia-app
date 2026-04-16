@@ -620,6 +620,76 @@ Cache lato client + cache lato Worker (24h) abbattono ulteriormente le chiamate 
 - Budget alert GCP $5/mese
 - Key vive solo come secret cifrato nel Worker, mai nel browser, mai nel repo
 
+## Sessione 17 aprile 2026 — TTS terapeutico (SSML helpers)
+Trasformata la voce di Parlia da "lettore piatto" a vera **logopedista virtuale** sfruttando SSML su Google Neural2.
+
+### Worker `parlia-tts` esteso
+Accetta nuovo parametro opzionale `ssml: true` → wrappa il testo in `<speak>...</speak>` se manca e lo passa a Google come `input.ssml` invece di `input.text`. Resto invariato. `MAX_TEXT_LENGTH` da 500 a 1500 (i tag SSML occupano caratteri extra).
+
+### Nuovi helper in `tts.js`
+Quattro metodi su `speakNeural`:
+
+```js
+speakNeural.exerciseWord("Mariposa")
+// → <prosody rate="slow"><emphasis level="strong">Mariposa</emphasis></prosody>
+// Per word target negli esercizi: scandita lentamente con enfasi marcata.
+
+speakNeural.withPauses("Respira hondo [pausa:1s] ahora di la palabra")
+// → marker [pausa] o [pausa:1.5s] sostituiti con <break time="1.5s"/>
+// Per istruzioni terapeutiche con tempo di esecuzione.
+
+speakNeural.cheer("¡Muy bien!")
+// → <prosody pitch="+15%" volume="+3dB">¡Muy bien!</prosody>
+// Per feedback positivi: voce più calorosa e motivante.
+
+speakNeural.therapeutic("Decir mariposa", { targetWord: "mariposa" })
+// → Se targetWord contiene un fonema dalla lista difficultPhonemes del profilo:
+//   wrappa la parola con prosody slow + emphasis strong
+//   Altrimenti: emphasis moderate. La frase circostante resta naturale.
+```
+
+I `difficultPhonemes` vengono letti automaticamente da `parlia_logo_profile.difficultPhonemes` (se non passati esplicitamente all'invocazione).
+
+### Cache + fallback
+- Cache key estesa con flag `s|t` per evitare collisioni tra varianti SSML/text dello stesso testo
+- Il fallback Web Speech strippa automaticamente i tag SSML (`_stripSSML`) → l'app non si rompe mai anche se il Worker rifiuta SSML
+
+### Schema profilo logopedico esteso
+`parlia_logo_profile` ora include:
+```js
+{
+  level: 3,
+  sounds: ['a','e','i','o','u'],          // sa dire (esistente)
+  difficultPhonemes: ['r','rr','cl'],     // NUOVO — lavora su questi
+  assessed: true
+}
+```
+
+Helper centralizzati in `userData.js`:
+- `ParliaUser.getLogoProfile()` / `saveLogoProfile(p)`
+- `ParliaUser.getDifficultPhonemes()` / `setDifficultPhonemes(arr)`
+
+### UI in `profile.html`
+Nuova sezione **🎙️ Logopedia** → riga "Letras a practicar" → modal con chip preset:
+`r, rr, l, s, ch, j, bl, br, cl, cr, dr, tr, pl, pr` (15 fonemi spagnoli più rilevanti per terapia post-ictus/afasia).
+Selezione multipla, salvataggio in `parlia_logo_profile.difficultPhonemes`. Default vuoto → comportamento neutro (nessuna enfasi automatica).
+
+### Punti d'integrazione
+- **`logopedia.js`**: `speak(text, opts)` esteso con `opts.mode` ('cheer' | 'word' | 'therapeutic'); bottone **👂** accanto alla word target → `listenWord()` chiama `speakNeural.therapeutic()`; feedback verde (semaforo) → mode `cheer`; complete con score ≥60% → mode `cheer`
+- **`logopedia-sorriso.js`**: tutte le esclamazioni di incoraggiamento ('¡Genial!', '¡Bien hecho!', '¡Tú puedes!', salita di livello, complete) → mode `cheer`
+- **`logopedia-dialogo.js`**: cheer line dopo risposta utente + complete → mode `cheer`
+
+### Effetto pratico
+- Word target: pronuncia scandita, l'utente sente bene ogni sillaba
+- Fonemi difficili: enfatizzati automaticamente quando appaiono in qualsiasi parola (basta impostare la lista una volta nel profilo)
+- Feedback positivi: voce con pitch +15% suona genuinamente felice/motivante (vs piatto)
+- Pause terapeutiche: marker `[pausa:1s]` nei testi → l'utente ha tempo fisico di eseguire il movimento
+
+### Cache-bust v20260417a
+Aggiornati: `tts.js`, `userData.js`, `logopedia.js`, `logopedia.css`, `logopedia-data.js`, `logopedia-sorriso.js`, `logopedia-dialogo.js`, `profileApp.js`, `home.html`, `comunicador.html`, `tutorial.html`, `logopedia.html`, `profile.html`.
+
+---
+
 ## Istruzioni per Claude Code
 - Prima di qualsiasi modifica, fai sempre un commit git con messaggio "backup pre-modifica"
 - Dopo ogni sessione di lavoro, fai un commit con le modifiche fatte
