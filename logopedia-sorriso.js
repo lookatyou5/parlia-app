@@ -40,24 +40,64 @@ const _sorriso = {
   mpAvailable: false,
 };
 
-// ── MediaPipe init (lazy, one-time)
+// ── MediaPipe init (lazy, one-time, self-loading)
+const MP_CDN = 'https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision';
+
+async function _loadMP(){
+  // Dynamically inject module script to import MediaPipe
+  if (window._MP) return true;
+  return new Promise(resolve => {
+    const s = document.createElement('script');
+    s.type = 'module';
+    s.textContent = `
+      try {
+        const v = await import("${MP_CDN}/vision_bundle.mjs");
+        window._MP = { FaceLandmarker: v.FaceLandmarker, FilesetResolver: v.FilesetResolver };
+      } catch(e){ console.error('MP import fail:', e); }
+      window._mpDone = true;
+    `;
+    document.head.appendChild(s);
+    // Poll until done (module scripts are async)
+    const iv = setInterval(() => {
+      if (window._mpDone){ clearInterval(iv); resolve(!!window._MP); }
+    }, 200);
+    // Timeout 12s
+    setTimeout(() => { clearInterval(iv); resolve(false); }, 12000);
+  });
+}
+
 async function _initMediaPipe(){
   if (_sorriso.faceLandmarker) return true;
-  if (!window._MP){
-    // Wait up to 10s for module to load
-    for (let i = 0; i < 50 && !window._MP; i++) await new Promise(r => setTimeout(r, 200));
+  const loaded = await _loadMP();
+  if (!loaded || !window._MP){
+    console.warn('MediaPipe not available');
+    return false;
   }
-  if (!window._MP){ console.warn('MediaPipe not loaded'); return false; }
   try {
     const { FaceLandmarker, FilesetResolver } = window._MP;
-    const fs = await FilesetResolver.forVisionTasks('https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.18/wasm');
+    const fs = await FilesetResolver.forVisionTasks(MP_CDN + '/wasm');
     _sorriso.faceLandmarker = await FaceLandmarker.createFromOptions(fs, {
       baseOptions: { modelAssetPath:'https://storage.googleapis.com/mediapipe-assets/face_landmarker.task', delegate:'GPU' },
       runningMode:'VIDEO', outputFaceBlendshapes:true, numFaces:1,
     });
     _sorriso.mpAvailable = true;
+    console.log('FaceLandmarker ready');
     return true;
-  } catch(e){ console.error('FaceLandmarker init failed:', e); return false; }
+  } catch(e){
+    console.error('FaceLandmarker init failed:', e);
+    // Retry with CPU delegate
+    try {
+      const { FaceLandmarker, FilesetResolver } = window._MP;
+      const fs = await FilesetResolver.forVisionTasks(MP_CDN + '/wasm');
+      _sorriso.faceLandmarker = await FaceLandmarker.createFromOptions(fs, {
+        baseOptions: { modelAssetPath:'https://storage.googleapis.com/mediapipe-assets/face_landmarker.task', delegate:'CPU' },
+        runningMode:'VIDEO', outputFaceBlendshapes:true, numFaces:1,
+      });
+      _sorriso.mpAvailable = true;
+      console.log('FaceLandmarker ready (CPU fallback)');
+      return true;
+    } catch(e2){ console.error('FaceLandmarker CPU fallback also failed:', e2); return false; }
+  }
 }
 
 // ── Camera

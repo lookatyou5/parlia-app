@@ -196,13 +196,6 @@
   <div id="noSpeechNotice" class="notice hidden">⚠️ Tu navegador no soporta reconocimiento de voz.</div>
 </main>
 
-<!-- MediaPipe FaceLandmarker (blendshapes per Sfida del Sorriso) -->
-<script type="module">
-import{FaceLandmarker,FilesetResolver}from"https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.18/vision_bundle.mjs";
-window._MP={FaceLandmarker,FilesetResolver};
-window.dispatchEvent(new Event('mp-ready'));
-</script>
-
 <script src="userData.js"></script>
 <script src="logopedia-data.js?v=20260416c"></script>
 <script src="logopedia-sorriso.js?v=20260416c"></script>
