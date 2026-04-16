@@ -118,7 +118,7 @@ function chooseCategory(cat){
 
   // Categorie speciali con la propria logica
   if (meta.special === 'sorriso'){
-    sayAgent(`Perfecto${USER_NAME?', '+USER_NAME:''}. ¡Vamos con la Sfida del Sorriso!`);
+    sayAgent(`Perfecto${USER_NAME?', '+USER_NAME:''}. ¡Vamos con el Reto de la Sonrisa!`);
     sorrisoStart();
     return;
   }

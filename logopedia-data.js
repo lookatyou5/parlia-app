@@ -97,8 +97,8 @@ const CATEGORY_META = {
   pronunciacion: { emoji:'🗣️', label:'Pronunciación', color:'#a21caf' },
   fluidez:       { emoji:'🌬️', label:'Fluidez',       color:'#4f46e5' },
   voz:           { emoji:'🎚️', label:'Voz',           color:'#b45309' },
-  sorriso:       { emoji:'😊', label:'Sfida del Sorriso', color:'#e11d48', special:'sorriso' },
-  dialogo:       { emoji:'💬', label:'Diálogo Guidado',   color:'#0284c7', special:'dialogo' },
+  sorriso:       { emoji:'😊', label:'Reto de la Sonrisa', color:'#e11d48', special:'sorriso' },
+  dialogo:       { emoji:'💬', label:'Diálogo Guiado',    color:'#0284c7', special:'dialogo' },
 };
 
 const SOUND_GROUPS = {
