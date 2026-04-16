@@ -66,6 +66,16 @@
         <div class="cat-body"><div class="cat-title">Comprensión</div><div class="cat-sub">Memoria y evocación</div></div>
         <div class="cat-arrow">→</div>
       </button>
+      <button class="cat-card" onclick="chooseCategory('sorriso')">
+        <div class="cat-icon" style="background:#ffe4e6;color:#e11d48">😊</div>
+        <div class="cat-body"><div class="cat-title">Sfida del Sorriso</div><div class="cat-sub">Ejercicios faciales como un juego</div></div>
+        <div class="cat-arrow">→</div>
+      </button>
+      <button class="cat-card" onclick="chooseCategory('dialogo')">
+        <div class="cat-icon" style="background:#e0f2fe;color:#0284c7">💬</div>
+        <div class="cat-body"><div class="cat-title">Diálogo Guidado</div><div class="cat-sub">Responde a preguntas — cada palabra cuenta</div></div>
+        <div class="cat-arrow">→</div>
+      </button>
     </div>
   </section>
 
@@ -134,11 +144,57 @@
     </div>
   </section>
 
+  <!-- SCREEN 5 — Sfida del Sorriso -->
+  <section id="screenSorriso" class="hidden">
+    <div class="exercise-card">
+      <div class="ex-progress" id="sorrisoProgress"></div>
+      <div class="sorriso-mirror">
+        <video id="sorrisoVideo" class="sorriso-video hidden" autoplay playsinline muted></video>
+        <div id="sorrisoCamNotice" class="sorriso-cam-notice">📷 Preparando cámara…</div>
+      </div>
+      <div class="sorriso-emoji" id="sorrisoEmoji">😊</div>
+      <div class="ex-instruction" id="sorrisoTitle">—</div>
+      <div class="ex-hint" id="sorrisoInstruction">—</div>
+      <div class="sorriso-timer-wrap">
+        <div class="sorriso-timer-bar" id="sorrisoTimerBar"></div>
+      </div>
+      <div class="sorriso-timer-num" id="sorrisoTimer"></div>
+      <div class="ex-actions">
+        <button class="btn btn-ghost" onclick="sorrisoSkip()">Saltar</button>
+        <button class="btn btn-primary" id="sorrisoGoBtn" onclick="sorrisoGo()">¡Empezar!</button>
+      </div>
+      <div class="ex-actions" style="margin-top:6px">
+        <button class="btn btn-primary btn-full" id="sorrisoNextBtn" onclick="sorrisoNext()" disabled>Siguiente →</button>
+      </div>
+    </div>
+    <button class="btn btn-ghost btn-full" onclick="sorrisoExit()">← Cambiar categoría</button>
+  </section>
+
+  <!-- SCREEN 6 — Diálogo Guidado -->
+  <section id="screenDialogo" class="hidden">
+    <div class="exercise-card">
+      <div class="ex-progress" id="dialogoProgress"></div>
+      <div class="dialogo-question" id="dialogoQuestion">—</div>
+      <div class="ex-hint" id="dialogoHint">—</div>
+      <div class="sf-feedback" id="dialogoFeedback">Pulsa el micrófono y responde</div>
+      <div class="dialogo-heard" id="dialogoHeard"></div>
+      <div class="mic-area">
+        <button class="mic-big" id="dialogoMicBtn" onclick="dialogoToggleRecord()">🎤</button>
+      </div>
+      <div class="ex-actions">
+        <button class="btn btn-ghost" onclick="dialogoExit()">← Salir</button>
+        <button class="btn btn-primary" id="dialogoNextBtn" onclick="dialogoNext()" disabled>Siguiente →</button>
+      </div>
+    </div>
+  </section>
+
   <div id="noSpeechNotice" class="notice hidden">⚠️ Tu navegador no soporta reconocimiento de voz.</div>
 </main>
 
 <script src="userData.js"></script>
-<script src="logopedia-data.js?v=20260416b"></script>
-<script src="logopedia.js?v=20260416b"></script>
+<script src="logopedia-data.js?v=20260416c"></script>
+<script src="logopedia-sorriso.js?v=20260416c"></script>
+<script src="logopedia-dialogo.js?v=20260416c"></script>
+<script src="logopedia.js?v=20260416c"></script>
 </body>
 </html>

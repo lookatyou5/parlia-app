@@ -80,7 +80,7 @@ function speak(text){
 
 // ═══ NAVIGATION ═══
 function showScreen(name){
-  ['screenCategories','screenExercise','screenComplete','screenAssessment'].forEach(id => {
+  ['screenCategories','screenExercise','screenComplete','screenAssessment','screenSorriso','screenDialogo'].forEach(id => {
     document.getElementById(id).classList.toggle('hidden', id !== 'screen'+name);
   });
   const endBtn = document.getElementById('endBtn');
@@ -113,13 +113,28 @@ function chooseCategory(cat){
   state.recording = false;
   try { speechSynthesis.cancel(); } catch(e){}
   state.category = cat;
+  const meta = CATEGORY_META[cat];
+  setAgentStatus(meta.label);
+
+  // Categorie speciali con la propria logica
+  if (meta.special === 'sorriso'){
+    sayAgent(`Perfecto${USER_NAME?', '+USER_NAME:''}. ¡Vamos con la Sfida del Sorriso!`);
+    sorrisoStart();
+    return;
+  }
+  if (meta.special === 'dialogo'){
+    sayAgent(`Perfecto${USER_NAME?', '+USER_NAME:''}. Vamos a conversar un poco.`);
+    dialogoStart();
+    return;
+  }
+
+  // Categorie standard (pronunciacion/fluidez/voz/comprension)
   state.exercises = pickExercises(cat);
   state.idx = 0;
   state.results = [];
-  setAgentStatus(CATEGORY_META[cat].label);
   showScreen('Exercise');
   renderExercise();
-  sayAgent(`Perfecto${USER_NAME?', '+USER_NAME:''}. Vamos a practicar ${CATEGORY_META[cat].label.toLowerCase()}.`);
+  sayAgent(`Perfecto${USER_NAME?', '+USER_NAME:''}. Vamos a practicar ${meta.label.toLowerCase()}.`);
 }
 
 function backToCategories(){
