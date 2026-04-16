@@ -234,16 +234,61 @@ Tap sul widget meteo → overlay scuro (`rgba(10,15,40,.5)`) + blur 10px → car
 ## SOS overlay
 Tap sul 🆘 in topbar → overlay scuro (niente backdrop-filter — causava flash nero su Chrome Android) → card bottom sheet con 5 frasi SOS (`speakSOS()`).
 
-## Sessione 16 aprile 2026 — Logopedia: polish + modularizzazione
+## Sessione 16 aprile 2026 — Logopedia: polish + modularizzazione + nuove categorie + MediaPipe
 - **Ana reagisce subito** dopo il risultato (semaforo), non solo al click "Siguiente"
 - **Saluto non ripetitivo**: primo ingresso → presentazione completa; ritorno da categoria → frase breve variata ("¿Qué más practicamos?")
 - **Animazioni subtle**: blob drift, hero float, card stagger, online dot pulse, profile-bar slide-in
-- **Modularizzazione**: file monolitico 1256 righe → 4 file:
-  - `logopedia.html` (140) — solo HTML shell
-  - `logopedia.css` (330) — stili
-  - `logopedia-data.js` (131) — exercise bank (il file da toccare per aggiungere esercizi)
-  - `logopedia.js` (429) — logica app
-- **Cache-bust** su tutti i link (`?v=20260416b`) + meta no-cache su logopedia.html
+- **Glassmorphism** su tutta la pagina: exercise card, semaforo (glass pill), bottoni, profile bar, topbar, cat-cards, complete card — stile adulto/elegante, non clinico
+- **Redesign Ana hero**: stile orbitale (orbit rings rotanti con dot, grid animata, flare, glass-blur bubble)
+- **Redesign card categorie**: da griglia 2x2 a lista verticale full-width con icona+body+freccia + barra gradient accent a sinistra
+- **Back button**: usa `history.back()` → torna a Rehab, non a Inicio
+- **Rimossa categoria Comprensión** (esercizi duplicavano le altre categorie)
+- **Modularizzazione**: file monolitico 1256 righe → 6 file:
+  - `logopedia.html` (~160) — HTML shell
+  - `logopedia.css` (~380) — stili + glassmorphism
+  - `logopedia-data.js` (~100) — exercise bank pronunciación/fluidez/voz
+  - `logopedia.js` (~430) — logica app (Ana, STT, assessment, navigation)
+  - `logopedia-sorriso.js` (~470) — Sfida del Sorriso con MediaPipe
+  - `logopedia-dialogo.js` (~165) — Diálogo Guidado con STT
+
+### Sfida del Sorriso — MediaPipe FaceLandmarker
+- **Camera frontale** come specchio digitale + rilevamento espressioni reale
+- **MediaPipe FaceLandmarker** caricato dinamicamente via CJS shim (`vision_bundle.mjs` da jsDelivr CDN)
+- Usa **478 face landmarks** (non blendshapes — il modello .task non li include) con calcolo distanze:
+  - smile: mouth width / face width
+  - mouth open: lip distance / face height
+  - kiss/pucker: 1 - mouth width ratio
+  - wink L/R: eye aspect ratio comparison (gradiente, non binario)
+  - lips O: mouth height / width ratio
+  - cheeks puff: face width / nose width
+  - surprise: eyes wide + mouth open
+  - teeth: mouth wide + lips apart
+  - brows: brow-to-eye distance / face height
+  - nose scrunch: lip-to-nose distance decrease
+  - tongue: jaw open + chin extension
+- **12 esercizi** in 3 livelli di difficoltà:
+  - Diff 1 (básico): sorriso, boca grande, beso, labios O
+  - Diff 2 (intermedio): guance gonfie, sorpresa, denti, sopracciglia
+  - Diff 3 (avanzado): guiño L/R, naso arricciato, lingua
+- **Difficoltà progressiva**: 3 esercizi per round, se ≥2/3 superati → Ana propone il livello successivo
+- **Hold time adattivo** al profilo: L1-2→1s, L3→2s, L4-5→3s
+- **Hold meter**: barra si riempie solo quando l'espressione è rilevata, decay lento (0.03) se persa brevemente
+- **Timeout 15s**: se non rilevato → "Repetir" / conferma manuale (fallback)
+- **Power-down completo** (`sorrisoPowerDown()`): camera stop + `FaceLandmarker.close()` (libera GPU/WASM)
+  - Attivato su: exit, complete, `visibilitychange` (background), `pagehide`, `beforeunload`
+  - Re-init lazy alla prossima sessione
+
+### Diálogo Guidado
+- 12 domande conversazionali ("¿Qué has desayunado?", "¿Color favorito?", ecc.)
+- Utente risponde a voce (STT), AI premia lo **sforzo** non la precisione
+- Qualsiasi risposta ≥1 parola = successo, nessun semaforo rosso
+
+### Categorie attuali (5)
+1. 🗣️ Pronunciación (STT + similarity Levenshtein)
+2. 🌬️ Fluidez (STT)
+3. 🎚️ Voz (STT)
+4. 😊 Sfida del Sorriso (camera + MediaPipe landmarks)
+5. 💬 Diálogo Guidado (STT + valutazione sforzo)
 
 ## Sessione 15 aprile 2026 (sera) — Logopedia IA personalizzata
 Creata la pagina **`logopedia.html`** standalone (file unico autocontenuto, HTML+CSS+JS inline ~1200 righe).
