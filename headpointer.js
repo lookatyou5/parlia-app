@@ -137,38 +137,38 @@ function _hpPowerDown(){
 // ── Lerp
 function _lerp(a, b, t){ return a + (b - a) * t; }
 
-// ── Main tracking loop
+// ── Main tracking loop (cursor renders at 60fps, detection at ~10fps)
 function _hpLoop(){
   if (!HP.on) return;
   HP.animFrame = requestAnimationFrame(_hpLoop);
   const now = performance.now();
-  if (now - HP.lastDetect < 100) return; // ~10fps
-  HP.lastDetect = now;
 
-  const video = document.getElementById('hpVideo');
-  if (!video || !HP.faceLandmarker) return;
-
-  try {
-    const result = HP.faceLandmarker.detectForVideo(video, now);
-    if (!result || !result.faceLandmarks || !result.faceLandmarks.length) return;
-    const nose = result.faceLandmarks[0][1]; // landmark 1 = nose tip
-    // Camera is mirrored: flip X
-    const noseX = 1 - nose.x;
-    const noseY = nose.y;
-    // Auto-calibrate: first stable reading = neutral position
-    if (!HP.calibrated) {
-      HP.neutralX = noseX;
-      HP.neutralY = noseY;
-      HP.calibrated = true;
+  // ── Face detection (~10fps — heavy, runs less often)
+  if (now - HP.lastDetect >= 100){
+    HP.lastDetect = now;
+    const video = document.getElementById('hpVideo');
+    if (video && HP.faceLandmarker){
+      try {
+        const result = HP.faceLandmarker.detectForVideo(video, now);
+        if (result && result.faceLandmarks && result.faceLandmarks.length){
+          const nose = result.faceLandmarks[0][1];
+          const noseX = 1 - nose.x;
+          const noseY = nose.y;
+          if (!HP.calibrated){
+            HP.neutralX = noseX;
+            HP.neutralY = noseY;
+            HP.calibrated = true;
+          }
+          const dx = (noseX - HP.neutralX) * HP.GAIN;
+          const dy = (noseY - HP.neutralY) * HP.GAIN;
+          HP.rawX = 0.5 + dx;
+          HP.rawY = 0.5 + dy;
+        }
+      } catch(e){}
     }
-    // Amplified offset from neutral → small head movement = big cursor movement
-    const dx = (noseX - HP.neutralX) * HP.GAIN;
-    const dy = (noseY - HP.neutralY) * HP.GAIN;
-    HP.rawX = 0.5 + dx;
-    HP.rawY = 0.5 + dy;
-  } catch(e){ return; }
+  }
 
-  // Smooth interpolation → clamp to screen
+  // ── Cursor rendering (60fps — always smooth)
   const targetX = Math.max(0, Math.min(window.innerWidth, HP.rawX * window.innerWidth));
   const targetY = Math.max(0, Math.min(window.innerHeight, HP.rawY * window.innerHeight));
   HP.cx = _lerp(HP.cx, targetX, HP.LERP);
