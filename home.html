@@ -795,7 +795,7 @@ if ('scrollRestoration' in history) try { history.scrollRestoration = 'manual'; 
 // e non parte sfasato.
 (async function bootstrap(){
   // Cache-bust anche sui partial HTML (query string forza il browser/SW a rifetchare)
-  const V = '20260415a';
+  const V = '20260416a';
   try {
     const [inicio, aac, rehab, perfil] = await Promise.all([
       fetch('components/inicio.html?v=' + V, {cache: 'no-cache'}).then(r => r.ok ? r.text() : Promise.reject(r.status)),
@@ -813,7 +813,7 @@ if ('scrollRestoration' in history) try { history.scrollRestoration = 'manual'; 
       document.querySelectorAll('#page2 .rehab-card').forEach(card => {
         const nameEl = card.querySelector('.rehab-name');
         if (nameEl && /logopedia/i.test(nameEl.textContent || '')) {
-          card.setAttribute('onclick', "location.href='logopedia.html'");
+          card.setAttribute('onclick', "location.href='logopedia.html?v=20260416a'");
           card.style.cursor = 'pointer';
         }
       });
