@@ -40,19 +40,24 @@ const SORRISO_CHECKS = {
     return fW > 0 ? 1 - (mW / fW) : 0;
   },
   'wink-l': lm => {
-    // Left eye closed, right open
+    // Left eye closed, right open — gradient score
     const lH = _dist(lm[159],lm[145]), lW = _dist(lm[33],lm[133]);
     const rH = _dist(lm[386],lm[374]), rW = _dist(lm[362],lm[263]);
     const lEAR = lW > 0 ? lH/lW : 0.3;
     const rEAR = rW > 0 ? rH/rW : 0.3;
-    return (lEAR < 0.18 && rEAR > 0.22) ? 1 : 0;
+    // How closed is left eye (0=open, 1=shut) + how open is right
+    const closed = Math.max(0, 1 - lEAR / 0.28);
+    const open = Math.min(1, rEAR / 0.2);
+    return closed * open;
   },
   'wink-r': lm => {
     const lH = _dist(lm[159],lm[145]), lW = _dist(lm[33],lm[133]);
     const rH = _dist(lm[386],lm[374]), rW = _dist(lm[362],lm[263]);
     const lEAR = lW > 0 ? lH/lW : 0.3;
     const rEAR = rW > 0 ? rH/rW : 0.3;
-    return (rEAR < 0.18 && lEAR > 0.22) ? 1 : 0;
+    const closed = Math.max(0, 1 - rEAR / 0.28);
+    const open = Math.min(1, lEAR / 0.2);
+    return closed * open;
   },
   'lips-o': lm => {
     // Mouth height / width ratio approaching 1.0 = O shape
@@ -71,7 +76,7 @@ const SORRISO_CHECKS = {
 };
 const SORRISO_THRESHOLDS = {
   'smile':0.42, 'cheeks':3.2, 'open':0.07, 'kiss':0.7,
-  'wink-l':0.5, 'wink-r':0.5, 'lips-o':0.55, 'surprise':0.35,
+  'wink-l':0.35, 'wink-r':0.35, 'lips-o':0.55, 'surprise':0.35,
 };
 
 // ── State
@@ -207,8 +212,8 @@ function _detectFrame(){
     const score = checkFn ? checkFn(lm) : 0;
 
     if (score >= threshold){
-      // Expression detected — accumulate hold progress
-      _sorriso.holdProgress += 0.15 / ex.holdSec; // ~150ms tick / holdSec
+      // Expression detected — accumulate hold (faster fill, ~0.2/sec per holdSec)
+      _sorriso.holdProgress += 0.18 / ex.holdSec;
       _sorriso.holdProgress = Math.min(_sorriso.holdProgress, 1);
       _updateDetectUI(_sorriso.holdProgress, _sorriso.holdProgress >= 1 ? '' : '¡Detectado! Mantén…');
       if (_sorriso.holdProgress >= 1){
@@ -216,9 +221,9 @@ function _detectFrame(){
         _exerciseSuccess();
       }
     } else {
-      // Expression lost — decay hold
-      _sorriso.holdProgress = Math.max(0, _sorriso.holdProgress - 0.08);
-      _updateDetectUI(_sorriso.holdProgress, 'Hazlo más marcado…');
+      // Expression lost — slow decay (forgiving, doesn't reset fast)
+      _sorriso.holdProgress = Math.max(0, _sorriso.holdProgress - 0.03);
+      _updateDetectUI(_sorriso.holdProgress, score > threshold * 0.6 ? 'Casi… un poco más' : 'Hazlo más marcado…');
     }
   } catch(e){}
 }
