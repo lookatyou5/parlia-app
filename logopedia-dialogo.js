@@ -127,7 +127,7 @@ function dialogoEvaluate(heard){
   document.getElementById('dialogoFeedback').className = 'sf-feedback green';
   document.getElementById('dialogoNextBtn').disabled = false;
   document.getElementById('dialogoMicBtn').disabled = true;
-  sayAgent(cheerLine);
+  sayAgent(cheerLine, { mode: 'cheer' });
 }
 
 function dialogoNext(){
@@ -147,7 +147,7 @@ function dialogoComplete(){
   document.getElementById('completeTitle').textContent = answered >= total-1 ? '¡Genial! 💬' : '¡Buen esfuerzo! 💪';
   document.getElementById('completeMsg').textContent = `Has respondido a ${answered} de ${total} preguntas.`;
   setAgentStatus('Sesión terminada');
-  sayAgent(`${answered} respuestas. ¡Bien hecho, cada palabra cuenta!`);
+  sayAgent(`${answered} respuestas. ¡Bien hecho, cada palabra cuenta!`, { mode: 'cheer' });
   try{
     const log = JSON.parse(localStorage.getItem('parlia_logo_log')||'[]');
     log.push({ date:new Date().toISOString(), category:'dialogo', done:total, green:answered, yellow:0, score:Math.round((answered/Math.max(total,1))*100) });

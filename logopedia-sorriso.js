@@ -334,7 +334,7 @@ function _exerciseSuccess(){
   document.getElementById('sorrisoNextBtn').classList.remove('hidden');
   document.getElementById('sorrisoNextBtn').disabled = false;
   document.getElementById('sorrisoTimer').textContent = '✓';
-  sayAgent(['¡Genial!','¡Bien hecho!','Perfecto, así.','¡Buen trabajo!'][Math.floor(Math.random()*4)]);
+  sayAgent(['¡Genial!','¡Bien hecho!','Perfecto, así.','¡Buen trabajo!'][Math.floor(Math.random()*4)], { mode: 'cheer' });
 }
 
 // ── Init session
@@ -425,7 +425,7 @@ function sorrisoConfirmYes(){
   document.getElementById('sorrisoNextBtn').classList.remove('hidden');
   document.getElementById('sorrisoNextBtn').disabled = false;
   _updateDetectUI(1, '¡Bien!');
-  sayAgent(['¡Genial!','¡Bien hecho!'][Math.floor(Math.random()*2)]);
+  sayAgent(['¡Genial!','¡Bien hecho!'][Math.floor(Math.random()*2)], { mode: 'cheer' });
 }
 
 function sorrisoConfirmRetry(){
@@ -435,7 +435,7 @@ function sorrisoConfirmRetry(){
   _updateDetectUI(0, 'Preparado');
   const ex = _sorriso.exercises[_sorriso.idx];
   document.getElementById('sorrisoTimer').textContent = _sorriso.mpAvailable ? '' : (ex ? _holdForLevel() + 's' : '');
-  sayAgent('Venga, otra vez. ¡Tú puedes!');
+  sayAgent('Venga, otra vez. ¡Tú puedes!', { mode: 'cheer' });
 }
 
 function sorrisoSkip(){
@@ -460,7 +460,7 @@ function sorrisoNext(){
       _sorriso.currentDiff++;
       const nextPool = SORRISO_EXERCISES.filter(e => e.diff === _sorriso.currentDiff);
       if (nextPool.length > 0){
-        sayAgent('¡Muy bien! Vamos a subir de nivel. Ejercicios un poco más difíciles.');
+        sayAgent('¡Muy bien! Vamos a subir de nivel. Ejercicios un poco más difíciles.', { mode: 'cheer' });
         _sorriso.exercises = shuffle(nextPool.slice()).slice(0, 3);
         _sorriso.idx = 0;
         setTimeout(() => sorrisoRender(), 800);
@@ -484,7 +484,7 @@ function sorrisoComplete(){
   document.getElementById('completeTitle').textContent = done >= total-1 ? '¡Genial! 😊' : '¡Buen esfuerzo! 💪';
   document.getElementById('completeMsg').textContent = `${done} de ${total} ejercicios completados.`;
   setAgentStatus('Sesión terminada');
-  sayAgent(`${done} ejercicios faciales completados. ¡Bien hecho!`);
+  sayAgent(`${done} ejercicios faciales completados. ¡Bien hecho!`, { mode: done >= total/2 ? 'cheer' : 'normal' });
   try{
     const log = JSON.parse(localStorage.getItem('parlia_logo_log')||'[]');
     log.push({ date:new Date().toISOString(), category:'sorriso', done:total, green:done, yellow:0, score:Math.round((done/Math.max(total,1))*100) });
