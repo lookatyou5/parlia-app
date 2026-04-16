@@ -65,24 +65,28 @@ const SORRISO_CHECKS = {
     const closed = Math.max(0, 1 - (mH / fH) * 25);
     return narrow * closed;
   },
+  // Note: MediaPipe landmark naming è ANATOMICO (dal punto di vista del viso, non dello schermo).
+  // 33,133,159,145 = occhio DESTRO anatomico (= a sinistra dello specchio)
+  // 362,263,386,374 = occhio SINISTRO anatomico (= a destra dello specchio)
+  // L'utente interpreta "ojo izquierdo" come il proprio occhio sinistro reale.
   'wink-l': lm => {
-    // Left eye closed, right open — gradient score
-    const lH = _dist(lm[159],lm[145]), lW = _dist(lm[33],lm[133]);
-    const rH = _dist(lm[386],lm[374]), rW = _dist(lm[362],lm[263]);
-    const lEAR = lW > 0 ? lH/lW : 0.3;
-    const rEAR = rW > 0 ? rH/rW : 0.3;
-    // How closed is left eye (0=open, 1=shut) + how open is right
-    const closed = Math.max(0, 1 - lEAR / 0.28);
-    const open = Math.min(1, rEAR / 0.2);
+    // Guiña ojo IZQUIERDO = chiudere occhio sinistro anatomico (landmark 362,263,386,374)
+    const lH = _dist(lm[159],lm[145]), lW = _dist(lm[33],lm[133]);    // destro anat.
+    const rH = _dist(lm[386],lm[374]), rW = _dist(lm[362],lm[263]);   // sinistro anat.
+    const rightEAR = lW > 0 ? lH/lW : 0.3;
+    const leftEAR  = rW > 0 ? rH/rW : 0.3;
+    const closed = Math.max(0, 1 - leftEAR / 0.28);  // sinistro chiuso
+    const open   = Math.min(1, rightEAR / 0.2);       // destro aperto
     return closed * open;
   },
   'wink-r': lm => {
-    const lH = _dist(lm[159],lm[145]), lW = _dist(lm[33],lm[133]);
-    const rH = _dist(lm[386],lm[374]), rW = _dist(lm[362],lm[263]);
-    const lEAR = lW > 0 ? lH/lW : 0.3;
-    const rEAR = rW > 0 ? rH/rW : 0.3;
-    const closed = Math.max(0, 1 - rEAR / 0.28);
-    const open = Math.min(1, lEAR / 0.2);
+    // Guiña ojo DERECHO = chiudere occhio destro anatomico (landmark 33,133,159,145)
+    const lH = _dist(lm[159],lm[145]), lW = _dist(lm[33],lm[133]);    // destro anat.
+    const rH = _dist(lm[386],lm[374]), rW = _dist(lm[362],lm[263]);   // sinistro anat.
+    const rightEAR = lW > 0 ? lH/lW : 0.3;
+    const leftEAR  = rW > 0 ? rH/rW : 0.3;
+    const closed = Math.max(0, 1 - rightEAR / 0.28); // destro chiuso
+    const open   = Math.min(1, leftEAR / 0.2);        // sinistro aperto
     return closed * open;
   },
   'lips-o': lm => {
@@ -113,11 +117,14 @@ const SORRISO_CHECKS = {
     return fH > 0 ? (browL + browR) / fH : 0;
   },
   'nose': lm => {
-    // Nose scrunch — upper lip rises, nose narrows
-    const noseH = _dist(lm[4],lm[6]); // nose tip to nose bridge gets shorter
-    const lipToNose = _dist(lm[13],lm[4]); // upper lip to nose tip
-    const fH = _dist(lm[10],lm[152]);
-    return fH > 0 ? 1 - (lipToNose / fH * 8) : 0;
+    // Naso arricciato: il labbro superiore si alza verso il naso → distanza lip↔nose si riduce.
+    // Confrontiamo lipToTip con noseToChin (entrambi interni al volto, quindi invarianti
+    // alla distanza dalla camera; più stabile di lipToTip/fH).
+    const lipToTip = _dist(lm[13], lm[4]);
+    const noseToChin = _dist(lm[4], lm[152]);
+    if (noseToChin === 0) return 0;
+    // A riposo lipToTip/noseToChin ≈ 0.45; con scrunch scende a ~0.36-0.38
+    return Math.max(0, 1 - (lipToTip / noseToChin) * 2.0);
   },
   'tongue': lm => {
     // Tongue out — jaw opens wide, lower face extends
@@ -129,7 +136,7 @@ const SORRISO_CHECKS = {
 const SORRISO_THRESHOLDS = {
   'smile':0.42, 'cheeks':0.78, 'open':0.07, 'kiss':0.45,
   'wink-l':0.35, 'wink-r':0.35, 'lips-o':0.55, 'surprise':0.35,
-  'teeth':0.4, 'brows':0.18, 'nose':0.4, 'tongue':0.35,
+  'teeth':0.4, 'brows':0.18, 'nose':0.22, 'tongue':0.35,
 };
 
 // ── State
