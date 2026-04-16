@@ -27,7 +27,13 @@ const HP = {
   // Rest zone
   REST_TOP: 0.15,       // top 15% of screen
   // Lerp
-  LERP: 0.18,
+  LERP: 0.25,
+  // Sensitivity: amplifies small head movements around center
+  GAIN: 2.8,
+  // Calibration: neutral nose position (set on activation)
+  neutralX: 0.5,
+  neutralY: 0.4,
+  calibrated: false,
   // Audio
   popCtx: null,
 };
@@ -147,13 +153,24 @@ function _hpLoop(){
     if (!result || !result.faceLandmarks || !result.faceLandmarks.length) return;
     const nose = result.faceLandmarks[0][1]; // landmark 1 = nose tip
     // Camera is mirrored: flip X
-    HP.rawX = 1 - nose.x;
-    HP.rawY = nose.y;
+    const noseX = 1 - nose.x;
+    const noseY = nose.y;
+    // Auto-calibrate: first stable reading = neutral position
+    if (!HP.calibrated) {
+      HP.neutralX = noseX;
+      HP.neutralY = noseY;
+      HP.calibrated = true;
+    }
+    // Amplified offset from neutral → small head movement = big cursor movement
+    const dx = (noseX - HP.neutralX) * HP.GAIN;
+    const dy = (noseY - HP.neutralY) * HP.GAIN;
+    HP.rawX = 0.5 + dx;
+    HP.rawY = 0.5 + dy;
   } catch(e){ return; }
 
-  // Smooth interpolation
-  const targetX = HP.rawX * window.innerWidth;
-  const targetY = HP.rawY * window.innerHeight;
+  // Smooth interpolation → clamp to screen
+  const targetX = Math.max(0, Math.min(window.innerWidth, HP.rawX * window.innerWidth));
+  const targetY = Math.max(0, Math.min(window.innerHeight, HP.rawY * window.innerHeight));
   HP.cx = _lerp(HP.cx, targetX, HP.LERP);
   HP.cy = _lerp(HP.cy, targetY, HP.LERP);
 
@@ -241,10 +258,10 @@ function _hpLoop(){
 // ── Head swipe
 function _hpSwipe(dir){
   _hpPop();
-  // Use the home.html goTo function
-  if (typeof goTo === 'function' && typeof curPage !== 'undefined'){
-    if (dir === 'right' && curPage < 3) goTo(curPage + 1);
-    if (dir === 'left' && curPage > 0) goTo(curPage - 1);
+  const page = window.curPage;
+  if (typeof window.goTo === 'function' && typeof page === 'number'){
+    if (dir === 'right' && page < 3) window.goTo(page + 1);
+    if (dir === 'left' && page > 0) window.goTo(page - 1);
   }
 }
 
@@ -264,6 +281,7 @@ async function hpToggle(){
     return;
   }
   HP.on = true;
+  HP.calibrated = false; // ricalibra: il naso dove sei adesso = centro schermo
   HP.cx = window.innerWidth / 2;
   HP.cy = window.innerHeight / 2;
   btn.classList.add('on');

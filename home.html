@@ -2385,6 +2385,7 @@ window.addEventListener('popstate', (e) => {
 // tutte le funzioni sono locali, quindi vanno promosse esplicitamente a window.*)
 Object.assign(window, {
   goTo, toast,
+  get curPage(){ return curPage; },
   openReminderModal, closeReminderOutside, saveReminder, deleteReminder,
   openSOS, closeSOS, speakSOS,
   toggleSettings, closeSettings,
