@@ -902,9 +902,8 @@ function setSemaforo(level){
 function nextExercise(){
   state.idx++;
   if (state.idx >= state.exercises.length) { showComplete(); return; }
-  // Render immediato — Ana commenta in parallelo
   renderExercise();
-  sayAgent(agentCheerLine());
+  sayAgent('Vamos con la siguiente.');
 }
 
 function repeatExercise(){
@@ -916,13 +915,11 @@ function repeatExercise(){
   document.getElementById('micBtn').disabled = false;
 }
 
-function agentCheerLine(){
-  const last = state.results[state.results.length-1];
-  if (!last) return '¡Vamos con la siguiente!';
-  if (last.ok === 'green')  return ['¡Muy bien!', 'Perfecto, así.', '¡Excelente pronunciación!', '¡Clarísimo!'][Math.floor(Math.random()*4)];
-  if (last.ok === 'yellow') return ['Casi, casi. Vamos con otra.', 'Bien, vas mejorando.', 'Ya casi lo tienes.'][Math.floor(Math.random()*3)];
-  if (last.ok === 'red')    return ['No pasa nada, seguimos.', 'Tranquila, probamos otra.', 'Sigamos, lo importante es practicar.'][Math.floor(Math.random()*3)];
-  return 'Siguiente.';
+function agentCheerLine(level){
+  if (level === 'green')  return ['¡Muy bien!', 'Perfecto, así.', '¡Excelente!', '¡Clarísimo!'][Math.floor(Math.random()*4)];
+  if (level === 'yellow') return ['Casi, casi.', 'Bien, vas mejorando.', 'Ya casi lo tienes.'][Math.floor(Math.random()*3)];
+  if (level === 'red')    return ['No pasa nada.', 'Tranquila, inténtalo otra vez.', 'Lo importante es practicar.'][Math.floor(Math.random()*3)];
+  return '';
 }
 
 // ═══════════════════════════════════════════════════════════════
@@ -1052,6 +1049,9 @@ function evaluate(alternatives){
   document.getElementById('exStatus').textContent = '';
   document.getElementById('nextBtn').disabled = false;
   state.results.push({ word:state.currentWord, ok:level, heard });
+  // Ana commenta subito dopo il risultato (non aspetta "Siguiente")
+  const cheer = agentCheerLine(level);
+  if (cheer) sayAgent(cheer);
 }
 
 // ── Similarity (normalize + Levenshtein ratio)
