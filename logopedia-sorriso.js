@@ -225,6 +225,26 @@ function sorrisoStopCamera(){
   if (video){ video.srcObject = null; video.classList.add('hidden'); }
 }
 
+// Full power-down: stop camera + close FaceLandmarker (frees GPU/WASM memory)
+function sorrisoPowerDown(){
+  sorrisoStopCamera();
+  if (_sorriso.faceLandmarker){
+    try { _sorriso.faceLandmarker.close(); } catch(e){}
+    _sorriso.faceLandmarker = null;
+    _sorriso.mpAvailable = false;
+  }
+}
+
+// Auto power-down when app goes to background or user navigates away
+document.addEventListener('visibilitychange', () => {
+  if (document.hidden){
+    sorrisoPowerDown();
+  }
+});
+// Also power-down on page unload (back button, navigate away)
+window.addEventListener('pagehide', sorrisoPowerDown);
+window.addEventListener('beforeunload', sorrisoPowerDown);
+
 // ── Detection loop
 function _startDetection(){
   const ex = _sorriso.exercises[_sorriso.idx];
@@ -435,7 +455,7 @@ function sorrisoNext(){
 }
 
 function sorrisoComplete(){
-  sorrisoStopCamera();
+  sorrisoPowerDown();
   const done = _sorriso.results.filter(r => r === 'done').length;
   const total = _sorriso.results.length;
   _sessionsDone++;
@@ -456,9 +476,7 @@ function sorrisoComplete(){
 }
 
 function sorrisoExit(){
-  _sorriso.detecting = false;
-  if (_sorriso.animFrame){ cancelAnimationFrame(_sorriso.animFrame); _sorriso.animFrame = null; }
-  sorrisoStopCamera();
+  sorrisoPowerDown();
   document.getElementById('screenSorriso').classList.add('hidden');
   backToCategories();
 }
