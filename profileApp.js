@@ -84,6 +84,45 @@
     </div>`;
   }
 
+  // ─── LOGOPEDIA · letras a practicar ───
+  const PHONEME_PRESETS = ['r','rr','l','s','ch','j','bl','br','cl','cr','dr','tr','pl','pr'];
+
+  function renderLogoGroup(){
+    const phonemes = (ParliaUser.getDifficultPhonemes && ParliaUser.getDifficultPhonemes()) || [];
+    const summary = phonemes.length ? phonemes.join(', ').toUpperCase() : 'Añadir';
+    const isEmpty = !phonemes.length;
+    document.getElementById('g-logo').innerHTML = `<div class="row" onclick="openLogoPhonemes()">
+      <div class="row-icon" style="background:#fdf4ff">🔤</div>
+      <div class="row-body">
+        <div class="row-title">Letras a practicar</div>
+        <div class="row-value ${isEmpty?'empty':''}">${escapeHtml(summary)}</div>
+      </div>
+      <div class="row-chev">›</div>
+    </div>`;
+  }
+
+  window.openLogoPhonemes = function(){
+    const current = new Set(((ParliaUser.getDifficultPhonemes && ParliaUser.getDifficultPhonemes()) || []).map(s => s.toLowerCase()));
+    _editing = { logoPhonemes: true, draft: [...current] };
+    document.getElementById('mEmoji').textContent = '🔤';
+    document.getElementById('mTitle').textContent = 'Letras a practicar';
+    document.getElementById('mHelp').textContent = 'Selecciona los sonidos en los que la persona está trabajando. Parlia los pronunciará con énfasis y más despacio cuando aparezcan en una palabra.';
+    document.getElementById('mHelp').style.display = 'block';
+    const draftSet = new Set(_editing.draft);
+    document.getElementById('mBody').innerHTML = `<div class="mchips">${PHONEME_PRESETS.map(p=>`
+      <div class="mchip ${draftSet.has(p)?'sel':''}" onclick="_pickPhoneme('${escapeJs(p)}',this)">${escapeHtml(p.toUpperCase())}</div>
+    `).join('')}</div>
+    <div class="mhint">Puedes seleccionar varios. Vuelve aquí para cambiarlos cuando quieras.</div>`;
+    document.getElementById('mOverlay').classList.add('open');
+  };
+
+  window._pickPhoneme = function(p, el){
+    if (!Array.isArray(_editing.draft)) _editing.draft = [];
+    const i = _editing.draft.indexOf(p);
+    if (i >= 0){ _editing.draft.splice(i,1); el.classList.remove('sel'); }
+    else { _editing.draft.push(p); el.classList.add('sel'); }
+  };
+
   function render(){
     document.getElementById('g-personal').innerHTML = FIELDS.filter(f=>f.g==='personal').map(rowHTML).join('');
     document.getElementById('g-memory').innerHTML   = FIELDS.filter(f=>f.g==='memory').map(rowHTML).join('');
@@ -97,6 +136,7 @@
         <div class="toggle ${data.functions[f.k]?'on':''}" onclick="toggleFunc('${f.k}',this)"></div>
       </div>
     `).join('');
+    renderLogoGroup();
     updateProgress();
   }
 
@@ -193,6 +233,13 @@
 
   window.saveModal = function(){
     if(!_editing) return closeModal();
+    if (_editing.logoPhonemes){
+      if (ParliaUser.setDifficultPhonemes) ParliaUser.setDifficultPhonemes(_editing.draft || []);
+      closeModal();
+      renderLogoGroup();
+      showToast('✓ Guardado');
+      return;
+    }
     const { f, draft } = _editing;
     data[f.g][f.k] = Array.isArray(draft) ? [...draft] : (draft||'');
     ParliaUser.save(data);
