@@ -3,16 +3,33 @@
 //  MediaPipe FaceLandmarker blendshapes → rileva espressioni reali
 // ═══════════════════════════════════════════════════════════════
 
+// difficulty 1=fácil  2=medio  3=difícil
+// holdSec viene sovrascritto in base al livello del profilo utente
 const SORRISO_EXERCISES = [
-  { id:'smile',    emoji:'😁', title:'Sonrisa grande',    instruction:'Sonríe lo más que puedas y mantén',  holdSec:3 },
-  { id:'cheeks',   emoji:'🐡', title:'Infla las mejillas', instruction:'Infla las mejillas como un pez globo', holdSec:3 },
-  { id:'open',     emoji:'😮', title:'Boca grande',       instruction:'Abre la boca bien grande',            holdSec:3 },
-  { id:'kiss',     emoji:'😗', title:'Beso al aire',      instruction:'Haz como si dieras un beso — labios hacia fuera', holdSec:3 },
-  { id:'wink-l',   emoji:'😉', title:'Guiño izquierdo',   instruction:'Cierra solo el ojo izquierdo',        holdSec:2 },
-  { id:'wink-r',   emoji:'😜', title:'Guiño derecho',     instruction:'Cierra solo el ojo derecho',          holdSec:2 },
-  { id:'lips-o',   emoji:'🫢', title:'Labios en O',       instruction:'Haz una O grande con los labios',     holdSec:3 },
-  { id:'surprise', emoji:'😲', title:'Cara de sorpresa',  instruction:'Abre los ojos y la boca — ¡sorpresa!', holdSec:3 },
+  // ─ Difficulty 1 (básico — movimientos simples)
+  { id:'smile',   emoji:'😁', title:'Sonrisa grande',     instruction:'Sonríe lo más que puedas',            diff:1 },
+  { id:'open',    emoji:'😮', title:'Boca grande',        instruction:'Abre la boca bien grande',            diff:1 },
+  { id:'kiss',    emoji:'😗', title:'Beso al aire',       instruction:'Labios hacia fuera, como un beso',    diff:1 },
+  { id:'lips-o',  emoji:'🫢', title:'Labios en O',        instruction:'Haz una O grande con los labios',     diff:1 },
+  // ─ Difficulty 2 (intermedio)
+  { id:'cheeks',  emoji:'🐡', title:'Infla las mejillas',  instruction:'Infla las mejillas como un pez globo', diff:2 },
+  { id:'surprise',emoji:'😲', title:'Cara de sorpresa',   instruction:'Abre los ojos y la boca — ¡sorpresa!', diff:2 },
+  { id:'teeth',   emoji:'😬', title:'Enseña los dientes', instruction:'Junta los dientes y enseña una sonrisa grande', diff:2 },
+  { id:'brows',   emoji:'🤨', title:'Sube las cejas',     instruction:'Levanta las cejas lo más que puedas',  diff:2 },
+  // ─ Difficulty 3 (avanzado — movimientos asimétricos)
+  { id:'wink-l',  emoji:'😉', title:'Guiño izquierdo',    instruction:'Cierra solo el ojo izquierdo',         diff:3 },
+  { id:'wink-r',  emoji:'😜', title:'Guiño derecho',      instruction:'Cierra solo el ojo derecho',           diff:3 },
+  { id:'nose',    emoji:'🐰', title:'Arruga la nariz',    instruction:'Arruga la nariz como un conejo',       diff:3 },
+  { id:'tongue',  emoji:'😛', title:'Saca la lengua',     instruction:'Saca la lengua todo lo que puedas',    diff:3 },
 ];
+
+// Hold seconds per logo profile level
+function _holdForLevel(){
+  const lvl = (window.state && state.logo && state.logo.level) || 3;
+  if (lvl <= 2) return 1;
+  if (lvl === 3) return 2;
+  return 3;
+}
 
 // Landmark-based expression detection (no blendshapes needed)
 // Uses 478 face mesh points — measures distances between key landmarks.
@@ -73,19 +90,48 @@ const SORRISO_CHECKS = {
     const eyeRatio = eyeW > 0 ? eyeH / eyeW : 0;
     return (mOpen * 5 + eyeRatio) / 2;
   },
+  'teeth': lm => {
+    // Mouth wide open + lips apart but teeth visible (smile with open mouth)
+    const mW = _dist(lm[61],lm[291]), fW = _dist(lm[234],lm[454]);
+    const mH = _dist(lm[13],lm[14]), fH = _dist(lm[10],lm[152]);
+    return fW > 0 ? (mW/fW * 0.7 + mH/fH * 8) / 2 : 0;
+  },
+  'brows': lm => {
+    // Eyebrow raise — distance from eye to brow increases
+    const browL = _dist(lm[105],lm[159]); // left brow to left eye top
+    const browR = _dist(lm[334],lm[386]);
+    const fH = _dist(lm[10],lm[152]);
+    return fH > 0 ? (browL + browR) / fH : 0;
+  },
+  'nose': lm => {
+    // Nose scrunch — upper lip rises, nose narrows
+    const noseH = _dist(lm[4],lm[6]); // nose tip to nose bridge gets shorter
+    const lipToNose = _dist(lm[13],lm[4]); // upper lip to nose tip
+    const fH = _dist(lm[10],lm[152]);
+    return fH > 0 ? 1 - (lipToNose / fH * 8) : 0;
+  },
+  'tongue': lm => {
+    // Tongue out — jaw opens wide, lower face extends
+    const mH = _dist(lm[13],lm[14]), fH = _dist(lm[10],lm[152]);
+    const chinDist = _dist(lm[17],lm[152]); // lower lip area to chin
+    return fH > 0 ? (mH/fH * 6 + chinDist/fH) / 2 : 0;
+  },
 };
 const SORRISO_THRESHOLDS = {
   'smile':0.42, 'cheeks':3.2, 'open':0.07, 'kiss':0.7,
   'wink-l':0.35, 'wink-r':0.35, 'lips-o':0.55, 'surprise':0.35,
+  'teeth':0.4, 'brows':0.18, 'nose':0.4, 'tongue':0.35,
 };
 
 // ── State
 const _sorriso = {
   exercises: [], idx: 0, results: [],
   stream: null, faceLandmarker: null, detecting: false,
-  holdProgress: 0, // 0..1 how long expression held
+  holdProgress: 0,
   animFrame: null, lastDetectTime: 0,
   mpAvailable: false,
+  currentDiff: 1,  // difficoltà corrente nella sessione
+  roundPassed: 0,  // quanti superati nel round corrente
 };
 
 // ── MediaPipe init (lazy, one-time, self-loading)
@@ -213,7 +259,7 @@ function _detectFrame(){
 
     if (score >= threshold){
       // Expression detected — accumulate hold (faster fill, ~0.2/sec per holdSec)
-      _sorriso.holdProgress += 0.18 / ex.holdSec;
+      _sorriso.holdProgress += 0.18 / _holdForLevel();
       _sorriso.holdProgress = Math.min(_sorriso.holdProgress, 1);
       _updateDetectUI(_sorriso.holdProgress, _sorriso.holdProgress >= 1 ? '' : '¡Detectado! Mantén…');
       if (_sorriso.holdProgress >= 1){
@@ -253,8 +299,15 @@ function _exerciseSuccess(){
 }
 
 // ── Init session
+function _pickSorrisoExercises(diff){
+  const pool = SORRISO_EXERCISES.filter(e => e.diff === diff);
+  return shuffle(pool.slice()).slice(0, 3);
+}
+
 function sorrisoStart(){
-  _sorriso.exercises = shuffle(SORRISO_EXERCISES.slice()).slice(0,5);
+  _sorriso.currentDiff = 1;
+  _sorriso.roundPassed = 0;
+  _sorriso.exercises = _pickSorrisoExercises(1);
   _sorriso.idx = 0;
   _sorriso.results = [];
   showScreen('Sorriso');
@@ -279,7 +332,7 @@ function sorrisoRender(){
   document.getElementById('sorrisoEmoji').textContent = ex.emoji;
   document.getElementById('sorrisoTitle').textContent = ex.title;
   document.getElementById('sorrisoInstruction').textContent = ex.instruction;
-  document.getElementById('sorrisoTimer').textContent = 'Mantén ' + ex.holdSec + 's';
+  document.getElementById('sorrisoTimer').textContent = 'Mantén ' + _holdForLevel() + 's';
   _updateDetectUI(0, 'Preparado');
   document.getElementById('sorrisoGoBtn').classList.remove('hidden');
   document.getElementById('sorrisoGoBtn').disabled = false;
@@ -309,11 +362,11 @@ function sorrisoGo(){
     }, 15000);
   } else {
     // Fallback: timer-based self-confirm (no MediaPipe)
-    let countdown = ex.holdSec;
+    let countdown = _holdForLevel();
     document.getElementById('sorrisoTimer').textContent = countdown;
     const iv = setInterval(() => {
       countdown--;
-      _updateDetectUI((ex.holdSec - countdown) / ex.holdSec, 'Mantén…');
+      _updateDetectUI((_holdForLevel() - countdown) / _holdForLevel(), 'Mantén…');
       if (countdown > 0){
         document.getElementById('sorrisoTimer').textContent = countdown;
       } else {
@@ -342,7 +395,7 @@ function sorrisoConfirmRetry(){
   document.getElementById('sorrisoGoBtn').disabled = false;
   _updateDetectUI(0, 'Preparado');
   const ex = _sorriso.exercises[_sorriso.idx];
-  document.getElementById('sorrisoTimer').textContent = _sorriso.mpAvailable ? '' : (ex ? ex.holdSec + 's' : '');
+  document.getElementById('sorrisoTimer').textContent = _sorriso.mpAvailable ? '' : (ex ? _holdForLevel() + 's' : '');
   sayAgent('Venga, otra vez. ¡Tú puedes!');
 }
 
@@ -359,7 +412,24 @@ function sorrisoNext(){
   _sorriso.detecting = false;
   if (_sorriso.animFrame){ cancelAnimationFrame(_sorriso.animFrame); _sorriso.animFrame = null; }
   _sorriso.idx++;
-  if (_sorriso.idx >= _sorriso.exercises.length) return sorrisoComplete();
+  if (_sorriso.idx >= _sorriso.exercises.length){
+    // Fine del round — conta quanti superati
+    const roundResults = _sorriso.results.slice(-_sorriso.exercises.length);
+    const passed = roundResults.filter(r => r === 'done').length;
+    // Se ≥2/3 superati e c'è un livello successivo → proponi di salire
+    if (passed >= 2 && _sorriso.currentDiff < 3){
+      _sorriso.currentDiff++;
+      const nextPool = SORRISO_EXERCISES.filter(e => e.diff === _sorriso.currentDiff);
+      if (nextPool.length > 0){
+        sayAgent('¡Muy bien! Vamos a subir de nivel. Ejercicios un poco más difíciles.');
+        _sorriso.exercises = shuffle(nextPool.slice()).slice(0, 3);
+        _sorriso.idx = 0;
+        setTimeout(() => sorrisoRender(), 800);
+        return;
+      }
+    }
+    return sorrisoComplete();
+  }
   sorrisoRender();
   sayAgent('Vamos con la siguiente.');
 }
