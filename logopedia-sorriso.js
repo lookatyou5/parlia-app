@@ -139,7 +139,7 @@ const SORRISO_CHECKS = {
 const SORRISO_THRESHOLDS = {
   'smile':0.42, 'cheeks':2.95, 'open':0.07, 'kiss':0.45,
   'wink-l':0.35, 'wink-r':0.35, 'lips-o':0.55, 'surprise':0.35,
-  'teeth':0.4, 'brows':0.24, 'nose':0.22, 'tongue':0.35,
+  'teeth':0.4, 'brows':0.32, 'nose':0.22, 'tongue':0.35,
 };
 
 // ── State
