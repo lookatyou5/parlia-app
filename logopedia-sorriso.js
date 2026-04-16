@@ -52,9 +52,15 @@ const SORRISO_CHECKS = {
     return fH > 0 ? mH / fH : 0;
   },
   'kiss': lm => {
-    // Mouth gets narrow + lips protrude — narrow mouth ratio
-    const mW = _dist(lm[61],lm[291]), fW = _dist(lm[234],lm[454]);
-    return fW > 0 ? 1 - (mW / fW) : 0;
+    // Bacio = bocca stretta (commissure vicine) + labbra serrate (sup/inf unite)
+    const mW = _dist(lm[61],lm[291]);
+    const fW = _dist(lm[234],lm[454]);
+    const mH = _dist(lm[13],lm[14]);
+    const fH = _dist(lm[10],lm[152]);
+    if (fW === 0 || fH === 0) return 0;
+    const narrow = Math.max(0, 1 - (mW / fW) * 1.2);
+    const closed = Math.max(0, 1 - (mH / fH) * 25);
+    return narrow * 0.6 + closed * 0.4;
   },
   'wink-l': lm => {
     // Left eye closed, right open — gradient score
@@ -118,7 +124,7 @@ const SORRISO_CHECKS = {
   },
 };
 const SORRISO_THRESHOLDS = {
-  'smile':0.42, 'cheeks':3.2, 'open':0.07, 'kiss':0.7,
+  'smile':0.42, 'cheeks':3.2, 'open':0.07, 'kiss':0.6,
   'wink-l':0.35, 'wink-r':0.35, 'lips-o':0.55, 'surprise':0.35,
   'teeth':0.4, 'brows':0.18, 'nose':0.4, 'tongue':0.35,
 };
