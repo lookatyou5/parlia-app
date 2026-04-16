@@ -3,43 +3,42 @@
 /* ── Cursor (follows nose) ── */
 #cursor {
   position: fixed; z-index: 9999;
-  width: 28px; height: 28px;
+  width: 24px; height: 24px;
   border-radius: 50%;
-  background: radial-gradient(circle, rgba(99,102,241,.7), rgba(99,102,241,.2));
-  border: 2px solid rgba(255,255,255,.8);
-  box-shadow: 0 0 16px rgba(99,102,241,.5), 0 0 4px rgba(255,255,255,.4);
+  background: radial-gradient(circle, #ff3b30, rgba(255,59,48,.3));
+  border: 2.5px solid #fff;
+  box-shadow: 0 0 14px rgba(255,59,48,.6), 0 0 4px #fff;
   pointer-events: none;
   transform: translate(-50%, -50%);
-  transition: opacity .2s;
-  display: none; /* hidden until activated */
+  display: none;
 }
 #cursor.active { display: block; }
 #cursor.hovering {
-  background: radial-gradient(circle, rgba(251,191,36,.8), rgba(251,191,36,.3));
-  box-shadow: 0 0 20px rgba(251,191,36,.6), 0 0 6px rgba(255,255,255,.5);
-  border-color: rgba(251,191,36,.9);
+  background: radial-gradient(circle, #ff9500, rgba(255,149,0,.35));
+  box-shadow: 0 0 18px rgba(255,149,0,.7), 0 0 5px #fff;
+  border-color: #fff;
+  width: 28px; height: 28px;
 }
 #cursor.resting {
-  background: radial-gradient(circle, rgba(148,163,184,.5), rgba(148,163,184,.15));
-  box-shadow: 0 0 10px rgba(148,163,184,.3);
-  border-color: rgba(255,255,255,.4);
+  background: radial-gradient(circle, rgba(180,180,180,.5), rgba(180,180,180,.15));
+  box-shadow: 0 0 8px rgba(180,180,180,.3);
+  border-color: rgba(255,255,255,.5);
 }
 
 /* ── Dwell ring (360° loading) ── */
 #dwellRing {
   position: fixed; z-index: 9998;
-  width: 44px; height: 44px;
+  width: 48px; height: 48px;
   border-radius: 50%;
   pointer-events: none;
   transform: translate(-50%, -50%);
   display: none;
-  /* conic gradient filled by JS via --dwell custom prop */
   background: conic-gradient(
-    rgba(99,102,241,.85) calc(var(--dwell,0) * 360deg),
+    #ff3b30 calc(var(--dwell,0) * 360deg),
     transparent calc(var(--dwell,0) * 360deg)
   );
-  -webkit-mask: radial-gradient(transparent 11px, black 12px, black 20px, transparent 21px);
-  mask: radial-gradient(transparent 11px, black 12px, black 20px, transparent 21px);
+  -webkit-mask: radial-gradient(transparent 10px, black 11px, black 22px, transparent 23px);
+  mask: radial-gradient(transparent 10px, black 11px, black 22px, transparent 23px);
 }
 #dwellRing.active { display: block; }
 

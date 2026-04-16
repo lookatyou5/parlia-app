@@ -27,9 +27,9 @@ const HP = {
   // Rest zone
   REST_TOP: 0.15,       // top 15% of screen
   // Lerp
-  LERP: 0.25,
+  LERP: 0.14,
   // Sensitivity: amplifies small head movements around center
-  GAIN: 4.5,
+  GAIN: 5.5,
   // Calibration: neutral nose position (set on activation)
   neutralX: 0.5,
   neutralY: 0.4,
