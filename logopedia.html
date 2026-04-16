@@ -159,13 +159,17 @@
         <div class="sorriso-timer-bar" id="sorrisoTimerBar"></div>
       </div>
       <div class="sorriso-timer-num" id="sorrisoTimer"></div>
-      <div class="ex-actions">
-        <button class="btn btn-ghost" onclick="sorrisoSkip()">Saltar</button>
-        <button class="btn btn-primary" id="sorrisoGoBtn" onclick="sorrisoGo()">¡Empezar!</button>
+      <button class="btn btn-primary btn-full" id="sorrisoGoBtn" onclick="sorrisoGo()">¡Empezar!</button>
+      <!-- Conferma dopo il timer -->
+      <div class="sorriso-confirm hidden" id="sorrisoConfirm">
+        <div class="sorriso-confirm-text">¿Lo has conseguido?</div>
+        <div class="ex-actions">
+          <button class="btn btn-ghost" onclick="sorrisoConfirmRetry()">↻ Repetir</button>
+          <button class="btn btn-primary" onclick="sorrisoConfirmYes()">Sí ✓</button>
+        </div>
       </div>
-      <div class="ex-actions" style="margin-top:6px">
-        <button class="btn btn-primary btn-full" id="sorrisoNextBtn" onclick="sorrisoNext()" disabled>Siguiente →</button>
-      </div>
+      <button class="btn btn-primary btn-full hidden" id="sorrisoNextBtn" onclick="sorrisoNext()">Siguiente →</button>
+      <button class="btn btn-ghost btn-full" onclick="sorrisoSkip()" style="margin-top:6px">Saltar este ejercicio</button>
     </div>
     <button class="btn btn-ghost btn-full" onclick="sorrisoExit()">← Cambiar categoría</button>
   </section>

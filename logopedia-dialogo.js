@@ -31,8 +31,7 @@ function dialogoStart(){
   _dialogo.prompts = shuffle(DIALOGO_PROMPTS.slice()).slice(0,5);
   _dialogo.idx = 0;
   _dialogo.results = [];
-  document.getElementById('screenDialogo').classList.remove('hidden');
-  document.getElementById('screenExercise').classList.add('hidden');
+  showScreen('Dialogo');
   dialogoRender();
 }
 

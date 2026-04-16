@@ -59,8 +59,7 @@ function sorrisoStart(){
   _sorriso.exercises = shuffle(SORRISO_EXERCISES.slice()).slice(0,5);
   _sorriso.idx = 0;
   _sorriso.results = [];
-  document.getElementById('screenSorriso').classList.remove('hidden');
-  document.getElementById('screenExercise').classList.add('hidden');
+  showScreen('Sorriso');
   sorrisoStartCamera();
   sorrisoRender();
 }
@@ -79,10 +78,13 @@ function sorrisoRender(){
   document.getElementById('sorrisoEmoji').textContent = ex.emoji;
   document.getElementById('sorrisoTitle').textContent = ex.title;
   document.getElementById('sorrisoInstruction').textContent = ex.instruction;
-  document.getElementById('sorrisoTimer').textContent = '';
+  document.getElementById('sorrisoTimer').textContent = ex.duration + 's';
   document.getElementById('sorrisoTimerBar').style.width = '0%';
+  // Mostra solo il bottone "Empezar", nascondi conferma
+  document.getElementById('sorrisoGoBtn').classList.remove('hidden');
   document.getElementById('sorrisoGoBtn').disabled = false;
-  document.getElementById('sorrisoNextBtn').disabled = true;
+  document.getElementById('sorrisoConfirm').classList.add('hidden');
+  document.getElementById('sorrisoNextBtn').classList.add('hidden');
   sayAgent(ex.instruction);
 }
 
@@ -102,13 +104,33 @@ function sorrisoGo(){
       document.getElementById('sorrisoTimer').textContent = _sorriso.countdown;
     } else {
       clearInterval(_sorriso.timer);
-      document.getElementById('sorrisoTimer').textContent = '✓';
+      document.getElementById('sorrisoTimer').textContent = '¡Tiempo!';
       document.getElementById('sorrisoTimerBar').style.width = '100%';
-      document.getElementById('sorrisoNextBtn').disabled = false;
-      _sorriso.results.push('done');
-      sayAgent(['¡Genial!','¡Bien hecho!','Perfecto, así.','¡Buen trabajo!'][Math.floor(Math.random()*4)]);
+      // Mostra conferma: "¿Lo has conseguido?"
+      document.getElementById('sorrisoGoBtn').classList.add('hidden');
+      document.getElementById('sorrisoConfirm').classList.remove('hidden');
+      sayAgent('¿Lo has conseguido?');
     }
   }, 1000);
+}
+
+function sorrisoConfirmYes(){
+  _sorriso.results.push('done');
+  document.getElementById('sorrisoConfirm').classList.add('hidden');
+  document.getElementById('sorrisoNextBtn').classList.remove('hidden');
+  document.getElementById('sorrisoNextBtn').disabled = false;
+  sayAgent(['¡Genial!','¡Bien hecho!','Perfecto, así.','¡Buen trabajo!'][Math.floor(Math.random()*4)]);
+}
+
+function sorrisoConfirmRetry(){
+  // Ripeti lo stesso esercizio
+  document.getElementById('sorrisoConfirm').classList.add('hidden');
+  document.getElementById('sorrisoGoBtn').classList.remove('hidden');
+  document.getElementById('sorrisoGoBtn').disabled = false;
+  document.getElementById('sorrisoTimerBar').style.width = '0%';
+  const ex = _sorriso.exercises[_sorriso.idx];
+  document.getElementById('sorrisoTimer').textContent = ex ? ex.duration + 's' : '';
+  sayAgent('Venga, otra vez. ¡Tú puedes!');
 }
 
 function sorrisoSkip(){
