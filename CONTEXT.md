@@ -688,6 +688,17 @@ Selezione multipla, salvataggio in `parlia_logo_profile.difficultPhonemes`. Defa
 ### Cache-bust v20260417a
 Aggiornati: `tts.js`, `userData.js`, `logopedia.js`, `logopedia.css`, `logopedia-data.js`, `logopedia-sorriso.js`, `logopedia-dialogo.js`, `profileApp.js`, `home.html`, `comunicador.html`, `tutorial.html`, `logopedia.html`, `profile.html`.
 
+### Fix bottone 👂 su vocali sostenute (v20260417b)
+Google Neural2 di default pronuncia "Aaa" / "AAA" / "Ooo" come singola vocale brevissima (non sostenuta). Aggiunto rilevamento pattern "stessa lettera ripetuta ≥2 volte" in `listenWord()`: quando il pattern viene riconosciuto, la parola viene riprodotta con SSML `<prosody rate="x-slow">aaaaa</prosody>` (5 ripetizioni della vocale + rate x-slow) → suono sostenuto di ~2 secondi.
+
+Volume/pitch adattati al tipo di esercizio tramite parsing di `instruction` e `hint`:
+- `"voz suave"` / `"susurro"` → `volume="-4dB" pitch="-5%"` (sussurrato controllato)
+- `"voz fuerte"` / `"proyecta"` → `volume="+3dB" pitch="+5%"` (proiettata)
+- Neutro → solo `rate="x-slow"`
+
+### TODO per prossima sessione
+- **Brows (Sube las cejas)** — soglia 0.32 ancora insufficiente per alcuni visi (triggera da sola a riposo). Fix da fare: cambiare la formula in `logopedia-sorriso.js` per usare `eyeWidth` come riferimento invece di `fH` (altezza viso intera), così è invariante alla forma del volto e alla distanza dalla camera. Soglia da ricalibrare sul nuovo range.
+
 ---
 
 ## Istruzioni per Claude Code
