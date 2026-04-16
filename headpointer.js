@@ -29,7 +29,7 @@ const HP = {
   // Lerp
   LERP: 0.25,
   // Sensitivity: amplifies small head movements around center
-  GAIN: 2.8,
+  GAIN: 4.5,
   // Calibration: neutral nose position (set on activation)
   neutralX: 0.5,
   neutralY: 0.4,

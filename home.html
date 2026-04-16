@@ -2383,9 +2383,9 @@ window.addEventListener('popstate', (e) => {
 
 // Espone le funzioni chiamate dagli onclick="..." nell'HTML (dopo il wrap in runApp
 // tutte le funzioni sono locali, quindi vanno promosse esplicitamente a window.*)
+Object.defineProperty(window, 'curPage', { get(){ return curPage; }, configurable:true });
 Object.assign(window, {
   goTo, toast,
-  get curPage(){ return curPage; },
   openReminderModal, closeReminderOutside, saveReminder, deleteReminder,
   openSOS, closeSOS, speakSOS,
   toggleSettings, closeSettings,
