@@ -82,6 +82,14 @@ function speak(text, opts){
   }
 }
 
+// Rileva pattern "vocale sostenuta": stessa lettera ripetuta >=2 volte (es. AAA, Aaa, Ooo)
+function _isSustainedVowel(w){
+  if (!w || w.length < 2) return false;
+  const first = w[0].toLowerCase();
+  if (!/[aeiouáéíóú]/i.test(first)) return false;
+  return w.toLowerCase().split('').every(c => c === first);
+}
+
 // Bottone 👂 — riproduce la parola corrente con emphasis terapeutica
 function listenWord(){
   const ex = state.exercises[state.idx];
@@ -89,6 +97,24 @@ function listenWord(){
   const btn = document.getElementById('exListenBtn');
   if (btn) btn.classList.add('playing');
   const reset = () => { if (btn) btn.classList.remove('playing'); };
+
+  // Caso speciale: vocale sostenuta (es. Aaa, AAA, Ooo) — Google TTS di default
+  // la pronuncia corta come "a". Forziamo sostegno via SSML <prosody rate="x-slow">
+  // su vocale ripetuta + pitch variabile in base a "voz suave" vs "voz fuerte".
+  if (_isSustainedVowel(ex.word) && window.speakNeural){
+    const v = ex.word[0].toLowerCase();
+    const isSoft = /suave/i.test(ex.instruction || '') || /susurro/i.test(ex.hint || '');
+    const isLoud = /fuerte/i.test(ex.instruction || '') || /proyect/i.test(ex.hint || '');
+    // 5 ripetizioni + rate x-slow → il sintetizzatore produce un suono sostenuto di ~2s
+    const stretched = (v + v + v + v + v);
+    const prosodyAttrs = isSoft ? 'rate="x-slow" volume="-4dB" pitch="-5%"'
+                       : isLoud  ? 'rate="x-slow" volume="+3dB" pitch="+5%"'
+                       : 'rate="x-slow"';
+    const ssml = `<prosody ${prosodyAttrs}>${stretched}</prosody>`;
+    speakNeural(ssml, { ssml: true, onend: reset });
+    return;
+  }
+
   if (window.speakNeural && speakNeural.therapeutic) {
     speakNeural.therapeutic(ex.word, { targetWord: ex.word, onend: reset });
   } else if (window.speakNeural) {
