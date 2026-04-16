@@ -77,7 +77,7 @@ async function _initMediaPipe(){
     const { FaceLandmarker, FilesetResolver } = window._MP;
     const fs = await FilesetResolver.forVisionTasks(MP_CDN + '/wasm');
     _sorriso.faceLandmarker = await FaceLandmarker.createFromOptions(fs, {
-      baseOptions: { modelAssetPath:'https://storage.googleapis.com/mediapipe-assets/face_landmarker.task', delegate:'GPU' },
+      baseOptions: { modelAssetPath:'https://storage.googleapis.com/mediapipe-models/face_landmarker/face_landmarker/float16/1/face_landmarker.task', delegate:'GPU' },
       runningMode:'VIDEO', outputFaceBlendshapes:true, numFaces:1,
     });
     _sorriso.mpAvailable = true;
@@ -90,7 +90,7 @@ async function _initMediaPipe(){
       const { FaceLandmarker, FilesetResolver } = window._MP;
       const fs = await FilesetResolver.forVisionTasks(MP_CDN + '/wasm');
       _sorriso.faceLandmarker = await FaceLandmarker.createFromOptions(fs, {
-        baseOptions: { modelAssetPath:'https://storage.googleapis.com/mediapipe-assets/face_landmarker.task', delegate:'CPU' },
+        baseOptions: { modelAssetPath:'https://storage.googleapis.com/mediapipe-models/face_landmarker/face_landmarker/float16/1/face_landmarker.task', delegate:'CPU' },
         runningMode:'VIDEO', outputFaceBlendshapes:true, numFaces:1,
       });
       _sorriso.mpAvailable = true;
