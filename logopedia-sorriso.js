@@ -1,57 +1,168 @@
 // ═══════════════════════════════════════════════════════════════
 //  LOGOPEDIA · SFIDA DEL SORRISO (motoria facciale)
-//  Camera come specchio + esercizi guidati per la muscolatura
+//  MediaPipe FaceLandmarker blendshapes → rileva espressioni reali
 // ═══════════════════════════════════════════════════════════════
 
 const SORRISO_EXERCISES = [
-  { id:'smile',    emoji:'😁', title:'Sonrisa grande',    instruction:'Sonríe lo más que puedas y mantén 5 segundos',  duration:5 },
-  { id:'cheeks',   emoji:'🐡', title:'Infla las mejillas', instruction:'Infla las mejillas como un pez globo — mantén 4 segundos', duration:4 },
-  { id:'tongue',   emoji:'😛', title:'Saca la lengua',    instruction:'Saca la lengua todo lo que puedas, 4 segundos', duration:4 },
-  { id:'open',     emoji:'😮', title:'Boca grande',       instruction:'Abre la boca bien grande y mantén 3 segundos', duration:3 },
-  { id:'kiss',     emoji:'😗', title:'Beso al aire',      instruction:'Haz como si dieras un beso grande — labios hacia fuera', duration:4 },
-  { id:'wink-l',   emoji:'😉', title:'Guiño izquierdo',   instruction:'Cierra solo el ojo izquierdo y mantén 3 segundos', duration:3 },
-  { id:'wink-r',   emoji:'😜', title:'Guiño derecho',     instruction:'Cierra solo el ojo derecho y mantén 3 segundos', duration:3 },
-  { id:'jaw',      emoji:'😬', title:'Mandíbula lateral', instruction:'Mueve la mandíbula a la izquierda, luego a la derecha', duration:5 },
-  { id:'lips-o',   emoji:'🫢', title:'Labios en O',       instruction:'Haz una O grande con los labios — mantén 4 segundos', duration:4 },
-  { id:'surprise', emoji:'😲', title:'Cara de sorpresa',  instruction:'Abre los ojos y la boca como si te sorprendieras', duration:4 },
+  { id:'smile',    emoji:'😁', title:'Sonrisa grande',    instruction:'Sonríe lo más que puedas y mantén',  holdSec:3 },
+  { id:'cheeks',   emoji:'🐡', title:'Infla las mejillas', instruction:'Infla las mejillas como un pez globo', holdSec:3 },
+  { id:'open',     emoji:'😮', title:'Boca grande',       instruction:'Abre la boca bien grande',            holdSec:3 },
+  { id:'kiss',     emoji:'😗', title:'Beso al aire',      instruction:'Haz como si dieras un beso — labios hacia fuera', holdSec:3 },
+  { id:'wink-l',   emoji:'😉', title:'Guiño izquierdo',   instruction:'Cierra solo el ojo izquierdo',        holdSec:2 },
+  { id:'wink-r',   emoji:'😜', title:'Guiño derecho',     instruction:'Cierra solo el ojo derecho',          holdSec:2 },
+  { id:'lips-o',   emoji:'🫢', title:'Labios en O',       instruction:'Haz una O grande con los labios',     holdSec:3 },
+  { id:'surprise', emoji:'😲', title:'Cara de sorpresa',  instruction:'Abre los ojos y la boca — ¡sorpresa!', holdSec:3 },
 ];
+
+// Blendshape mapping: id → check function returning 0..1 score
+function _bs(shapes, name){ const s = shapes.find(b => b.categoryName === name); return s ? s.score : 0; }
+const SORRISO_CHECKS = {
+  'smile':    s => (_bs(s,'mouthSmileLeft') + _bs(s,'mouthSmileRight')) / 2,
+  'cheeks':   s => _bs(s,'cheekPuff'),
+  'open':     s => _bs(s,'jawOpen'),
+  'kiss':     s => _bs(s,'mouthPucker'),
+  'wink-l':   s => (_bs(s,'eyeBlinkLeft') > 0.5 && _bs(s,'eyeBlinkRight') < 0.3) ? 1 : 0,
+  'wink-r':   s => (_bs(s,'eyeBlinkRight') > 0.5 && _bs(s,'eyeBlinkLeft') < 0.3) ? 1 : 0,
+  'lips-o':   s => (_bs(s,'mouthFunnel') + _bs(s,'mouthPucker')) / 2,
+  'surprise': s => (_bs(s,'eyeWideLeft') + _bs(s,'eyeWideRight') + _bs(s,'jawOpen')) / 3,
+};
+const SORRISO_THRESHOLDS = {
+  'smile':0.45, 'cheeks':0.3, 'open':0.5, 'kiss':0.4,
+  'wink-l':0.5, 'wink-r':0.5, 'lips-o':0.3, 'surprise':0.3,
+};
 
 // ── State
 const _sorriso = {
-  exercises: [],
-  idx: 0,
-  stream: null,
-  timer: null,
-  countdown: 0,
-  results: [], // 'done' | 'skip'
+  exercises: [], idx: 0, results: [],
+  stream: null, faceLandmarker: null, detecting: false,
+  holdProgress: 0, // 0..1 how long expression held
+  animFrame: null, lastDetectTime: 0,
+  mpAvailable: false,
 };
+
+// ── MediaPipe init (lazy, one-time)
+async function _initMediaPipe(){
+  if (_sorriso.faceLandmarker) return true;
+  if (!window._MP){
+    // Wait up to 10s for module to load
+    for (let i = 0; i < 50 && !window._MP; i++) await new Promise(r => setTimeout(r, 200));
+  }
+  if (!window._MP){ console.warn('MediaPipe not loaded'); return false; }
+  try {
+    const { FaceLandmarker, FilesetResolver } = window._MP;
+    const fs = await FilesetResolver.forVisionTasks('https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.18/wasm');
+    _sorriso.faceLandmarker = await FaceLandmarker.createFromOptions(fs, {
+      baseOptions: { modelAssetPath:'https://storage.googleapis.com/mediapipe-assets/face_landmarker.task', delegate:'GPU' },
+      runningMode:'VIDEO', outputFaceBlendshapes:true, numFaces:1,
+    });
+    _sorriso.mpAvailable = true;
+    return true;
+  } catch(e){ console.error('FaceLandmarker init failed:', e); return false; }
+}
 
 // ── Camera
 async function sorrisoStartCamera(){
   const video = document.getElementById('sorrisoVideo');
   const notice = document.getElementById('sorrisoCamNotice');
   if (!video) return;
+  notice.textContent = '📷 Preparando cámara y detección facial…';
+  notice.classList.remove('hidden');
   try {
     const stream = await navigator.mediaDevices.getUserMedia({ video:{ facingMode:'user', width:{ideal:320}, height:{ideal:240} }, audio:false });
     video.srcObject = stream;
-    video.play();
+    await video.play();
     _sorriso.stream = stream;
     video.classList.remove('hidden');
-    if (notice) notice.classList.add('hidden');
+    // Init MediaPipe in parallel
+    const ok = await _initMediaPipe();
+    notice.textContent = ok ? '' : '⚠️ Detección facial no disponible — confirma manualmente';
+    if (ok) notice.classList.add('hidden');
   } catch(e){
-    // Camera non disponibile → mostra messaggio "usa uno specchio"
     video.classList.add('hidden');
-    if (notice) { notice.classList.remove('hidden'); notice.textContent = '🪞 No se pudo abrir la cámara. Usa un espejo y sigue las instrucciones.'; }
+    notice.textContent = '🪞 No se pudo abrir la cámara. Confirma manualmente cada ejercicio.';
+    notice.classList.remove('hidden');
   }
 }
 
 function sorrisoStopCamera(){
-  if (_sorriso.stream){
-    _sorriso.stream.getTracks().forEach(t => t.stop());
-    _sorriso.stream = null;
-  }
+  _sorriso.detecting = false;
+  if (_sorriso.animFrame){ cancelAnimationFrame(_sorriso.animFrame); _sorriso.animFrame = null; }
+  if (_sorriso.stream){ _sorriso.stream.getTracks().forEach(t => t.stop()); _sorriso.stream = null; }
   const video = document.getElementById('sorrisoVideo');
   if (video){ video.srcObject = null; video.classList.add('hidden'); }
+}
+
+// ── Detection loop
+function _startDetection(){
+  const ex = _sorriso.exercises[_sorriso.idx];
+  if (!ex) return;
+  _sorriso.detecting = true;
+  _sorriso.holdProgress = 0;
+  _sorriso.lastDetectTime = performance.now();
+  _detectFrame();
+}
+
+function _detectFrame(){
+  if (!_sorriso.detecting) return;
+  _sorriso.animFrame = requestAnimationFrame(_detectFrame);
+  const now = performance.now();
+  if (now - _sorriso.lastDetectTime < 150) return; // ~7fps
+  _sorriso.lastDetectTime = now;
+
+  const video = document.getElementById('sorrisoVideo');
+  const ex = _sorriso.exercises[_sorriso.idx];
+  if (!video || !ex || !_sorriso.faceLandmarker) return;
+
+  try {
+    const result = _sorriso.faceLandmarker.detectForVideo(video, now);
+    if (!result || !result.faceBlendshapes || !result.faceBlendshapes.length){
+      _updateDetectUI(0, 'No detecto tu cara — acércate');
+      return;
+    }
+    const shapes = result.faceBlendshapes[0].categories;
+    const checkFn = SORRISO_CHECKS[ex.id];
+    const threshold = SORRISO_THRESHOLDS[ex.id] || 0.4;
+    const score = checkFn ? checkFn(shapes) : 0;
+
+    if (score >= threshold){
+      // Expression detected — accumulate hold progress
+      _sorriso.holdProgress += 0.15 / ex.holdSec; // ~150ms tick / holdSec
+      _sorriso.holdProgress = Math.min(_sorriso.holdProgress, 1);
+      _updateDetectUI(_sorriso.holdProgress, _sorriso.holdProgress >= 1 ? '' : '¡Detectado! Mantén…');
+      if (_sorriso.holdProgress >= 1){
+        _sorriso.detecting = false;
+        _exerciseSuccess();
+      }
+    } else {
+      // Expression lost — decay hold
+      _sorriso.holdProgress = Math.max(0, _sorriso.holdProgress - 0.08);
+      _updateDetectUI(_sorriso.holdProgress, 'Hazlo más marcado…');
+    }
+  } catch(e){}
+}
+
+function _updateDetectUI(pct, label){
+  const bar = document.getElementById('sorrisoDetectBar');
+  const lbl = document.getElementById('sorrisoDetectLabel');
+  if (bar){
+    bar.style.width = (pct * 100) + '%';
+    bar.classList.toggle('full', pct >= 1);
+  }
+  if (lbl && label !== undefined){
+    lbl.textContent = label;
+    lbl.className = 'sorriso-detect-label' + (pct >= 1 ? ' done' : pct > 0 ? ' detecting' : '');
+  }
+}
+
+function _exerciseSuccess(){
+  _sorriso.results.push('done');
+  _updateDetectUI(1, '¡Perfecto!');
+  document.getElementById('sorrisoGoBtn').classList.add('hidden');
+  document.getElementById('sorrisoConfirm').classList.add('hidden');
+  document.getElementById('sorrisoNextBtn').classList.remove('hidden');
+  document.getElementById('sorrisoNextBtn').disabled = false;
+  document.getElementById('sorrisoTimer').textContent = '✓';
+  sayAgent(['¡Genial!','¡Bien hecho!','Perfecto, así.','¡Buen trabajo!'][Math.floor(Math.random()*4)]);
 }
 
 // ── Init session
@@ -67,7 +178,10 @@ function sorrisoStart(){
 function sorrisoRender(){
   const ex = _sorriso.exercises[_sorriso.idx];
   if (!ex) return sorrisoComplete();
-  // Progress
+  _sorriso.detecting = false;
+  _sorriso.holdProgress = 0;
+  if (_sorriso.animFrame){ cancelAnimationFrame(_sorriso.animFrame); _sorriso.animFrame = null; }
+  // Progress dots
   const prog = document.getElementById('sorrisoProgress');
   prog.innerHTML = '';
   _sorriso.exercises.forEach((_,i) => {
@@ -78,9 +192,8 @@ function sorrisoRender(){
   document.getElementById('sorrisoEmoji').textContent = ex.emoji;
   document.getElementById('sorrisoTitle').textContent = ex.title;
   document.getElementById('sorrisoInstruction').textContent = ex.instruction;
-  document.getElementById('sorrisoTimer').textContent = ex.duration + 's';
-  document.getElementById('sorrisoTimerBar').style.width = '0%';
-  // Mostra solo il bottone "Empezar", nascondi conferma
+  document.getElementById('sorrisoTimer').textContent = 'Mantén ' + ex.holdSec + 's';
+  _updateDetectUI(0, 'Preparado');
   document.getElementById('sorrisoGoBtn').classList.remove('hidden');
   document.getElementById('sorrisoGoBtn').disabled = false;
   document.getElementById('sorrisoConfirm').classList.add('hidden');
@@ -92,26 +205,39 @@ function sorrisoGo(){
   const ex = _sorriso.exercises[_sorriso.idx];
   if (!ex) return;
   document.getElementById('sorrisoGoBtn').disabled = true;
-  _sorriso.countdown = ex.duration;
-  const total = ex.duration;
-  document.getElementById('sorrisoTimer').textContent = _sorriso.countdown;
-  document.getElementById('sorrisoTimerBar').style.width = '0%';
-  _sorriso.timer = setInterval(() => {
-    _sorriso.countdown--;
-    const pct = ((total - _sorriso.countdown) / total) * 100;
-    document.getElementById('sorrisoTimerBar').style.width = pct + '%';
-    if (_sorriso.countdown > 0){
-      document.getElementById('sorrisoTimer').textContent = _sorriso.countdown;
-    } else {
-      clearInterval(_sorriso.timer);
-      document.getElementById('sorrisoTimer').textContent = '¡Tiempo!';
-      document.getElementById('sorrisoTimerBar').style.width = '100%';
-      // Mostra conferma: "¿Lo has conseguido?"
-      document.getElementById('sorrisoGoBtn').classList.add('hidden');
-      document.getElementById('sorrisoConfirm').classList.remove('hidden');
-      sayAgent('¿Lo has conseguido?');
-    }
-  }, 1000);
+
+  if (_sorriso.mpAvailable){
+    // Real detection
+    document.getElementById('sorrisoTimer').textContent = '';
+    _updateDetectUI(0, 'Hazlo ahora…');
+    _startDetection();
+    // Timeout: 15s max per esercizio
+    setTimeout(() => {
+      if (_sorriso.detecting && _sorriso.holdProgress < 1){
+        _sorriso.detecting = false;
+        _updateDetectUI(_sorriso.holdProgress, 'No se ha mantenido suficiente');
+        document.getElementById('sorrisoGoBtn').classList.add('hidden');
+        document.getElementById('sorrisoConfirm').classList.remove('hidden');
+      }
+    }, 15000);
+  } else {
+    // Fallback: timer-based self-confirm (no MediaPipe)
+    let countdown = ex.holdSec;
+    document.getElementById('sorrisoTimer').textContent = countdown;
+    const iv = setInterval(() => {
+      countdown--;
+      _updateDetectUI((ex.holdSec - countdown) / ex.holdSec, 'Mantén…');
+      if (countdown > 0){
+        document.getElementById('sorrisoTimer').textContent = countdown;
+      } else {
+        clearInterval(iv);
+        document.getElementById('sorrisoTimer').textContent = '¡Tiempo!';
+        document.getElementById('sorrisoGoBtn').classList.add('hidden');
+        document.getElementById('sorrisoConfirm').classList.remove('hidden');
+        sayAgent('¿Lo has conseguido?');
+      }
+    }, 1000);
+  }
 }
 
 function sorrisoConfirmYes(){
@@ -119,22 +245,23 @@ function sorrisoConfirmYes(){
   document.getElementById('sorrisoConfirm').classList.add('hidden');
   document.getElementById('sorrisoNextBtn').classList.remove('hidden');
   document.getElementById('sorrisoNextBtn').disabled = false;
-  sayAgent(['¡Genial!','¡Bien hecho!','Perfecto, así.','¡Buen trabajo!'][Math.floor(Math.random()*4)]);
+  _updateDetectUI(1, '¡Bien!');
+  sayAgent(['¡Genial!','¡Bien hecho!'][Math.floor(Math.random()*2)]);
 }
 
 function sorrisoConfirmRetry(){
-  // Ripeti lo stesso esercizio
   document.getElementById('sorrisoConfirm').classList.add('hidden');
   document.getElementById('sorrisoGoBtn').classList.remove('hidden');
   document.getElementById('sorrisoGoBtn').disabled = false;
-  document.getElementById('sorrisoTimerBar').style.width = '0%';
+  _updateDetectUI(0, 'Preparado');
   const ex = _sorriso.exercises[_sorriso.idx];
-  document.getElementById('sorrisoTimer').textContent = ex ? ex.duration + 's' : '';
+  document.getElementById('sorrisoTimer').textContent = _sorriso.mpAvailable ? '' : (ex ? ex.holdSec + 's' : '');
   sayAgent('Venga, otra vez. ¡Tú puedes!');
 }
 
 function sorrisoSkip(){
-  if (_sorriso.timer) clearInterval(_sorriso.timer);
+  _sorriso.detecting = false;
+  if (_sorriso.animFrame){ cancelAnimationFrame(_sorriso.animFrame); _sorriso.animFrame = null; }
   _sorriso.results.push('skip');
   _sorriso.idx++;
   if (_sorriso.idx >= _sorriso.exercises.length) return sorrisoComplete();
@@ -142,7 +269,8 @@ function sorrisoSkip(){
 }
 
 function sorrisoNext(){
-  if (_sorriso.timer) clearInterval(_sorriso.timer);
+  _sorriso.detecting = false;
+  if (_sorriso.animFrame){ cancelAnimationFrame(_sorriso.animFrame); _sorriso.animFrame = null; }
   _sorriso.idx++;
   if (_sorriso.idx >= _sorriso.exercises.length) return sorrisoComplete();
   sorrisoRender();
@@ -153,8 +281,6 @@ function sorrisoComplete(){
   sorrisoStopCamera();
   const done = _sorriso.results.filter(r => r === 'done').length;
   const total = _sorriso.results.length;
-  document.getElementById('screenSorriso').classList.add('hidden');
-  // Reuse the complete screen
   _sessionsDone++;
   document.getElementById('statDone').textContent = total;
   document.getElementById('statGreen').textContent = done;
@@ -173,7 +299,8 @@ function sorrisoComplete(){
 }
 
 function sorrisoExit(){
-  if (_sorriso.timer) clearInterval(_sorriso.timer);
+  _sorriso.detecting = false;
+  if (_sorriso.animFrame){ cancelAnimationFrame(_sorriso.animFrame); _sorriso.animFrame = null; }
   sorrisoStopCamera();
   document.getElementById('screenSorriso').classList.add('hidden');
   backToCategories();

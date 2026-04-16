@@ -155,9 +155,10 @@
       <div class="sorriso-emoji" id="sorrisoEmoji">😊</div>
       <div class="ex-instruction" id="sorrisoTitle">—</div>
       <div class="ex-hint" id="sorrisoInstruction">—</div>
-      <div class="sorriso-timer-wrap">
-        <div class="sorriso-timer-bar" id="sorrisoTimerBar"></div>
+      <div class="sorriso-detect" id="sorrisoDetect">
+        <div class="sorriso-detect-bar" id="sorrisoDetectBar"></div>
       </div>
+      <div class="sorriso-detect-label" id="sorrisoDetectLabel">Preparado</div>
       <div class="sorriso-timer-num" id="sorrisoTimer"></div>
       <button class="btn btn-primary btn-full" id="sorrisoGoBtn" onclick="sorrisoGo()">¡Empezar!</button>
       <!-- Conferma dopo il timer -->
@@ -194,6 +195,13 @@
 
   <div id="noSpeechNotice" class="notice hidden">⚠️ Tu navegador no soporta reconocimiento de voz.</div>
 </main>
+
+<!-- MediaPipe FaceLandmarker (blendshapes per Sfida del Sorriso) -->
+<script type="module">
+import{FaceLandmarker,FilesetResolver}from"https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.18/vision_bundle.mjs";
+window._MP={FaceLandmarker,FilesetResolver};
+window.dispatchEvent(new Event('mp-ready'));
+</script>
 
 <script src="userData.js"></script>
 <script src="logopedia-data.js?v=20260416c"></script>
