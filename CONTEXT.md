@@ -20,7 +20,10 @@ Parlia è una PWA (app web progressiva) per comunicazione aumentativa (AAC) dest
 - `userData.js` — data layer condiviso `parlia_user_data` con migrazione legacy
 - `memoriaAI.html` — redirect a `profile.html` (mantiene compat con bookmark)
 - `comunicador.html` — comunicador AAC standalone
-- `logopedia.html` — **pagina standalone di logopedia** con agente IA "Ana" + esercizi guidati per livello/profilo
+- `logopedia.html` — **shell HTML** della pagina logopedia (140 righe, solo struttura + import)
+- `logopedia.css` — stili della logopedia (330 righe)
+- `logopedia-data.js` — **exercise bank** per livello + metadata categorie/suoni (131 righe — file da toccare per aggiungere/cambiare esercizi)
+- `logopedia.js` — logica app: agente Ana, STT, semaforo, assessment, navigation (429 righe)
 - `tutorial.html` — tutorial interattivo standalone con tour guidato
 - `roadmap.html` — roadmap interna (accessibile da ⚙️ nella home)
 - `manifest.json` — PWA manifest (start_url: /)
@@ -230,6 +233,17 @@ Tap sul widget meteo → overlay scuro (`rgba(10,15,40,.5)`) + blur 10px → car
 
 ## SOS overlay
 Tap sul 🆘 in topbar → overlay scuro (niente backdrop-filter — causava flash nero su Chrome Android) → card bottom sheet con 5 frasi SOS (`speakSOS()`).
+
+## Sessione 16 aprile 2026 — Logopedia: polish + modularizzazione
+- **Ana reagisce subito** dopo il risultato (semaforo), non solo al click "Siguiente"
+- **Saluto non ripetitivo**: primo ingresso → presentazione completa; ritorno da categoria → frase breve variata ("¿Qué más practicamos?")
+- **Animazioni subtle**: blob drift, hero float, card stagger, online dot pulse, profile-bar slide-in
+- **Modularizzazione**: file monolitico 1256 righe → 4 file:
+  - `logopedia.html` (140) — solo HTML shell
+  - `logopedia.css` (330) — stili
+  - `logopedia-data.js` (131) — exercise bank (il file da toccare per aggiungere esercizi)
+  - `logopedia.js` (429) — logica app
+- **Cache-bust** su tutti i link (`?v=20260416b`) + meta no-cache su logopedia.html
 
 ## Sessione 15 aprile 2026 (sera) — Logopedia IA personalizzata
 Creata la pagina **`logopedia.html`** standalone (file unico autocontenuto, HTML+CSS+JS inline ~1200 righe).
