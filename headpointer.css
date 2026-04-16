@@ -1,0 +1,95 @@
+/* ═══ HEAD POINTER · CSS ═══ */
+
+/* ── Cursor (follows nose) ── */
+#cursor {
+  position: fixed; z-index: 9999;
+  width: 28px; height: 28px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(99,102,241,.7), rgba(99,102,241,.2));
+  border: 2px solid rgba(255,255,255,.8);
+  box-shadow: 0 0 16px rgba(99,102,241,.5), 0 0 4px rgba(255,255,255,.4);
+  pointer-events: none;
+  transform: translate(-50%, -50%);
+  transition: opacity .2s;
+  display: none; /* hidden until activated */
+}
+#cursor.active { display: block; }
+#cursor.hovering {
+  background: radial-gradient(circle, rgba(251,191,36,.8), rgba(251,191,36,.3));
+  box-shadow: 0 0 20px rgba(251,191,36,.6), 0 0 6px rgba(255,255,255,.5);
+  border-color: rgba(251,191,36,.9);
+}
+#cursor.resting {
+  background: radial-gradient(circle, rgba(148,163,184,.5), rgba(148,163,184,.15));
+  box-shadow: 0 0 10px rgba(148,163,184,.3);
+  border-color: rgba(255,255,255,.4);
+}
+
+/* ── Dwell ring (360° loading) ── */
+#dwellRing {
+  position: fixed; z-index: 9998;
+  width: 44px; height: 44px;
+  border-radius: 50%;
+  pointer-events: none;
+  transform: translate(-50%, -50%);
+  display: none;
+  /* conic gradient filled by JS via --dwell custom prop */
+  background: conic-gradient(
+    rgba(99,102,241,.85) calc(var(--dwell,0) * 360deg),
+    transparent calc(var(--dwell,0) * 360deg)
+  );
+  -webkit-mask: radial-gradient(transparent 11px, black 12px, black 20px, transparent 21px);
+  mask: radial-gradient(transparent 11px, black 12px, black 20px, transparent 21px);
+}
+#dwellRing.active { display: block; }
+
+/* ── Edge zones (invisible, debug only) ── */
+.hp-edge {
+  position: fixed; top: 0; bottom: 0; z-index: 9990;
+  width: 12%; pointer-events: none;
+  /* transition: background .3s; */
+}
+.hp-edge-left  { left: 0; }
+.hp-edge-right { right: 0; }
+.hp-edge.triggered {
+  background: linear-gradient(90deg, rgba(99,102,241,.12), transparent);
+}
+.hp-edge-right.triggered {
+  background: linear-gradient(-90deg, rgba(99,102,241,.12), transparent);
+}
+
+/* ── Swipe indicator arrow ── */
+.hp-swipe-arrow {
+  position: fixed; top: 50%; z-index: 9991;
+  font-size: 1.8rem; color: rgba(99,102,241,.6);
+  pointer-events: none; opacity: 0;
+  transition: opacity .2s;
+  transform: translateY(-50%);
+}
+.hp-swipe-arrow.left  { left: 8px; }
+.hp-swipe-arrow.right { right: 8px; }
+.hp-swipe-arrow.show  { opacity: 1; }
+
+/* ── Toggle button ── */
+.hp-toggle {
+  position: fixed; bottom: 100px; right: 12px; z-index: 200;
+  width: 44px; height: 44px; border-radius: 50%;
+  background: linear-gradient(135deg, #6366f1, #8b5cf6);
+  border: 2px solid rgba(255,255,255,.4);
+  color: white; font-size: 1.1rem;
+  display: flex; align-items: center; justify-content: center;
+  box-shadow: 0 4px 16px rgba(99,102,241,.35);
+  cursor: pointer; -webkit-tap-highlight-color: transparent;
+}
+.hp-toggle:active { transform: scale(.92); }
+.hp-toggle.on {
+  background: linear-gradient(135deg, #10b981, #34d399);
+  box-shadow: 0 4px 16px rgba(16,185,129,.35);
+}
+
+/* ── Hidden video for face tracking ── */
+#hpVideo {
+  position: fixed; top: -9999px; left: -9999px;
+  width: 160px; height: 120px;
+  opacity: 0; pointer-events: none;
+}
