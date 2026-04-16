@@ -42,9 +42,11 @@ const SORRISO_CHECKS = {
     return fW > 0 ? mW / fW : 0;
   },
   'cheeks': lm => {
-    // Face width increase (puffed) — compare current width to mouth-nose ratio
-    const fW = _dist(lm[234],lm[454]), noseW = _dist(lm[129],lm[358]);
-    return noseW > 0 ? fW / noseW : 0;
+    // Guance gonfie = larghezza zona guance (138↔367) cresce vs larghezza tempie (234↔454)
+    // (le tempie non si muovono, le guance sì → ratio aumenta col gonfiore)
+    const cheekW = _dist(lm[138],lm[367]);
+    const tempW  = _dist(lm[234],lm[454]);
+    return tempW > 0 ? cheekW / tempW : 0;
   },
   'open': lm => {
     // Mouth vertical opening vs face height
@@ -52,7 +54,8 @@ const SORRISO_CHECKS = {
     return fH > 0 ? mH / fH : 0;
   },
   'kiss': lm => {
-    // Bacio = bocca stretta (commissure vicine) + labbra serrate (sup/inf unite)
+    // Bacio = bocca stretta E labbra serrate (entrambi richiesti, AND tramite moltiplicazione)
+    // La moltiplicazione evita falso positivo a riposo: a riposo le labbra sono unite ma la bocca NON è stretta
     const mW = _dist(lm[61],lm[291]);
     const fW = _dist(lm[234],lm[454]);
     const mH = _dist(lm[13],lm[14]);
@@ -60,7 +63,7 @@ const SORRISO_CHECKS = {
     if (fW === 0 || fH === 0) return 0;
     const narrow = Math.max(0, 1 - (mW / fW) * 1.2);
     const closed = Math.max(0, 1 - (mH / fH) * 25);
-    return narrow * 0.6 + closed * 0.4;
+    return narrow * closed;
   },
   'wink-l': lm => {
     // Left eye closed, right open — gradient score
@@ -124,7 +127,7 @@ const SORRISO_CHECKS = {
   },
 };
 const SORRISO_THRESHOLDS = {
-  'smile':0.42, 'cheeks':3.2, 'open':0.07, 'kiss':0.6,
+  'smile':0.42, 'cheeks':0.78, 'open':0.07, 'kiss':0.45,
   'wink-l':0.35, 'wink-r':0.35, 'lips-o':0.55, 'surprise':0.35,
   'teeth':0.4, 'brows':0.18, 'nose':0.4, 'tongue':0.35,
 };
