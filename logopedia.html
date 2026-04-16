@@ -841,10 +841,16 @@ function backToCategories(){
   try{ if (state.recognition) state.recognition.abort(); }catch(e){}
   try { speechSynthesis.cancel(); } catch(e){}
   state.recording = false;
+  const hadCategory = !!state.category;
   state.category = null;
   setAgentStatus('Lista para empezar');
   showScreen('Categories');
-  sayAgent(greetingText());
+  // Solo al primo ingresso il saluto completo; dopo, breve invito
+  if (hadCategory || _sessionsDone > 0) {
+    sayAgent(returnText());
+  } else {
+    sayAgent(greetingText());
+  }
 }
 
 function endSession(){
@@ -926,6 +932,7 @@ function agentCheerLine(level){
 //  RESULTADO / COMPLETE
 // ═══════════════════════════════════════════════════════════════
 function showComplete(){
+  _sessionsDone++;
   const done = state.results.length;
   const green = state.results.filter(r => r.ok==='green').length;
   const yellow = state.results.filter(r => r.ok==='yellow').length;
@@ -1093,6 +1100,8 @@ function countDistinctWords(s){
 // ═══════════════════════════════════════════════════════════════
 //  GREETING + INIT
 // ═══════════════════════════════════════════════════════════════
+let _sessionsDone = 0; // quante sessioni (categorie) completate in questa visita
+
 function greetingText(){
   const h = new Date().getHours();
   let phase = 'Hola';
@@ -1101,6 +1110,17 @@ function greetingText(){
   else phase = 'Buenas noches';
   const name = USER_NAME ? ', '+USER_NAME : '';
   return `${phase}${name}. Soy Ana, tu logopeda. ¿Qué quieres practicar hoy?`;
+}
+
+function returnText(){
+  const phrases = [
+    '¿Qué más practicamos?',
+    '¿Probamos otra categoría?',
+    'Elige otra categoría cuando quieras.',
+    '¿Seguimos con algo más?',
+    'Bien, ¿qué hacemos ahora?',
+  ];
+  return phrases[Math.floor(Math.random() * phrases.length)];
 }
 
 // ═══════════════════════════════════════════════════════════════
@@ -1177,7 +1197,7 @@ function openAssessment(){
 function cancelAssessment(){
   _assessDraft = null;
   showScreen('Categories');
-  sayAgent(greetingText());
+  sayAgent(_sessionsDone > 0 ? returnText() : greetingText());
 }
 
 function saveAssessment(){
