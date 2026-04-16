@@ -26,8 +26,9 @@ body{padding-top:var(--top-h); padding-bottom:40px}
 /* ── BACKGROUND MESH ── */
 .mesh{position:fixed;inset:0;z-index:0;pointer-events:none;overflow:hidden}
 .blob{position:absolute;border-radius:50%;filter:blur(80px);opacity:.35}
-.blob1{width:340px;height:340px;top:-100px;right:-80px;background:radial-gradient(circle,#e9d5ff,#fbcfe8)}
-.blob2{width:260px;height:260px;bottom:40px;left:-60px;background:radial-gradient(circle,#ddd6fe,#c4b5fd)}
+.blob1{width:340px;height:340px;top:-100px;right:-80px;background:radial-gradient(circle,#e9d5ff,#fbcfe8);animation:blobDrift 12s ease-in-out infinite}
+.blob2{width:260px;height:260px;bottom:40px;left:-60px;background:radial-gradient(circle,#ddd6fe,#c4b5fd);animation:blobDrift 16s ease-in-out infinite reverse}
+@keyframes blobDrift{0%,100%{transform:translate(0,0)} 33%{transform:translate(-18px,14px)} 66%{transform:translate(10px,-20px)}}
 
 /* ── TOPBAR ── */
 .topbar{
@@ -56,7 +57,9 @@ body{padding-top:var(--top-h); padding-bottom:40px}
 .topbar-title .dot{
   width:8px; height:8px; border-radius:50%;
   background:var(--violet); box-shadow:0 0 0 4px rgba(126,34,206,.15);
+  animation:dotPulse 2.5s ease-in-out infinite;
 }
+@keyframes dotPulse{0%,100%{box-shadow:0 0 0 4px rgba(126,34,206,.15)} 50%{box-shadow:0 0 0 7px rgba(126,34,206,.08)}}
 .topbar-end{
   font-size:.68rem; font-weight:800;
   background:var(--violet-l); color:var(--violet);
@@ -78,7 +81,9 @@ body{padding-top:var(--top-h); padding-bottom:40px}
   position:relative; overflow:hidden;
   box-shadow:0 10px 32px rgba(126,34,206,.25);
   margin-bottom:16px;
+  animation:heroFloat 5s ease-in-out infinite;
 }
+@keyframes heroFloat{0%,100%{transform:translateY(0);box-shadow:0 10px 32px rgba(126,34,206,.25)} 50%{transform:translateY(-3px);box-shadow:0 14px 38px rgba(126,34,206,.3)}}
 .agent-hero::before{
   content:''; position:absolute; inset:0;
   background:radial-gradient(circle at 85% 15%, rgba(255,255,255,.22), transparent 45%);
@@ -105,7 +110,8 @@ body{padding-top:var(--top-h); padding-bottom:40px}
 .agent-meta{flex:1; min-width:0}
 .agent-name{font-size:1rem; font-weight:800; letter-spacing:.01em}
 .agent-role{font-size:.72rem; font-weight:600; opacity:.8; display:flex; align-items:center; gap:6px}
-.agent-online{width:7px; height:7px; border-radius:50%; background:#4ade80; box-shadow:0 0 0 3px rgba(74,222,128,.3)}
+.agent-online{width:7px; height:7px; border-radius:50%; background:#4ade80; box-shadow:0 0 0 3px rgba(74,222,128,.3); animation:onlinePulse 2s ease-in-out infinite}
+@keyframes onlinePulse{0%,100%{box-shadow:0 0 0 3px rgba(74,222,128,.3)} 50%{box-shadow:0 0 0 6px rgba(74,222,128,.12)}}
 .agent-mic{
   width:38px; height:38px; border-radius:50%;
   background:rgba(255,255,255,.15); border:1px solid rgba(255,255,255,.25);
@@ -146,7 +152,13 @@ body{padding-top:var(--top-h); padding-bottom:40px}
   transition:transform .15s, box-shadow .15s, border-color .15s;
   -webkit-tap-highlight-color:transparent;
   box-shadow:var(--shadow);
+  animation:cardIn .4s ease both;
 }
+.cat-card:nth-child(1){animation-delay:.05s}
+.cat-card:nth-child(2){animation-delay:.12s}
+.cat-card:nth-child(3){animation-delay:.19s}
+.cat-card:nth-child(4){animation-delay:.26s}
+@keyframes cardIn{from{opacity:0;transform:translateY(14px) scale(.97)} to{opacity:1;transform:none}}
 .cat-card:active{transform:scale(.97)}
 .cat-card:hover{border-color:var(--violet); box-shadow:0 8px 24px rgba(126,34,206,.12)}
 .cat-icon{
@@ -165,6 +177,7 @@ body{padding-top:var(--top-h); padding-bottom:40px}
   padding:18px 16px;
   box-shadow:var(--shadow);
   margin-bottom:14px;
+  animation:cardIn .35s ease both;
 }
 .ex-progress{
   display:flex; gap:4px; margin-bottom:14px;
@@ -306,7 +319,9 @@ body{padding-top:var(--top-h); padding-bottom:40px}
   border-radius:16px; padding:10px 12px;
   box-shadow:var(--shadow);
   margin-bottom:12px;
+  animation:slideIn .35s ease both;
 }
+@keyframes slideIn{from{opacity:0;transform:translateX(-12px)} to{opacity:1;transform:none}}
 .pb-info{flex:1; min-width:0}
 .pb-lbl{font-size:.62rem; font-weight:800; color:var(--muted); text-transform:uppercase; letter-spacing:.05em}
 .pb-val{font-size:.9rem; font-weight:800; color:var(--ink); margin-top:2px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis}
