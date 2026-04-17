@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<meta http-equiv="Pragma" content="no-cache">
+<title>Visión Asistida · Parlia</title>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="vision.css?v=20260417a">
+<link rel="stylesheet" href="headpointer.css?v=20260417k">
+</head>
+<body>
+
+<div class="mesh"><div class="blob blob1"></div><div class="blob blob2"></div></div>
+
+<header class="topbar">
+  <a href="home.html" class="back-btn" aria-label="Volver" onclick="event.preventDefault(); if(history.length>1) history.back(); else location.href='home.html';">←</a>
+  <div class="topbar-title">
+    <span class="vis-dot"></span>
+    <span>Visión Asistida</span>
+  </div>
+  <button class="topbar-flip hidden" id="flipBtn" onclick="flipCamera()" aria-label="Cambiar cámara">🔄</button>
+</header>
+
+<main class="vis-wrap">
+
+  <div class="vis-stage" id="visStage">
+    <video id="visVideo" class="vis-video hidden" autoplay playsinline muted></video>
+    <div id="visCamNotice" class="vis-cam-notice">📷 Preparando cámara…</div>
+
+    <!-- Scanner line durante l'analisi -->
+    <div class="vis-scanner" id="visScanner"></div>
+
+    <!-- Overlay titolo in alto -->
+    <div class="vis-overlay vis-overlay-top">
+      <div class="vis-hint" id="visHint">Apunta a un texto o un objeto</div>
+    </div>
+
+    <!-- Overlay bottone + risultato in basso -->
+    <div class="vis-overlay vis-overlay-bottom">
+      <div class="vis-result hidden" id="visResult">
+        <div class="vis-result-label" id="visResultLabel">Resultado</div>
+        <div class="vis-result-text" id="visResultText">—</div>
+      </div>
+      <button class="btn-analyze" id="analyzeBtn" onclick="analyzeFrame()">
+        <span class="btn-icon">🔍</span>
+        <span class="btn-label">Analizar</span>
+      </button>
+    </div>
+
+    <!-- Spinner analysis -->
+    <div class="vis-analyzing hidden" id="visAnalyzing">
+      <div class="vis-analyzing-ring"></div>
+      <div class="vis-analyzing-text">Analizando…</div>
+    </div>
+  </div>
+
+  <div class="vis-actions-below">
+    <button class="btn btn-ghost" onclick="replayLast()" id="replayBtn" disabled>🔊 Escuchar de nuevo</button>
+    <button class="btn btn-ghost" onclick="resetResult()">↻ Nuevo</button>
+  </div>
+
+</main>
+
+<script src="userData.js"></script>
+<script src="tts.js?v=20260417a"></script>
+<script src="vision.js?v=20260417a"></script>
+<script src="headpointer.js?v=20260417k"></script>
+</body>
+</html>
