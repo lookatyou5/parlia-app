@@ -763,6 +763,57 @@ Progress dots dentro l'overlay hanno palette specifica per sfondo scuro (`active
 
 ---
 
+## Sessione 17 aprile 2026 (sera) — Head Pointer: scroll + estensione a logopedia
+
+### Problema
+Il puntatore funzionava solo sulla home (4 pagine del carosello) e permetteva dwell-click sui cliccabili + swipe laterale per cambiare pagina. Mancavano:
+- **Scroll verticale** (in una pagina con contenuto sotto il fold, es. una lista lunga in comunicador)
+- **Scroll orizzontale** di container interni (es. `.subcat-scroll` in AAC — lo swipe laterale cambiava pagina invece di scorrere le subcategorie)
+- **Disponibilità sulle altre pagine** (logopedia non lo aveva; per uscire da un esercizio dovevi cliccare manualmente "Cambiar categoría")
+
+### Soluzione: 4 edge zones, un solo paradigma
+Tutti e 4 i bordi dello schermo diventano zone di dwell (1s) con edge-glow viola. Priorità:
+1. **Clickable sotto il cursore** → dwell-click normale (1.5s). Se l'utente è su ⚙️, 🆘, un bottone — vince sempre, anche se per coincidenza è in una edge zone. Così la topbar resta cliccabile.
+2. **Edge zone** → dwell di 1s → trigger azione specifica per direzione.
+3. **Nient'altro** → reset timer, niente sound.
+
+### Azioni per direzione
+- **Top (10% alto)** → `hpScroll('up')` sul container verticale più grande visibile
+- **Bottom (10% basso)** → `hpScroll('down')`
+- **Left (12% sinistro)** → cascata:
+  1. Scroll orizzontale a sinistra su container interno (es. `.cat-scroll`, `.subcat-scroll`, `.cats`, `.subcats`)
+  2. `goTo(curPage - 1)` sul carosello home
+  3. `history.back()` (fallback universale → esce da esercizi logopedia, torna a home, ecc.)
+- **Right (12% destro)** → scroll orizzontale destra → `goTo(curPage + 1)` carosello. Nessun fallback a `history.forward()` (poco utile).
+
+**Pop sound viene riprodotto SOLO se l'azione avviene davvero** — altrimenti la ri-trigger ogni secondo produceva suoni inutili con l'utente fermo in un bordo "morto".
+
+### Scroller finder intelligente (`_hpFindBestScroller(axis)`)
+Cerca tra tutti gli elementi con `overflow: auto/scroll` visibili nel viewport:
+- **Blacklist** `.pages-wrap` e `[data-hp-no-scroll]` — evita di scrollare manualmente il carosello home (che deve cambiare pagina via goTo, non pixel-per-pixel)
+- **Scoring**: area visibile × 10 se il cursore ricade nel range perpendicolare dello scroller. Così su AAC, se l'utente punta la testa al livello verticale della riga subcats e va a destra, scrolla subcats (non cats). Se punta al livello di cats, scrolla cats.
+- Fallback finale: `document.scrollingElement` se è scrollabile.
+
+### DOM auto-injection
+`headpointer.js` all'avvio (DOMContentLoaded) inietta nel body tutti gli elementi mancanti:
+- `#cursor`, `#dwellRing`, `#hpVideo` (nascosti)
+- `.hp-edge-left/right/top/bottom` (zone invisibili, glow solo durante il dwell)
+- `.hp-swipe-arrow.left/right` (indicatori ‹ ›)
+- `.hp-toggle` (👁️) — solo se non già presente (home.html ce l'ha hardcoded)
+
+Idempotente (check `document.getElementById`/`querySelector` prima di creare). Una pagina qualsiasi che include `headpointer.css` + `headpointer.js` ottiene automaticamente tutto.
+
+### File toccati
+- `headpointer.js` — main loop riscritto (priorità clickable > edge), nuovo `_hpEdgeTrigger(dir)`, scroller finder con scoring + blacklist, auto-injection DOM
+- `headpointer.css` — edge zones per tutti e 4 i lati con glow `.triggered`
+- `logopedia.html` — aggiunti `<link>` CSS + `<script>` JS del puntatore
+- `home.html` — solo cache-bust dei riferimenti
+
+### Cache-bust della sessione
+`headpointer.*`: v20260416c → v20260417k (via i, j intermedi durante dev)
+
+---
+
 ## Istruzioni per Claude Code
 - Prima di qualsiasi modifica, fai sempre un commit git con messaggio "backup pre-modifica"
 - Dopo ogni sessione di lavoro, fai un commit con le modifiche fatte
