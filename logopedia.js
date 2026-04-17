@@ -141,14 +141,12 @@ let _inSubscreen = false;
 let _pendingSayAgent = null;
 
 try { history.replaceState({ screen:'categories', sub:false }, ''); } catch(e){}
-console.log('[logopedia] history mgmt init v20260417d, state=', history.state);
 
 function _enterSubscreen(name){
   try {
     if (_inSubscreen) history.replaceState({ screen:name, sub:true }, '');
     else { history.pushState({ screen:name, sub:true }, ''); _inSubscreen = true; }
-    console.log('[logopedia] enterSubscreen', name, 'len=', history.length);
-  } catch(e){ console.warn('[logopedia] enterSubscreen failed', e); }
+  } catch(e){}
 }
 
 function _showCategoriesView(){
@@ -171,11 +169,9 @@ function _showCategoriesView(){
 window.addEventListener('popstate', (e) => {
   const catScreen = document.getElementById('screenCategories');
   const categoriesHidden = catScreen && catScreen.classList.contains('hidden');
-  console.log('[logopedia] popstate', { state: e.state, inSubscreen: _inSubscreen, categoriesHidden });
   if (categoriesHidden || _inSubscreen){
     _inSubscreen = false;
     _showCategoriesView();
-    // Riposiziono lo state della entry corrente per non lasciare uno state "orfano"
     try { history.replaceState({ screen:'categories', sub:false }, ''); } catch(err){}
   }
 });
