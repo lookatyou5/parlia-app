@@ -15,6 +15,9 @@
   // Deploy in separato (stesso pattern di parlia-tts / parlia-vision).
   const TOKEN_URL = 'https://parlia-deepgram.luca-peltrini.workers.dev/token';
 
+  // Proxy Claude Haiku (stesso usato in home.html per la chat AI)
+  const AI_PROXY = 'https://voci-ai-proxy.luca-peltrini.workers.dev/v1/messages';
+
   // Parametri Deepgram (docs: https://developers.deepgram.com/docs/live-streaming-audio)
   const DG_PARAMS = {
     model: 'nova-2',
@@ -26,6 +29,10 @@
     encoding: 'linear16',
     // sample_rate viene iniettato a runtime (dipende dall'AudioContext)
   };
+
+  // Quanti turni di contesto mandare all'AI per generare le chips.
+  // Troppo poco = risposte generiche; troppo = più token, più latenza.
+  const CHIP_CTX_TURNS = 8;
 
   // Stato
   const S = {
@@ -48,7 +55,11 @@
     // WebSocket
     ws: null,
     currentInterimEl: null,      // bolla interim attualmente in aggiornamento
-    lastFinalTranscript: '',     // per Step 4 (chip AI)
+
+    // Contesto conversazione per generare chips AI
+    // Array di { role: 'them' | 'me', text: string } — ultimi CHIP_CTX_TURNS turni
+    history: [],
+    chipToken: 0,                // invalida richieste AI obsolete (come _currentToken in tts.js)
   };
 
   // DOM
@@ -173,11 +184,20 @@
     S.currentInterimEl = null;
     thread().scrollTop = thread().scrollHeight;
 
-    // Memorizza l'ultimo transcript finale — servirà nello Step 4
-    S.lastFinalTranscript = text;
+    // Aggiungi il turno del INTERLOCUTORE alla history (la persona che parla
+    // è chi sta di fronte all'utente; le chips sono risposte per l'utente).
+    pushHistory('them', text);
 
-    // STUB chips finché Step 4 non è implementato
-    renderChips(['Sí, gracias', 'No, ahora no', 'Un momento por favor']);
+    // Avvia generazione chip AI
+    generateChipsFromAI();
+  }
+
+  // ─── History conversazione ───
+  function pushHistory(role, text) {
+    S.history.push({ role, text });
+    if (S.history.length > CHIP_CTX_TURNS) {
+      S.history = S.history.slice(-CHIP_CTX_TURNS);
+    }
   }
 
   // ─── Chips ───
@@ -195,10 +215,26 @@
   }
   function clearChips() { chipsRow().innerHTML = ''; }
 
+  function showChipsLoading() {
+    const row = chipsRow();
+    row.innerHTML = '';
+    for (let i = 0; i < 3; i++) {
+      const sk = document.createElement('div');
+      sk.className = 'lc-chip lc-chip-skeleton';
+      sk.innerHTML = '<span class="lc-sk-bar"></span>';
+      sk.style.animationDelay = (i * 70) + 'ms';
+      row.appendChild(sk);
+    }
+  }
+
   function onChipTap(btn, text) {
     resetSafety();
     document.querySelectorAll('.lc-chip.played').forEach(c => c.classList.remove('played'));
     btn.classList.add('played');
+
+    // Aggiungi il turno dell'UTENTE alla history (tap su chip = "ha detto")
+    pushHistory('me', text);
+
     if (!S.ttsMuted && window.speakNeural) {
       try { window.stopNeural && window.stopNeural(); } catch(e){}
       if (typeof window.speakNeural.chip === 'function') {
@@ -206,6 +242,89 @@
       } else {
         window.speakNeural(text, { rate: 1.0 });
       }
+    }
+  }
+
+  // ─── Generazione chip via Claude Haiku ───
+  //
+  // Mandiamo a Claude Haiku gli ultimi N turni (them/me) + un system prompt
+  // specifico e gli chiediamo 3 risposte brevi IN PRIMA PERSONA per l'utente.
+  // Usiamo un token monotonico: se arriva un nuovo final transcript prima che
+  // la richiesta precedente abbia risposto, scartiamo il risultato vecchio.
+  async function generateChipsFromAI() {
+    const myToken = ++S.chipToken;
+    showChipsLoading();
+
+    try {
+      const ud = (window.ParliaUser && ParliaUser.get && ParliaUser.get()) || {};
+      const userName = ud.personal?.userName || '';
+      const hobbies  = (ud.memory?.hobbies || []).slice(0, 3).join(', ');
+      const condicion = (ud.personal?.condicion && ud.personal.condicion[0]) || '';
+
+      const systemPrompt =
+        'Eres el asistente de comunicación de una persona con dificultades del habla. ' +
+        'Alguien está hablando con la persona en una conversación cara a cara. ' +
+        'Tu tarea: generar 3 posibles respuestas que la persona podría tocar con el dedo ' +
+        'para que la voz las lea en voz alta a quien le está hablando. ' +
+        '\n\nReglas estrictas:' +
+        '\n- Respuestas en PRIMERA PERSONA (yo/me/mi), en español natural y conversacional' +
+        '\n- 3 respuestas VARIADAS en intención, nunca repetitivas:' +
+        '\n   · 1 muy breve (1-4 palabras): sí/no/gracias/etc' +
+        '\n   · 1 corta con matiz (3-7 palabras)' +
+        '\n   · 1 un poco más larga (6-14 palabras) con contexto o pregunta inversa' +
+        '\n- NUNCA repitas literalmente lo que ha dicho el interlocutor' +
+        '\n- Si ya hay historia previa, haz que las respuestas sean coherentes' +
+        (userName ? `\n- La persona se llama ${userName}` : '') +
+        (condicion ? `\n- Condición: ${condicion}` : '') +
+        (hobbies ? `\n- Intereses del usuario: ${hobbies}` : '') +
+        '\n\nResponde SOLO con un JSON array de 3 strings, sin markdown, sin comentarios.' +
+        '\nEjemplo: ["Sí","No mucho hoy","Ahora mismo estoy un poco cansado, ¿podemos hablar luego?"]';
+
+      // Costruzione del payload messages: una sola riga utente che include la history
+      // formattata come "INTERLOCUTOR:" / "YO:" — più semplice per Haiku di passare
+      // assistant/user alternati (che confonderebbero il ruolo di YO).
+      const convo = S.history.map(h =>
+        (h.role === 'them' ? 'INTERLOCUTOR: ' : 'YO: ') + h.text
+      ).join('\n');
+
+      const userMsg =
+        'Conversación hasta ahora:\n' + convo +
+        '\n\nGenera las 3 respuestas posibles para YO. Recuerda: solo el JSON array.';
+
+      const resp = await fetch(AI_PROXY, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          model: 'claude-haiku-4-5-20251001',
+          max_tokens: 200,
+          system: systemPrompt,
+          messages: [{ role: 'user', content: userMsg }],
+        }),
+      });
+
+      if (myToken !== S.chipToken) return;           // nel frattempo è arrivato un altro final
+      if (!S.listening && S.chipToken === myToken) { /* stop premuto: mantieni ultime chip */ }
+
+      if (!resp.ok) throw new Error('AI HTTP ' + resp.status);
+      const data = await resp.json();
+      const raw = (data.content?.[0]?.text || '[]').replace(/```json|```/g, '').trim();
+      let arr = [];
+      try { arr = JSON.parse(raw); } catch(e) {
+        // Fallback: estrai manualmente stringhe quotate
+        const m = raw.match(/"([^"]+)"/g);
+        arr = m ? m.map(s => s.slice(1, -1)) : [];
+      }
+      if (!Array.isArray(arr) || arr.length === 0) throw new Error('AI empty');
+      arr = arr.slice(0, 3).map(s => String(s).trim()).filter(Boolean);
+      if (arr.length === 0) throw new Error('AI empty');
+
+      if (myToken !== S.chipToken) return;
+      renderChips(arr);
+    } catch (err) {
+      console.warn('[LiveChat] chip gen fallback:', err?.message || err);
+      if (myToken !== S.chipToken) return;
+      // Fallback: chips generici universali (sempre utili)
+      renderChips(['Sí', 'No lo sé', 'Espera un momento, por favor']);
     }
   }
 

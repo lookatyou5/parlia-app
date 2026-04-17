@@ -8,6 +8,7 @@
 //   speakNeural.cheer(text)          → pitch +15%, volume +3dB (incoraggiamento)
 //   speakNeural.therapeutic(text, { targetWord, difficultPhonemes? })
 //                                    → rallenta + enfasi su targetWord se contiene fonemi difficili
+//   speakNeural.chip(text)           → tono naturale/immediato per risposte conversazionali (Live AI Chat)
 //
 // I difficultPhonemes vengono letti automaticamente da parlia_logo_profile.difficultPhonemes
 // se non passati esplicitamente.
@@ -206,6 +207,17 @@
     return speakNeural(ssml, Object.assign({}, opts, { ssml: true }));
   }
 
+  // chip("Sí, gracias") → tono naturale conversazionale, leggermente più
+  // sveglio del default (pitch +2% per calore, rate 1.0 = velocità normale di
+  // parlato, non rallentato). Usato in Live AI Chat dopo il tap su una chip.
+  function speakChip(text, opts) {
+    const t = (text || '').toString().trim();
+    if (!t) return;
+    opts = opts || {};
+    const ssml = `<prosody pitch="+2%">${_escapeSSML(t)}</prosody>`;
+    return speakNeural(ssml, Object.assign({}, opts, { ssml: true, rate: opts.rate || 1.0 }));
+  }
+
   // therapeutic("Decir mariposa", { targetWord: "mariposa" })
   // Se targetWord contiene fonemi difficili (dal profilo o passati): rallenta+enfatizza la parola
   // Altrimenti: legge normalmente
@@ -259,6 +271,7 @@
   speakNeural.withPauses   = speakWithPauses;
   speakNeural.cheer        = speakCheer;
   speakNeural.therapeutic  = speakTherapeutic;
+  speakNeural.chip         = speakChip;
 
   window.speakNeural = speakNeural;
   window.stopNeural  = stopNeural;
