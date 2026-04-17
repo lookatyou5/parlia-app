@@ -34,6 +34,45 @@
   // Troppo poco = risposte generiche; troppo = più token, più latenza.
   const CHIP_CTX_TURNS = 8;
 
+  // ─── Interlocutori preset ───
+  // Categorie di contatto visualizzate come pill nella parte alta della
+  // pagina. La selezione:
+  //  - resetta la history della conversazione corrente
+  //  - inietta un "contexto del interlocutor" nel system prompt di Haiku
+  //    così le chip sono adatte al tipo di relazione
+  // Persistenza: localStorage 'parlia_live_interlocutor' = id corrente.
+  // Schema futuro: potranno essere editabili da profile.html + custom contacts.
+  const CONTACTS = [
+    {
+      id: 'luca',
+      name: 'Luca',
+      emoji: '💑',
+      relationship: 'pareja / compañero sentimental',
+      context: 'Luca es el compañero/pareja del usuario. Relación cercana, íntima, cariñosa, de confianza total. Tono natural, afectuoso, con inside jokes y complicidad. Pueden hablar de cualquier cosa: planes, sentimientos, miedos, recuerdos, vida cotidiana, deseos, pequeñas tonterías.',
+    },
+    {
+      id: 'medicos',
+      name: 'Médicos',
+      emoji: '🩺',
+      relationship: 'equipo médico / terapéutico',
+      context: 'Es el equipo médico o terapéutico (fisioterapeuta, logopeda, neurólogo, enfermería, psicólogo). Tono respetuoso y colaborativo, directo cuando hace falta. Temas típicos: cómo me siento, dolor, cansancio, progresos, dudas sobre el tratamiento o los ejercicios, efectos de la medicación, objetivos de rehabilitación.',
+    },
+    {
+      id: 'familia',
+      name: 'Familia',
+      emoji: '👨‍👩‍👧',
+      relationship: 'familiar (padres, hermanos, hijos)',
+      context: 'Es un miembro cercano de la familia. Tono cálido, familiar, afectuoso. Temas: salud y cómo me va hoy, noticias de la familia, recuerdos compartidos, vida cotidiana, preocupaciones suaves, planes próximos. Evita lenguaje técnico-médico.',
+    },
+    {
+      id: 'amigos',
+      name: 'Amigos',
+      emoji: '🙋',
+      relationship: 'amigo/a',
+      context: 'Es un amigo/a. Tono relajado, cercano, con humor ligero si viene natural. Temas: cómo me va, qué hago estos días, planes, anécdotas del día a día, intereses compartidos.',
+    },
+  ];
+
   // Stato
   const S = {
     listening: false,
@@ -64,6 +103,9 @@
     // Pre-generazione su interim stabile (riduce latenza percepita)
     interimStableTimer: null,    // timer 500ms dopo ultima modifica interim
     preGenInterim: null,         // testo interim per cui è stato lanciato il pre-gen
+
+    // Interlocutore selezionato (default primo della lista)
+    interlocutorId: CONTACTS[0].id,
   };
 
   const PREGEN_STABLE_MS = 500;
@@ -306,11 +348,19 @@
     const userName = ud.personal?.userName || '';
     const hobbies  = (ud.memory?.hobbies || []).slice(0, 3).join(', ');
     const condicion = (ud.personal?.condicion && ud.personal.condicion[0]) || '';
+    const contact = _currentContact();
 
     return 'Eres el asistente de comunicación de una persona con dificultades del habla. ' +
       'Alguien está hablando con la persona en una conversación cara a cara. ' +
       'Tu tarea: generar 3 posibles respuestas que la persona podría tocar con el dedo ' +
       'para que la voz las lea en voz alta a quien le está hablando. ' +
+      '\n\n🗣️ CONTEXTO DEL INTERLOCUTOR (muy importante para el tono):' +
+      `\n- Categoría: ${contact.name}` +
+      `\n- Relación: ${contact.relationship}` +
+      `\n- Contexto: ${contact.context}` +
+      '\n\nAdapta registro, tono, nivel de formalidad y temas al interlocutor. ' +
+      'No uses lenguaje técnico con familiares/amigos, ni demasiada confianza con médicos. ' +
+      'Con la pareja el tono puede ser más íntimo y cariñoso; con amigos más relajado.' +
       '\n\nReglas estrictas:' +
       '\n- Respuestas en PRIMERA PERSONA (yo/me/mi), en español natural y conversacional' +
       '\n- 3 respuestas VARIADAS en intención, nunca repetitivas:' +
@@ -664,8 +714,81 @@
   window.addEventListener('pagehide', powerDown);
   window.addEventListener('beforeunload', powerDown);
 
+  // ─── Interlocutori (render + selezione) ───
+  function _currentContact() {
+    return CONTACTS.find(c => c.id === S.interlocutorId) || CONTACTS[0];
+  }
+
+  function _loadInterlocutor() {
+    try {
+      const saved = localStorage.getItem('parlia_live_interlocutor');
+      if (saved && CONTACTS.some(c => c.id === saved)) S.interlocutorId = saved;
+    } catch(e) {}
+  }
+  function _saveInterlocutor() {
+    try { localStorage.setItem('parlia_live_interlocutor', S.interlocutorId); } catch(e) {}
+  }
+
+  function renderInterlocutors() {
+    const row = document.getElementById('lcInterlocutors');
+    if (!row) return;
+    row.innerHTML = '';
+    CONTACTS.forEach(c => {
+      const btn = document.createElement('button');
+      btn.type = 'button';
+      btn.className = 'lc-interlocutor' + (c.id === S.interlocutorId ? ' active' : '');
+      btn.innerHTML = `<span class="lc-interlocutor-emoji">${c.emoji}</span> ${c.name}`;
+      btn.onclick = () => selectInterlocutor(c.id);
+      row.appendChild(btn);
+    });
+  }
+
+  function _updateEmptyState() {
+    const c = _currentContact();
+    const i = document.getElementById('lcEmptyIcon');
+    const t = document.getElementById('lcEmptyTitle');
+    const s = document.getElementById('lcEmptySub');
+    if (i) i.textContent = c.emoji;
+    if (t) t.textContent = 'Conversación con ' + c.name;
+    if (s) s.innerHTML = 'Pulsa <b>Empezar</b>. Parlia sugerirá respuestas adecuadas para hablar con ' + c.name.toLowerCase() + '.';
+  }
+
+  function selectInterlocutor(id) {
+    if (!id || id === S.interlocutorId) return;
+    const prev = S.interlocutorId;
+    S.interlocutorId = id;
+    _saveInterlocutor();
+
+    // Reset conversazione: nuova persona, nuova storia
+    S.history = [];
+    S.preGenInterim = null;
+    if (S.interimStableTimer) { clearTimeout(S.interimStableTimer); S.interimStableTimer = null; }
+    S.chipToken++;  // invalida eventuali chiamate AI in volo
+    clearChips();
+
+    // Svuota thread e ricrea empty state con i testi del nuovo contatto
+    const th = thread();
+    if (th) th.innerHTML = '';
+    S.currentInterimEl = null;
+    const empty = document.createElement('div');
+    empty.className = 'lc-empty';
+    empty.id = 'lcEmpty';
+    empty.innerHTML = `
+      <div class="lc-empty-icon" id="lcEmptyIcon"></div>
+      <div class="lc-empty-title" id="lcEmptyTitle"></div>
+      <div class="lc-empty-sub" id="lcEmptySub"></div>`;
+    th.appendChild(empty);
+    _updateEmptyState();
+
+    renderInterlocutors();
+    if (prev) toast('Interlocutor: ' + _currentContact().name);
+  }
+
   // ─── Init ───
   function init() {
+    _loadInterlocutor();
+    renderInterlocutors();
+    _updateEmptyState();
     setWsStatus('disconnected');
     adminTime().textContent = '00:00';
     adminCost().textContent = '$0.0000';

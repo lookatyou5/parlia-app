@@ -108,6 +108,45 @@ html, body {
   min-height: calc(100vh - 60px);
 }
 
+/* ═══ Selector interlocutor ═══ */
+.lc-interlocutors {
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  overflow-y: hidden;
+  padding: 2px 2px 6px;
+  margin: -4px -2px 0;
+  scroll-snap-type: x proximity;
+  scrollbar-width: none;
+  -webkit-overflow-scrolling: touch;
+}
+.lc-interlocutors::-webkit-scrollbar { display: none; }
+.lc-interlocutor {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 8px 14px;
+  border-radius: 20px;
+  background: white;
+  color: var(--muted);
+  font-family: inherit;
+  font-size: .82rem; font-weight: 700;
+  border: 1px solid rgba(236,72,153,.14);
+  cursor: pointer;
+  white-space: nowrap;
+  flex-shrink: 0;
+  scroll-snap-align: start;
+  box-shadow: 0 1px 4px rgba(236,72,153,.05);
+  transition: transform .12s, background .18s, color .18s, box-shadow .18s, border-color .18s;
+  -webkit-tap-highlight-color: transparent;
+}
+.lc-interlocutor:active { transform: scale(.94); }
+.lc-interlocutor.active {
+  background: var(--accent-gradient);
+  color: white;
+  border-color: transparent;
+  box-shadow: 0 4px 14px rgba(236,72,153,.32);
+}
+.lc-interlocutor-emoji { font-size: 1.05rem; line-height: 1; }
+
 /* ═══ Thread ═══ */
 .lc-thread {
   flex: 1;
