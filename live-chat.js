@@ -305,8 +305,13 @@
   }
 
   function connectDeepgramWS(token, sampleRate) {
-    // Auth via subprotocol (solo modo per passare credenziali con WebSocket in browser)
-    const ws = new WebSocket(buildDeepgramUrl(sampleRate), ['token', token]);
+    // Auth via subprotocol — unico modo per passare credenziali a un WebSocket
+    // dal browser (non si possono settare header custom).
+    //   - API key permanente  → subprotocol ['token', API_KEY]
+    //   - JWT temp da /v1/auth/grant → subprotocol ['bearer', JWT]  ← il nostro caso
+    // Se usi 'token' con un JWT, Deepgram risponde 401 durante l'handshake
+    // e il browser emette close 1006 senza poter leggere il motivo reale.
+    const ws = new WebSocket(buildDeepgramUrl(sampleRate), ['bearer', token]);
     ws.binaryType = 'arraybuffer';
 
     ws.onopen = () => {
@@ -339,6 +344,7 @@
     };
 
     ws.onclose = (e) => {
+      console.log('[Deepgram] WS close code=' + e.code + ' reason=' + (e.reason || '(none)') + ' wasClean=' + e.wasClean);
       // Se chiude inatteso durante l'ascolto, forziamo stop pulito
       if (S.listening) {
         S.listening = false;
@@ -350,7 +356,8 @@
         stopTick();
         setWsStatus('disconnected');
         if (e.code !== 1000) {
-          toast('Conexión cerrada (' + e.code + ')');
+          const hint = e.code === 1006 ? ' (auth o red)' : '';
+          toast('Conexión cerrada (' + e.code + ')' + hint);
         }
       }
     };
