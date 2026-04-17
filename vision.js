@@ -99,8 +99,9 @@ function _showError(msg) {
 }
 
 // ── Descrizione AI quando non c'è testo ──
-async function _describeWithAI(items) {
+async function _describeWithAI(items, hintText = '') {
   const list = items.slice(0, 6).join(', ');
+  const hint = hintText ? ` Texto parcial visible (puede ser marca/etiqueta): "${hintText.slice(0, 60)}".` : '';
   try {
     const res = await fetch(AI_PROXY, {
       method: 'POST',
@@ -108,10 +109,10 @@ async function _describeWithAI(items) {
       body: JSON.stringify({
         model: 'claude-haiku-4-5-20251001',
         max_tokens: 50,
-        system: 'Eres un asistente visual para una persona en rehabilitación. Describe en español lo que hay en la imagen en UNA frase corta y natural, máximo 10 palabras, empezando siempre con "Veo". Prioriza el objeto más relevante. Evita signos de exclamación.',
+        system: 'Eres un asistente visual para una persona en rehabilitación. Describe en español lo que hay en la imagen en UNA frase corta y natural, máximo 10 palabras, empezando siempre con "Veo". Prioriza el objeto más relevante. Si hay una marca o etiqueta visible, puedes mencionarla brevemente. Evita signos de exclamación.',
         messages: [{
           role: 'user',
-          content: `Objetos/etiquetas detectados (en inglés, de más a menos probable): ${list}. Genera la frase en español.`,
+          content: `Objetos/etiquetas detectados (en inglés, de más a menos probable): ${list}.${hint} Genera la frase en español.`,
         }],
       }),
     });
@@ -122,7 +123,6 @@ async function _describeWithAI(items) {
   } catch (e) {
     console.error('AI describe error:', e);
   }
-  // Fallback: frase semplice con il primo termine
   return `Veo ${items[0] || 'algo'}.`;
 }
 
@@ -160,28 +160,34 @@ async function analyzeFrame() {
 }
 
 async function _handleResult(data) {
-  const text = (data.text || '').trim();
+  const rawText = (data.text || '').trim();
   const objects = Array.isArray(data.objects) ? data.objects.map(o => o.name) : [];
   const labels  = Array.isArray(data.labels)  ? data.labels.map(l => l.desc) : [];
 
-  // 1) Testo rilevato → priorità assoluta
-  if (text && text.length >= 2) {
-    _showResult('Texto detectado', text);
-    VIS.lastText = text;
-    if (window.speakNeural) window.speakNeural(text, { voice: 'es-ES-Neural2-H' });
+  // Heuristica "testo vero": ≥3 parole separate da spazi/newline, ≥15 char totali.
+  // Evita di leggere brand name isolati tipo "COCA-COLA" o "500ml" stampati su
+  // una bottiglia — quelli vengono trattati come oggetto, descritti dall'AI.
+  const wordCount = rawText.split(/\s+/).filter(w => w.length >= 2).length;
+  const isMeaningfulText = rawText.length >= 15 && wordCount >= 3;
+
+  if (isMeaningfulText) {
+    _showResult('Texto detectado', rawText);
+    VIS.lastText = rawText;
+    if (window.speakNeural) window.speakNeural(rawText, { voice: 'es-ES-Neural2-H' });
     return;
   }
 
-  // 2) Niente testo → descrivi l'oggetto principale con AI
+  // Niente testo significativo → descrivi con AI (passa anche il testo breve,
+  // può aiutare Claude a identificare il brand / prodotto)
   const candidates = [...objects, ...labels];
-  if (candidates.length === 0) {
+  if (candidates.length === 0 && !rawText) {
     const fallback = 'No he podido identificar nada claro. Prueba con mejor luz o acércate.';
     _showResult('Sin detección', fallback);
     VIS.lastText = fallback;
     if (window.speakNeural) window.speakNeural(fallback, { voice: 'es-ES-Neural2-H' });
     return;
   }
-  const description = await _describeWithAI(candidates);
+  const description = await _describeWithAI(candidates, rawText);
   _showResult('Veo', description);
   VIS.lastText = description;
   if (window.speakNeural) window.speakNeural(description, { voice: 'es-ES-Neural2-H' });
