@@ -127,11 +127,13 @@ function _hpStopCam(){
 function _hpPowerDown(){
   HP.on = false;
   if (HP.animFrame){ cancelAnimationFrame(HP.animFrame); HP.animFrame = null; }
+  if (typeof _hpStopScrollWatch === 'function') _hpStopScrollWatch();
+  document.body.classList.remove('hp-on');
   _hpStopCam();
   if (HP.faceLandmarker){ try{ HP.faceLandmarker.close(); }catch(e){} HP.faceLandmarker = null; }
-  document.getElementById('cursor').classList.remove('active');
-  document.getElementById('dwellRing').classList.remove('active');
-  document.querySelector('.hp-toggle').classList.remove('on');
+  const cur = document.getElementById('cursor'); if (cur) cur.classList.remove('active');
+  const ring = document.getElementById('dwellRing'); if (ring) ring.classList.remove('active');
+  const tg = document.querySelector('.hp-toggle'); if (tg) tg.classList.remove('on');
 }
 
 // ── Lerp
@@ -183,12 +185,16 @@ function _hpLoop(){
   ring.style.top = HP.cy + 'px';
 
   const W = window.innerWidth, H = window.innerHeight;
-  const inRestZone = HP.cy < H * HP.REST_TOP;
+  // Se il cursore è su un controllo del puntatore (scroll btn o toggle),
+  // by-passa rest/edge zones così il dwell-click funziona normalmente.
+  const _elAt = document.elementFromPoint(HP.cx, HP.cy);
+  const _onHpControl = _elAt && _elAt.closest('.hp-scroll-btn, .hp-toggle');
+  const inRestZone = !_onHpControl && HP.cy < H * HP.REST_TOP;
   cursor.classList.toggle('resting', inRestZone);
 
   // ── Edge swipe detection
-  const inLeftEdge = HP.cx < W * HP.EDGE_ZONE;
-  const inRightEdge = HP.cx > W * (1 - HP.EDGE_ZONE);
+  const inLeftEdge = !_onHpControl && HP.cx < W * HP.EDGE_ZONE;
+  const inRightEdge = !_onHpControl && HP.cx > W * (1 - HP.EDGE_ZONE);
   const arrowL = document.querySelector('.hp-swipe-arrow.left');
   const arrowR = document.querySelector('.hp-swipe-arrow.right');
 
@@ -286,10 +292,137 @@ async function hpToggle(){
   HP.cy = window.innerHeight / 2;
   btn.classList.add('on');
   btn.textContent = '👁️';
+  document.body.classList.add('hp-on');
   document.getElementById('cursor').classList.add('active');
   document.getElementById('dwellRing').classList.add('active');
+  if (typeof _hpStartScrollWatch === 'function') _hpStartScrollWatch();
   _hpLoop();
 }
+
+// ═══ SCROLL BUTTONS (↑ ↓ ← →) ═══
+// Trova lo scroller più rilevante nel viewport per l'asse richiesto
+function _hpFindBestScroller(axis){
+  const candidates = [];
+  const all = document.querySelectorAll('*');
+  for (const el of all){
+    const r = el.getBoundingClientRect();
+    if (r.width <= 0 || r.height <= 0) continue;
+    if (r.right < 0 || r.bottom < 0 || r.left > window.innerWidth || r.top > window.innerHeight) continue;
+    const cs = getComputedStyle(el);
+    if (axis === 'y'){
+      const ov = cs.overflowY;
+      if ((ov === 'auto' || ov === 'scroll') && el.scrollHeight > el.clientHeight + 2) candidates.push(el);
+    } else {
+      const ov = cs.overflowX;
+      if ((ov === 'auto' || ov === 'scroll') && el.scrollWidth > el.clientWidth + 2) candidates.push(el);
+    }
+  }
+  const doc = document.scrollingElement || document.documentElement;
+  if (axis === 'y' && doc.scrollHeight > doc.clientHeight + 2) candidates.push(doc);
+  if (axis === 'x' && doc.scrollWidth > doc.clientWidth + 2) candidates.push(doc);
+  if (!candidates.length) return null;
+  // Se ce n'è uno solo, è lui. Altrimenti il più grande visibile.
+  let best = null, bestArea = 0;
+  for (const el of candidates){
+    const r = (el === doc) ? { left:0, top:0, right:window.innerWidth, bottom:window.innerHeight, width:window.innerWidth, height:window.innerHeight } : el.getBoundingClientRect();
+    const visW = Math.max(0, Math.min(r.right, window.innerWidth) - Math.max(r.left, 0));
+    const visH = Math.max(0, Math.min(r.bottom, window.innerHeight) - Math.max(r.top, 0));
+    const area = visW * visH;
+    if (area > bestArea){ bestArea = area; best = el; }
+  }
+  return best;
+}
+function _hpCanScroll(sc, dir){
+  if (!sc) return false;
+  if (dir === 'up')    return sc.scrollTop > 2;
+  if (dir === 'down')  return sc.scrollTop + sc.clientHeight < sc.scrollHeight - 2;
+  if (dir === 'left')  return sc.scrollLeft > 2;
+  if (dir === 'right') return sc.scrollLeft + sc.clientWidth < sc.scrollWidth - 2;
+  return false;
+}
+function hpScroll(dir){
+  const axis = (dir === 'up' || dir === 'down') ? 'y' : 'x';
+  const sc = _hpFindBestScroller(axis);
+  if (!sc) return;
+  const step = Math.round((axis === 'y' ? sc.clientHeight : sc.clientWidth) * 0.7);
+  const sign = (dir === 'up' || dir === 'left') ? -1 : 1;
+  const opts = { behavior: 'smooth' };
+  if (axis === 'y') opts.top = step * sign;
+  else opts.left = step * sign;
+  try { sc.scrollBy(opts); } catch(e){ /* fallback */ sc.scrollTop += (opts.top||0); sc.scrollLeft += (opts.left||0); }
+}
+function _hpUpdateScrollBtnsVisibility(){
+  const vSc = _hpFindBestScroller('y');
+  const hSc = _hpFindBestScroller('x');
+  const map = {
+    hpScrollUp:    _hpCanScroll(vSc, 'up'),
+    hpScrollDown:  _hpCanScroll(vSc, 'down'),
+    hpScrollLeft:  _hpCanScroll(hSc, 'left'),
+    hpScrollRight: _hpCanScroll(hSc, 'right'),
+  };
+  for (const [id, v] of Object.entries(map)){
+    const el = document.getElementById(id);
+    if (el) el.classList.toggle('visible', v);
+  }
+}
+// Update periodico (ogni 400ms) mentre il puntatore è attivo
+HP._scrollUpdateTimer = null;
+function _hpStartScrollWatch(){
+  if (HP._scrollUpdateTimer) return;
+  _hpUpdateScrollBtnsVisibility();
+  HP._scrollUpdateTimer = setInterval(_hpUpdateScrollBtnsVisibility, 400);
+}
+function _hpStopScrollWatch(){
+  if (HP._scrollUpdateTimer){ clearInterval(HP._scrollUpdateTimer); HP._scrollUpdateTimer = null; }
+  // Nascondi tutti
+  ['hpScrollUp','hpScrollDown','hpScrollLeft','hpScrollRight'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.classList.remove('visible');
+  });
+}
+
+// ═══ DOM INJECTION (così funziona anche su pagine senza markup hardcoded) ═══
+function _hpInjectDOM(){
+  const make = (tag, attrs, parent) => {
+    if (attrs.id && document.getElementById(attrs.id)) return document.getElementById(attrs.id);
+    if (attrs.className && document.querySelector('.' + attrs.className.split(' ')[0])){
+      // Già presente (es. home.html ha .hp-toggle hardcoded)
+      if (tag === 'button' && attrs.className.includes('hp-toggle')) return document.querySelector('.hp-toggle');
+    }
+    const el = document.createElement(tag);
+    Object.entries(attrs).forEach(([k,v]) => {
+      if (k === 'className') el.className = v;
+      else if (k === 'text') el.textContent = v;
+      else el.setAttribute(k, v);
+    });
+    (parent || document.body).appendChild(el);
+    return el;
+  };
+  // Core elements
+  make('div', { id:'cursor' });
+  make('div', { id:'dwellRing' });
+  make('video', { id:'hpVideo', autoplay:'', playsinline:'', muted:'' });
+  // Toggle button (se non già presente)
+  if (!document.querySelector('.hp-toggle')){
+    make('button', { className:'hp-toggle', onclick:'hpToggle()', title:'Head Pointer', text:'👁️' });
+  }
+  // Scroll buttons
+  make('button', { id:'hpScrollUp',    className:'hp-scroll-btn', onclick:"hpScroll('up')",    'aria-label':'Scroll arriba',  text:'↑' });
+  make('button', { id:'hpScrollDown',  className:'hp-scroll-btn', onclick:"hpScroll('down')",  'aria-label':'Scroll abajo',   text:'↓' });
+  make('button', { id:'hpScrollLeft',  className:'hp-scroll-btn', onclick:"hpScroll('left')",  'aria-label':'Scroll izquierda', text:'←' });
+  make('button', { id:'hpScrollRight', className:'hp-scroll-btn', onclick:"hpScroll('right')", 'aria-label':'Scroll derecha', text:'→' });
+}
+
+// Inietta subito al load dello script (idempotente)
+if (document.readyState === 'loading'){
+  document.addEventListener('DOMContentLoaded', _hpInjectDOM);
+} else {
+  _hpInjectDOM();
+}
+
+// Espongo le funzioni a window (chiamate via onclick inline)
+window.hpToggle = hpToggle;
+window.hpScroll = hpScroll;
 
 // ── Auto power-down on background / navigate away
 document.addEventListener('visibilitychange', () => { if (document.hidden && HP.on) _hpPowerDown(); });

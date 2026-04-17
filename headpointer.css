@@ -92,3 +92,25 @@
   width: 160px; height: 120px;
   opacity: 0; pointer-events: none;
 }
+
+/* ── Scroll buttons (↑ ↓ ← →) — visibili solo col puntatore attivo ── */
+.hp-scroll-btn {
+  position: fixed; right: 12px; z-index: 200;
+  width: 44px; height: 44px; border-radius: 50%;
+  background: rgba(99,102,241,.82);
+  backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
+  border: 2px solid rgba(255,255,255,.55);
+  color: white; font-size: 1.2rem; font-weight: 800;
+  display: none; align-items: center; justify-content: center;
+  box-shadow: 0 4px 14px rgba(99,102,241,.4);
+  cursor: pointer; -webkit-tap-highlight-color: transparent;
+  transition: transform .12s, background .2s;
+}
+.hp-scroll-btn:active { transform: scale(.92); }
+body.hp-on .hp-scroll-btn.visible { display: flex; }
+/* Vertical group (top-right area) */
+#hpScrollUp   { top: calc(50% - 110px); }
+#hpScrollDown { top: calc(50% - 58px); }
+/* Horizontal group (bottom-right area, sopra toggle) */
+#hpScrollLeft  { top: calc(50% + 10px); }
+#hpScrollRight { top: calc(50% + 62px); }
