@@ -914,6 +914,177 @@ Gradient teal→cyan, link diretto a `vision.html`. Posizione scelta per essere 
 
 ---
 
+## Sessione 17 aprile 2026 (notte, parte 2) — Live AI Chat (Deepgram Nova-2)
+
+Nuova feature: **`live-chat.html`** — pagina standalone per conversazioni in tempo reale. L'interlocutore parla, Deepgram trascrive in streaming, Claude Haiku genera 3 risposte predittive che Laura può toccare → voce Neural2-H le legge ad alta voce. Pensata per conversazioni faccia a faccia (caregiver, visitatori, terapisti) dove Laura non riesce a formulare risposte verbali.
+
+### URL
+- Pagina: `https://app.parlia.app/live-chat.html`
+- Worker token: `https://parlia-deepgram.luca-peltrini.workers.dev/token`
+
+### Architettura
+```
+[Mic browser] --PCM linear16 (AudioWorklet)--> [Deepgram WS Nova-2]
+                                                        │
+[Browser] <-- Results (interim + final) ----------------+
+    │
+    └── final transcript → history → [voci-ai-proxy → Claude Haiku] → 3 chips
+                                                                          │
+[Browser] --tap chip--> speakNeural.chip(text) ----> [parlia-tts → Neural2-H]
+    │
+    └── token temp: GET [parlia-deepgram Worker] --+ DEEPGRAM_API_KEY--> [api.deepgram.com/v1/auth/grant]
+                                                                              → JWT valido 30s
+```
+
+### Worker `parlia-deepgram` (nuovo)
+- URL: `parlia-deepgram.luca-peltrini.workers.dev`
+- Secret cifrato: `DEEPGRAM_API_KEY` (Deepgram console API key con scope `member`)
+- Endpoint unico: `GET /token` → POST a `https://api.deepgram.com/v1/auth/grant` con Authorization Token; ritorna `{ token, expires_in }` (JWT valido 30s, scope `asr:write`)
+- CORS allowlist: app.parlia.app, laura.parlia.app, parlia.app, localhost
+- `Cache-Control: no-store` (ogni token è usa-e-getta)
+- **NON in repo** (codice fornito nella chat di sviluppo, stesso pattern di `parlia-vision` e `parlia-tts`)
+- Free tier Deepgram: $200 di credito iniziale = ~565 ore Nova-2 streaming
+  - **Nessuna carta di credito aggiunta** → quando il credito finisce, l'API smette e basta (zero addebito)
+  - Deepgram non ha budget-alert integrati come GCP → controllo manuale via console.deepgram.com → Usage
+
+### Auth WebSocket dal browser
+I browser non possono settare header custom su WebSocket. Deepgram accetta credenziali via **subprotocol**:
+- API key fissa: `new WebSocket(url, ['token', API_KEY])`
+- **JWT temp (il nostro caso)**: `new WebSocket(url, ['bearer', JWT])` ← indispensabile
+
+Errore tipico: usare `'token'` con un JWT → Deepgram risponde 401 durante l'handshake, il browser emette **close code 1006** senza reason leggibile. Il fix passa da `['token', ...]` a `['bearer', ...]`.
+
+### Capture audio: AudioWorklet + PCM linear16 (non MediaRecorder)
+Motivazioni:
+- **Latenza minima** (niente container webm/opus)
+- **Safari iOS compatibile** (MediaRecorder con opus NON lo è — bloccante per Laura su iPhone)
+- **Deepgram** accetta PCM linear16 direttamente, nessun parsing container lato server
+
+Implementazione (file inline via `URL.createObjectURL(new Blob(...))`, zero file esterno da servire):
+```js
+class PCMProcessor extends AudioWorkletProcessor {
+  process(inputs) {
+    const channel = inputs[0]?.[0];
+    if (!channel) return true;
+    const pcm = new Int16Array(channel.length);
+    for (let i = 0; i < channel.length; i++) {
+      const s = Math.max(-1, Math.min(1, channel[i]));
+      pcm[i] = s < 0 ? s * 0x8000 : s * 0x7fff;
+    }
+    this.port.postMessage(pcm.buffer, [pcm.buffer]);
+    return true;
+  }
+}
+```
+Sample rate passato a Deepgram così com'è (`audioCtx.sampleRate`, tipicamente 48000 o 44100) — zero resampling client-side. `getUserMedia` con `echoCancellation + noiseSuppression + autoGainControl` attivi.
+
+### Parametri Deepgram WebSocket
+```
+wss://api.deepgram.com/v1/listen?
+  model=nova-2 &
+  language=es &
+  smart_format=true &           ← punteggiatura + maiuscole automatiche
+  interim_results=true &        ← parziali in tempo reale
+  endpointing=300 &             ← ms di silenzio per finalizzare un turno
+  channels=1 &
+  encoding=linear16 &
+  sample_rate=<runtime>
+```
+Messaggi gestiti: `type=Results` con `is_final: false/true`. Altri tipi loggati solo se `Error`.
+
+### Chat UI — bolle them / me (come WhatsApp)
+- **Interlocutore** (chi parla al microfono, cioè la persona davanti a Laura) → bolle **sinistra**, bianche, bordo soft
+  - Interim: background rosa tenue + dashed border + italic gray → feedback immediato mentre si parla
+  - Finale: bianco pieno, ink scuro
+- **Laura** (chip tappata) → bolle **destra**, rose gradient (stesso colore della pagina)
+- Thread scrollabile, animazione bubbleIn .25s sotto a ogni inserimento
+
+`addMeBubble(text)` viene chiamata in `onChipTap` PRIMA del TTS → conversazione leggibile a entrambi i lati.
+
+### Pre-generazione chips su interim stabile (riduce latenza percepita ~50%)
+Il bottleneck della feature è la latenza di Claude Haiku (~800-1500ms per risposta). Soluzione:
+
+`schedulePreGen(interimText)` debounce 500ms: se l'interim non cambia per mezzo secondo **E** ha ≥3 parole, lancia una chiamata AI speculativa usando `[...S.history, {role:'them', text:interim}]` come history ipotetica. `S.history` reale NON viene toccato.
+
+Quando arriva il final:
+- Se coincide (dopo `_normalizeForCompare`: lowercase + strip punteggiatura + trim) con l'interim pre-genato → **chips già renderizzate**, zero attesa, zero nuova chiamata API
+- Altrimenti: `runChipGen(null)` rigenera con history definitiva, skeleton shimmer mentre aspetta
+
+Token monotonico (`S.chipToken`): ogni pre-gen / post-final incrementa il token → i risultati delle chiamate precedenti vengono scartati prima del render.
+
+Costo trade-off: ~0.0001$ per chiamata pre-gen sprecata quando l'utente continua a cambiare frase. Trascurabile rispetto al guadagno di UX.
+
+### System prompt Claude Haiku per chips
+Obiettivi stretti:
+- Risposte in **PRIMA PERSONA** ("yo me mi") in spagnolo conversazionale naturale
+- Sempre 3 risposte **varie in intenzione e lunghezza**:
+  - 1 muy breve (1-4 palabras) — sì/no/gracias
+  - 1 corta con matiz (3-7 palabras)
+  - 1 más larga (6-14 palabras) con contesto o pregunta inversa
+- **Mai ripetere** letteralmente ciò che ha detto l'interlocutore
+- Coerenza con la history (gli ultimi 8 turni)
+- Personalizzazione da `ParliaUser` (nome, condicion, hobbies) se presenti
+- Output: **solo JSON array** di 3 stringhe (parsing con fallback regex su stringhe quotate se `JSON.parse` fallisce)
+
+`max_tokens: 200`. History serializzata come `INTERLOCUTOR:` / `YO:` (più leggibile per Haiku dei role user/assistant alternati).
+
+### Nuovo helper `speakNeural.chip(text)` in `tts.js`
+Tono naturale/immediato, diverso dal default terapeutico (0.9x slow):
+```js
+ssml: `<prosody pitch="+2%">${escapedText}</prosody>`
+rate: 1.0  // velocità normale di parlato, non rallentato
+```
+Usato in `onChipTap` → la voce Neural2-H legge la risposta tappata con tono conversazionale, non da logopedista.
+
+### Pannello admin (sempre visibile)
+Sotto il thread, sopra il bottone Empezar: card nera stile terminal con 3 celle + status dot:
+- ⚪/🟡/🟢/🔴 status WebSocket (sincronizzato col dot in topbar)
+- `TIEMPO` — mm:ss dal Empezar
+- `COSTE SESIÓN` — elapsed_ms / 60000 × $0.0059 (tariffa Nova-2 streaming)
+- `ÚLTIMA INTERACCIÓN` — "ahora" / "Ns" / "Nm" da `S.lastInteraction` (aggiornato su ogni transcript + chip tap)
+
+Oggi è **sempre visibile** (l'app la usa solo Luca per ora). Quando Laura inizierà a usare l'app, wrapparla in `if (localStorage.getItem('parlia_admin')==='luca') {...}` nasconderà il pannello a tutti gli altri device senza ulteriori modifiche.
+
+### Safety & risparmio
+- **Start/Stop manuale** con animazione ring-pulse rosa durante l'ascolto
+- **Safety timer 3 min**: `resetSafety()` ogni transcript ricevuto + ogni chip tap. Se scade senza attività → `stopListening(silent)` + toast "Micrófono cerrado por inactividad". Evita sessioni appese con mic aperto e costi in background.
+- **Power-down** completo su `visibilitychange` / `pagehide` / `beforeunload`:
+  - WebSocket `CloseStream` message + close(1000)
+  - `stream.getTracks().forEach(t => t.stop())` (spegne l'indicatore rosso del mic)
+  - `workletNode.disconnect()` + `audioCtx.close()` (libera AudioContext)
+  - `stopNeural()` ferma TTS in corso
+- **Nessun loopback**: il worklet non è connesso a `audioCtx.destination` → la voce dell'utente NON viene riprodotta in altoparlante (evita eco)
+
+### File creati/toccati
+- **Nuovi**:
+  - `live-chat.html` (~80 righe) — topbar + thread + chips row + admin + mic button
+  - `live-chat.css` (~410 righe) — palette rosa/fucsia (`#ec4899 → #f43f5e`), bolle them/me, skeleton shimmer, ring-pulse mic
+  - `live-chat.js` (~540 righe) — token fetch, AudioWorklet, WS Deepgram, runChipGen, schedulePreGen, safety timer
+  - Worker `parlia-deepgram` (non in repo) — endpoint `/token`
+- **Modificati**:
+  - `tts.js` — nuovo helper `speakNeural.chip(text)` (SSML pitch +2%, rate 1.0)
+  - `components/inicio.html` — card "Live AI Chat" gradient rosa sotto Visión
+  - `home.html` — cache-bust partial V '20260417a' → '20260417b'
+
+### Costi stimati (uso tipico Laura, ~30 min/giorno streaming)
+- **Deepgram Nova-2 streaming**: 30 min × $0.0059/min × 30 giorni = **~$5.30/mese** (coperto dai $200 iniziali per ~38 mesi se non si aggiunge carta)
+- **Claude Haiku** (via voci-ai-proxy): ~200 token per generazione × ~50-100 chips/giorno = trascurabile
+- **Neural2-H TTS**: frasi da 30-80 char × ~50 letture/giorno = ~4000 char/giorno = dentro free tier 1M/mese
+
+### Cache-bust sessione
+- `live-chat.js`: v20260417a (stub) → b (Deepgram) → c (bearer fix) → d (chips AI) → e (pre-gen + me bubble)
+- `live-chat.css`: v20260417a → b (skeleton) → c (bolle them/me)
+- `tts.js`: v20260417b → c (helper chip)
+- `home.html` partial V: v20260417a → b
+
+### Note operative
+- Il Worker `parlia-deepgram` NON deve essere confuso con `parlia-tts` o `parlia-vision` — sono 3 worker separati con 3 secret diversi, per isolamento responsabilità e log
+- Se in futuro Deepgram cambia endpoint token da `/v1/auth/grant` ad altro, basta aggiornare il Worker (nessun deploy Pages richiesto)
+- Per aggiungere lingue (it/en): aggiungere un toggle UI in live-chat.html, passare la lingua a `DG_PARAMS.language`. Nessun cambio worker/infrastruttura — lavoro di ~15 minuti.
+- Pre-gen e chat history sono **in-memory only** (non persistite in localStorage): ogni volta che l'utente esce dalla pagina, la conversazione si resetta. Questa è una scelta di privacy e semplicità — se in futuro serve history persistente, valutare se salvare solo metadata (timestamp, durata, #chips) vs. transcript completo (considerazioni privacy).
+
+---
+
 ## Istruzioni per Claude Code
 - Prima di qualsiasi modifica, fai sempre un commit git con messaggio "backup pre-modifica"
 - Dopo ogni sessione di lavoro, fai un commit con le modifiche fatte
