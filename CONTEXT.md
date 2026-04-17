@@ -701,6 +701,68 @@ Volume/pitch adattati al tipo di esercizio tramite parsing di `instruction` e `h
 
 ---
 
+## Sessione 17 aprile 2026 (pomeriggio) — Back gesture logopedia + Reto de la Sonrisa overlay
+
+### Back dentro logopedia.html (history a 2 livelli)
+Problema: lo swipe/back dentro una categoria (Pronunciación, Fluidez, Sorriso…) usciva direttamente a `home.html` Rehab saltando la lista delle 5 categorie, perché il cambio di schermata in `logopedia.html` era solo UI senza toccare `history`.
+
+Modello a 2 livelli:
+- **Categories (base)**: al load di `logopedia.js` → `history.replaceState({screen:'categories', sub:false})`
+- **Subscreen** (Exercise / Sorriso / Dialogo / Assessment / Complete): all'ingresso → `history.pushState({screen:'xyz', sub:true})` + flag `_inSubscreen = true`
+
+popstate handler **difensivo**: controlla sia il flag che il DOM. Se `screenCategories.hidden` o `_inSubscreen` → forza ritorno a Categories (non dipende dal matching dello state, che può essere `null` al restore da bfcache).
+
+Cleanup automatico in `_showCategoriesView`: STT abort, TTS stop, `sorrisoPowerDown()`, dialogo recognition abort, `body.classList.remove('on-sorriso')`.
+
+`backToCategories` / `cancelAssessment` / `saveAssessment` / `sorrisoExit` / `dialogoExit` passano per `history.back()` per coerenza con lo swipe (tutti confluiscono su popstate → `_showCategoriesView`).
+
+`saveAssessment` ha un one-shot override del messaggio Ana via `_pendingSayAgent` ("Perfil guardado. Nivel X. ¿Qué practicamos?") per non perdere il feedback di salvataggio.
+
+Risultato: da **qualsiasi** schermata dentro logopedia → un back torna alle 5 categorie; da categorie → esce a home.html Rehab. Zero loop, zero salti.
+
+### Reto de la Sonrisa — layout overlay full-camera
+Problema: stack verticale (camera 4:3 ≈300px + emoji 3rem + titolo + istruzione + barra progress + label + timer + bottone Empezar) → su mobile il bottone "¡Empezar!" cadeva sotto il fold. I tentativi intermedi di compattare (mirror max-height 180px + Ana hero shrink) tagliavano il volto nella camera.
+
+Soluzione: **la camera è il protagonista visivo**, tutto il resto è sovrapposto in overlay:
+
+```
+┌─────────────────────────────┐
+│ ○ ○ ○  (progress dots)      │ ← top overlay
+│ 😊 Sonrisa grande           │   gradient dark→trasparente
+│ Sonríe lo más que puedas    │
+│                             │
+│      [USER'S FACE]          │ ← video object-fit cover
+│                             │
+│                             │
+│ [====== 60%]  Mantén 2s     │ ← bottom overlay (hidden
+│ [    ¡Empezar!      ]       │   finché non si preme)
+└─────────────────────────────┘
+[ Saltar ]  [ ← Cambiar cat. ]  ← sotto la camera, piccoli
+```
+
+Dettagli CSS in `logopedia.css`:
+- `.sorriso-stage`: `position:relative`, `aspect-ratio:2/3`, `max-height:72vh`, `overflow:hidden`, `border-radius:24px`
+- `.sorriso-video`: `position:absolute; inset:0; width:100%; height:100%; object-fit:cover; transform:scaleX(-1)` → faccia intera, non tagliata, effetto specchio
+- `.sorriso-overlay-top` / `.sorriso-overlay-bottom`: `position:absolute`, gradient via `linear-gradient` per leggibilità testo su qualsiasi sfondo; `pointer-events:none` sul contenitore + `pointer-events:auto` sui figli (così il video sotto non riceve tap spuri)
+- `#sorrisoDetectGroup` (barra + label + timer): wrappato e `hidden` all'avvio → l'utente vede solo la camera e il bottone, la barra compare solo durante il rilevamento
+- `.sorriso-actions-below`: "Saltar" + "← Cambiar categoría" in riga sotto la camera, compatti
+- `body.on-sorriso`: Ana hero ultra-compatta (avatar 32px, bolla **nascosta**, niente halo né animazione float) — tutta la scena alla camera
+
+Toggle `body.on-sorriso` in `sorrisoStart` (add) e `sorrisoExit` / `sorrisoComplete` / `_showCategoriesView` (remove).
+
+Progress dots dentro l'overlay hanno palette specifica per sfondo scuro (`active` bianco+giallo, `done` verde smeraldo).
+
+### Cache-bust della sessione: v20260417c → d → e → f → g → h
+
+### File toccati
+- `logopedia.html` — screen Sorriso riscritto (rimosso wrapper `.exercise-card`, nuovo `.sorriso-stage` con overlay)
+- `logopedia.css` — intera sezione "SFIDA DEL SORRISO" riscritta per overlay
+- `logopedia.js` — history management + popstate + `_showCategoriesView` + wire di `backToCategories`, `cancelAssessment`, `saveAssessment`
+- `logopedia-sorriso.js` — toggle `on-sorriso` body class, show/hide del `sorrisoDetectGroup` in `sorrisoGo`/`sorrisoRender`
+- `logopedia-dialogo.js` — `_enterSubscreen('complete')` in `dialogoComplete`
+
+---
+
 ## Istruzioni per Claude Code
 - Prima di qualsiasi modifica, fai sempre un commit git con messaggio "backup pre-modifica"
 - Dopo ogni sessione di lavoro, fai un commit con le modifiche fatte
