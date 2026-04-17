@@ -506,6 +506,17 @@ body.is-scrolling .mesh { opacity: 0; transition: opacity .25s ease; }
 }
 .settings-btn:active { background: var(--blue-light); border-color: var(--blue); transform: rotate(30deg); }
 
+/* Vision Asistida — shortcut compatto in topbar */
+.vision-btn {
+  width: 32px; height: 32px; border-radius: 10px;
+  background: var(--card); border: 1.5px solid var(--border);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 1rem; cursor: pointer; flex-shrink: 0;
+  transition: all .15s; -webkit-tap-highlight-color: transparent;
+  text-decoration: none; color: inherit;
+}
+.vision-btn:active { background: rgba(6,182,212,.08); border-color: #06b6d4; transform: scale(.92); }
+
 .settings-menu {
   position: fixed; top: calc(var(--top-h) + 8px); right: 14px;
   background: white; border: 1.5px solid var(--border);
@@ -594,6 +605,7 @@ body.is-scrolling .mesh { opacity: 0; transition: opacity .25s ease; }
   </div>
   <div class="logo-text">Parlia<span>.app</span> <span class="beta-badge">BETA</span></div>
   <div style="flex:1"></div>
+  <a class="vision-btn" href="vision.html" aria-label="Visión Asistida" title="Visión Asistida">🔍</a>
   <div class="settings-btn" onclick="toggleSettings()">⚙️</div>
   <div class="sos-pill" onclick="openSOS()">🆘</div>
 </div>
@@ -797,7 +809,7 @@ if ('scrollRestoration' in history) try { history.scrollRestoration = 'manual'; 
 // e non parte sfasato.
 (async function bootstrap(){
   // Cache-bust anche sui partial HTML (query string forza il browser/SW a rifetchare)
-  const V = '20260417b';
+  const V = '20260417c';
   try {
     const [inicio, aac, rehab, perfil] = await Promise.all([
       fetch('components/inicio.html?v=' + V, {cache: 'no-cache'}).then(r => r.ok ? r.text() : Promise.reject(r.status)),
