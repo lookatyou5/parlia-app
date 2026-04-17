@@ -133,6 +133,44 @@ function showScreen(name){
   if (endBtn) endBtn.classList.toggle('hidden', name === 'Categories' || name === 'Assessment');
   window.scrollTo(0, 0);
 }
+
+// ═══ HISTORY MANAGEMENT ═══
+// Modello a 2 livelli: Categories (base) vs subscreen (Exercise/Sorriso/Dialogo/Assessment/Complete).
+// Back dal subscreen → torna alle Categories; back da Categories → esce a home.html.
+let _inSubscreen = false;
+let _pendingSayAgent = null;
+
+try { history.replaceState({ screen:'categories', sub:false }, ''); } catch(e){}
+
+function _enterSubscreen(name){
+  try {
+    if (_inSubscreen) history.replaceState({ screen:name, sub:true }, '');
+    else { history.pushState({ screen:name, sub:true }, ''); _inSubscreen = true; }
+  } catch(e){}
+}
+
+function _showCategoriesView(){
+  try{ if (state.recognition) state.recognition.abort(); }catch(e){}
+  try { window.stopNeural && stopNeural(); } catch(e){}
+  try { if (typeof sorrisoPowerDown === 'function') sorrisoPowerDown(); } catch(e){}
+  try { if (window._dialogo && _dialogo.recognition) _dialogo.recognition.abort(); }catch(e){}
+  state.recording = false;
+  const hadCategory = !!state.category;
+  state.category = null;
+  setAgentStatus('Lista para empezar');
+  showScreen('Categories');
+  if (_pendingSayAgent){ sayAgent(_pendingSayAgent); _pendingSayAgent = null; return; }
+  if (hadCategory || _sessionsDone > 0) sayAgent(returnText());
+  else sayAgent(greetingText());
+}
+
+window.addEventListener('popstate', (e) => {
+  const sub = !!(e.state && e.state.sub);
+  if (!sub && _inSubscreen){
+    _inSubscreen = false;
+    _showCategoriesView();
+  }
+});
 function shuffle(a){ for(let i=a.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [a[i],a[j]]=[a[j],a[i]]; } return a; }
 
 function pickExercises(cat){
@@ -164,11 +202,13 @@ function chooseCategory(cat){
 
   // Categorie speciali con la propria logica
   if (meta.special === 'sorriso'){
+    _enterSubscreen('sorriso');
     sayAgent(`Perfecto${USER_NAME?', '+USER_NAME:''}. ¡Vamos con el Reto de la Sonrisa!`);
     sorrisoStart();
     return;
   }
   if (meta.special === 'dialogo'){
+    _enterSubscreen('dialogo');
     sayAgent(`Perfecto${USER_NAME?', '+USER_NAME:''}. Vamos a conversar un poco.`);
     dialogoStart();
     return;
@@ -178,21 +218,15 @@ function chooseCategory(cat){
   state.exercises = pickExercises(cat);
   state.idx = 0;
   state.results = [];
+  _enterSubscreen('exercise');
   showScreen('Exercise');
   renderExercise();
   sayAgent(`Perfecto${USER_NAME?', '+USER_NAME:''}. Vamos a practicar ${meta.label.toLowerCase()}.`);
 }
 
 function backToCategories(){
-  try{ if (state.recognition) state.recognition.abort(); }catch(e){}
-  try { window.stopNeural && stopNeural(); } catch(e){}
-  state.recording = false;
-  const hadCategory = !!state.category;
-  state.category = null;
-  setAgentStatus('Lista para empezar');
-  showScreen('Categories');
-  if (hadCategory || _sessionsDone > 0) sayAgent(returnText());
-  else sayAgent(greetingText());
+  if (_inSubscreen) { history.back(); return; }
+  _showCategoriesView();
 }
 
 function endSession(){
@@ -283,6 +317,7 @@ function showComplete(){
     if (log.length > 100) log.splice(0, log.length-100);
     localStorage.setItem('parlia_logo_log', JSON.stringify(log));
   } catch(e){}
+  _enterSubscreen('complete');
   showScreen('Complete');
 }
 function repeatSession(){
@@ -453,14 +488,14 @@ function openAssessment(){
   renderSoundGrid('mGrid', SOUND_GROUPS.m);
   renderSoundGrid('ptGrid', SOUND_GROUPS.pt);
   renderSoundGrid('lnsGrid', SOUND_GROUPS.lns);
+  _enterSubscreen('assessment');
   showScreen('Assessment');
   setAgentStatus('Configurando perfil');
   sayAgent('Marca lo que puedes decir bien ahora. Así adapto los ejercicios a ti.');
 }
 function cancelAssessment(){
   _assessDraft = null;
-  showScreen('Categories');
-  sayAgent(_sessionsDone > 0 ? returnText() : greetingText());
+  backToCategories();
 }
 function saveAssessment(){
   if (!_assessDraft) return;
@@ -469,8 +504,8 @@ function saveAssessment(){
   saveLogoProfile(state.logo);
   _assessDraft = null;
   renderProfileBar();
-  showScreen('Categories');
-  sayAgent(`Perfil guardado. Nivel ${state.logo.level}. ¿Qué practicamos?`);
+  _pendingSayAgent = `Perfil guardado. Nivel ${state.logo.level}. ¿Qué practicamos?`;
+  backToCategories();
 }
 
 // ═══ INIT ═══

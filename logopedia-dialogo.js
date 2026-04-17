@@ -154,6 +154,7 @@ function dialogoComplete(){
     if (log.length > 100) log.splice(0, log.length-100);
     localStorage.setItem('parlia_logo_log', JSON.stringify(log));
   } catch(e){}
+  if (typeof _enterSubscreen === 'function') _enterSubscreen('complete');
   showScreen('Complete');
 }
 
