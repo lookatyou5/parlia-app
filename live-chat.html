@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<meta http-equiv="Pragma" content="no-cache">
+<title>Live AI Chat · Parlia</title>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="live-chat.css?v=20260417a">
+<link rel="stylesheet" href="headpointer.css?v=20260417k">
+</head>
+<body>
+
+<div class="mesh"><div class="blob blob1"></div><div class="blob blob2"></div></div>
+
+<header class="topbar">
+  <a href="home.html" class="back-btn" aria-label="Volver" onclick="event.preventDefault(); if(history.length>1) history.back(); else location.href='home.html';">←</a>
+  <div class="topbar-title">
+    <span class="lc-dot" id="lcDot"></span>
+    <span>Live AI Chat</span>
+  </div>
+  <button class="topbar-tts" id="ttsBtn" onclick="toggleTTS()" aria-label="Silenciar voz">🔊</button>
+</header>
+
+<main class="lc-wrap">
+
+  <!-- Thread della conversazione -->
+  <section class="lc-thread" id="lcThread">
+    <div class="lc-empty" id="lcEmpty">
+      <div class="lc-empty-icon">🎙️</div>
+      <div class="lc-empty-title">Conversación en vivo</div>
+      <div class="lc-empty-sub">Pulsa <b>Empezar</b> y habla. Parlia te sugerirá respuestas en tiempo real.</div>
+    </div>
+  </section>
+
+  <!-- Chips predittive (riempite via JS) -->
+  <section class="lc-chips-row" id="lcChipsRow" aria-label="Respuestas sugeridas"></section>
+
+  <!-- Pannello admin (debug / costi) -->
+  <section class="lc-admin" id="lcAdmin">
+    <div class="lc-admin-head">
+      <span class="lc-admin-label">DEBUG</span>
+      <span class="lc-admin-ws" id="lcAdminWs">⚪ desconectado</span>
+    </div>
+    <div class="lc-admin-grid">
+      <div class="lc-admin-cell">
+        <div class="lc-admin-k">Tiempo</div>
+        <div class="lc-admin-v" id="lcAdminTime">00:00</div>
+      </div>
+      <div class="lc-admin-cell">
+        <div class="lc-admin-k">Coste sesión</div>
+        <div class="lc-admin-v" id="lcAdminCost">$0.0000</div>
+      </div>
+      <div class="lc-admin-cell">
+        <div class="lc-admin-k">Última interacción</div>
+        <div class="lc-admin-v" id="lcAdminLast">—</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Bottone Start/Stop grande -->
+  <button class="lc-mic-btn" id="lcMicBtn" onclick="toggleMic()">
+    <span class="lc-mic-ring"></span>
+    <span class="lc-mic-icon" id="lcMicIcon">🎙️</span>
+    <span class="lc-mic-label" id="lcMicLabel">Empezar</span>
+  </button>
+
+  <div class="lc-foot-hint" id="lcFootHint">Cerrará solo si no hay actividad durante 3 min.</div>
+
+</main>
+
+<script src="userData.js"></script>
+<script src="tts.js?v=20260417b"></script>
+<script src="live-chat.js?v=20260417a"></script>
+<script src="headpointer.js?v=20260417k"></script>
+</body>
+</html>
