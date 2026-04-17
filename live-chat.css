@@ -163,34 +163,40 @@ html, body {
   border-radius: 18px;
   font-size: .95rem; line-height: 1.4;
   animation: bubbleIn .25s ease both;
+  word-wrap: break-word;
 }
 @keyframes bubbleIn {
   from { opacity: 0; transform: translateY(6px); }
   to { opacity: 1; transform: none; }
 }
-.lc-bubble.user {
+
+/* Interlocutore (chi parla verso Laura) → SINISTRA, bianco/neutro */
+.lc-bubble.them {
+  align-self: flex-start;
+  background: white;
+  color: var(--ink);
+  border: 1px solid rgba(15,23,42,.06);
+  border-bottom-left-radius: 6px;
+  box-shadow: 0 2px 8px rgba(15,23,42,.05);
+  font-weight: 600;
+}
+.lc-bubble.them.interim {
+  background: rgba(236,72,153,.05);
+  color: var(--muted);
+  font-style: italic;
+  font-weight: 500;
+  border: 1px dashed rgba(236,72,153,.28);
+  box-shadow: none;
+}
+
+/* Utente (Laura, chip tappata → risposta letta dalla voce) → DESTRA, rosa */
+.lc-bubble.me {
   align-self: flex-end;
   background: var(--accent-gradient);
   color: white;
   border-bottom-right-radius: 6px;
   box-shadow: 0 4px 14px rgba(236,72,153,.28);
   font-weight: 600;
-}
-.lc-bubble.user.interim {
-  background: rgba(236,72,153,.12);
-  color: var(--pink-1);
-  font-style: italic;
-  font-weight: 500;
-  box-shadow: none;
-  border: 1px dashed rgba(236,72,153,.3);
-}
-.lc-bubble.ai {
-  align-self: flex-start;
-  background: white;
-  color: var(--ink);
-  border-bottom-left-radius: 6px;
-  border: 1px solid rgba(15,23,42,.06);
-  box-shadow: 0 2px 8px rgba(15,23,42,.05);
 }
 
 /* ═══ Chips row ═══ */

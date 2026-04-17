@@ -60,7 +60,14 @@
     // Array di { role: 'them' | 'me', text: string } — ultimi CHIP_CTX_TURNS turni
     history: [],
     chipToken: 0,                // invalida richieste AI obsolete (come _currentToken in tts.js)
+
+    // Pre-generazione su interim stabile (riduce latenza percepita)
+    interimStableTimer: null,    // timer 500ms dopo ultima modifica interim
+    preGenInterim: null,         // testo interim per cui è stato lanciato il pre-gen
   };
+
+  const PREGEN_STABLE_MS = 500;
+  const PREGEN_MIN_WORDS = 3;
 
   // DOM
   const $ = id => document.getElementById(id);
@@ -158,7 +165,7 @@
     if (S.currentInterimEl && S.currentInterimEl.isConnected) return S.currentInterimEl;
     hideEmpty();
     const b = document.createElement('div');
-    b.className = 'lc-bubble user interim';
+    b.className = 'lc-bubble them interim';
     b.textContent = '';
     thread().appendChild(b);
     S.currentInterimEl = b;
@@ -168,8 +175,12 @@
     const b = ensureInterimBubble();
     b.textContent = text;
     thread().scrollTop = thread().scrollHeight;
+    schedulePreGen(text);
   }
   function commitFinal(text) {
+    // Cancella eventuale timer di pre-gen ancora in attesa
+    if (S.interimStableTimer) { clearTimeout(S.interimStableTimer); S.interimStableTimer = null; }
+
     // Promuove la bolla interim corrente a finale (se esiste) o ne crea una nuova.
     if (S.currentInterimEl && S.currentInterimEl.isConnected) {
       S.currentInterimEl.classList.remove('interim');
@@ -177,19 +188,40 @@
     } else {
       hideEmpty();
       const b = document.createElement('div');
-      b.className = 'lc-bubble user';
+      b.className = 'lc-bubble them';
       b.textContent = text;
       thread().appendChild(b);
     }
     S.currentInterimEl = null;
     thread().scrollTop = thread().scrollHeight;
 
-    // Aggiungi il turno del INTERLOCUTORE alla history (la persona che parla
-    // è chi sta di fronte all'utente; le chips sono risposte per l'utente).
+    // Aggiungi il turno del INTERLOCUTORE alla history reale
     pushHistory('them', text);
 
-    // Avvia generazione chip AI
-    generateChipsFromAI();
+    // Se il final coincide (dopo normalizzazione) con l'interim che abbiamo
+    // pre-genato, le chips attuali sono già valide → risparmiamo una chiamata.
+    if (S.preGenInterim && _isCloseMatch(S.preGenInterim, text)) {
+      S.preGenInterim = null;
+      return;
+    }
+    S.preGenInterim = null;
+
+    // Altrimenti rigenera usando la history definitiva
+    runChipGen(null);
+  }
+
+  // Normalizza per confronto: minuscolo, rimuove punteggiatura e spazi multipli
+  function _normalizeForCompare(s) {
+    return String(s).toLowerCase()
+      .replace(/[.,;:!?¿¡"'()…\-–—]/g, '')
+      .replace(/\s+/g, ' ')
+      .trim();
+  }
+  function _isCloseMatch(a, b) {
+    const na = _normalizeForCompare(a);
+    const nb = _normalizeForCompare(b);
+    if (!na || !nb) return false;
+    return na === nb;
   }
 
   // ─── History conversazione ───
@@ -227,12 +259,26 @@
     }
   }
 
+  function addMeBubble(text) {
+    hideEmpty();
+    const b = document.createElement('div');
+    b.className = 'lc-bubble me';
+    b.textContent = text;
+    thread().appendChild(b);
+    thread().scrollTop = thread().scrollHeight;
+    return b;
+  }
+
   function onChipTap(btn, text) {
     resetSafety();
     document.querySelectorAll('.lc-chip.played').forEach(c => c.classList.remove('played'));
     btn.classList.add('played');
 
-    // Aggiungi il turno dell'UTENTE alla history (tap su chip = "ha detto")
+    // Aggiungi la risposta come bolla "me" (destra, rosa) nel thread →
+    // conversazione visibile a entrambi i lati, come WhatsApp.
+    addMeBubble(text);
+
+    // Aggiungi il turno dell'UTENTE alla history per le chips successive
     pushHistory('me', text);
 
     if (!S.ttsMuted && window.speakNeural) {
@@ -247,43 +293,52 @@
 
   // ─── Generazione chip via Claude Haiku ───
   //
-  // Mandiamo a Claude Haiku gli ultimi N turni (them/me) + un system prompt
-  // specifico e gli chiediamo 3 risposte brevi IN PRIMA PERSONA per l'utente.
-  // Usiamo un token monotonico: se arriva un nuovo final transcript prima che
-  // la richiesta precedente abbia risposto, scartiamo il risultato vecchio.
-  async function generateChipsFromAI() {
+  // runChipGen(tentativeInterim):
+  //   - tentativeInterim = string → PRE-GEN: usa una history "ipotetica"
+  //     con l'interim come ultimo turno them (non persisto nulla in S.history)
+  //   - tentativeInterim = null → POST-FINAL: usa S.history com'è
+  //
+  // Token monotonico invalida richieste obsolete (es. pre-gen soppiantato da
+  // un pre-gen più recente o dal final).
+
+  function _buildChipPrompt() {
+    const ud = (window.ParliaUser && ParliaUser.get && ParliaUser.get()) || {};
+    const userName = ud.personal?.userName || '';
+    const hobbies  = (ud.memory?.hobbies || []).slice(0, 3).join(', ');
+    const condicion = (ud.personal?.condicion && ud.personal.condicion[0]) || '';
+
+    return 'Eres el asistente de comunicación de una persona con dificultades del habla. ' +
+      'Alguien está hablando con la persona en una conversación cara a cara. ' +
+      'Tu tarea: generar 3 posibles respuestas que la persona podría tocar con el dedo ' +
+      'para que la voz las lea en voz alta a quien le está hablando. ' +
+      '\n\nReglas estrictas:' +
+      '\n- Respuestas en PRIMERA PERSONA (yo/me/mi), en español natural y conversacional' +
+      '\n- 3 respuestas VARIADAS en intención, nunca repetitivas:' +
+      '\n   · 1 muy breve (1-4 palabras): sí/no/gracias/etc' +
+      '\n   · 1 corta con matiz (3-7 palabras)' +
+      '\n   · 1 un poco más larga (6-14 palabras) con contexto o pregunta inversa' +
+      '\n- NUNCA repitas literalmente lo que ha dicho el interlocutor' +
+      '\n- Si ya hay historia previa, haz que las respuestas sean coherentes' +
+      (userName ? `\n- La persona se llama ${userName}` : '') +
+      (condicion ? `\n- Condición: ${condicion}` : '') +
+      (hobbies ? `\n- Intereses del usuario: ${hobbies}` : '') +
+      '\n\nResponde SOLO con un JSON array de 3 strings, sin markdown, sin comentarios.' +
+      '\nEjemplo: ["Sí","No mucho hoy","Ahora mismo estoy un poco cansado, ¿podemos hablar luego?"]';
+  }
+
+  async function runChipGen(tentativeInterim) {
     const myToken = ++S.chipToken;
     showChipsLoading();
 
+    // Costruisci la history effettiva da mandare al modello
+    const effectiveHistory = tentativeInterim
+      ? S.history.concat([{ role: 'them', text: tentativeInterim }])
+      : S.history;
+
     try {
-      const ud = (window.ParliaUser && ParliaUser.get && ParliaUser.get()) || {};
-      const userName = ud.personal?.userName || '';
-      const hobbies  = (ud.memory?.hobbies || []).slice(0, 3).join(', ');
-      const condicion = (ud.personal?.condicion && ud.personal.condicion[0]) || '';
+      const systemPrompt = _buildChipPrompt();
 
-      const systemPrompt =
-        'Eres el asistente de comunicación de una persona con dificultades del habla. ' +
-        'Alguien está hablando con la persona en una conversación cara a cara. ' +
-        'Tu tarea: generar 3 posibles respuestas que la persona podría tocar con el dedo ' +
-        'para que la voz las lea en voz alta a quien le está hablando. ' +
-        '\n\nReglas estrictas:' +
-        '\n- Respuestas en PRIMERA PERSONA (yo/me/mi), en español natural y conversacional' +
-        '\n- 3 respuestas VARIADAS en intención, nunca repetitivas:' +
-        '\n   · 1 muy breve (1-4 palabras): sí/no/gracias/etc' +
-        '\n   · 1 corta con matiz (3-7 palabras)' +
-        '\n   · 1 un poco más larga (6-14 palabras) con contexto o pregunta inversa' +
-        '\n- NUNCA repitas literalmente lo que ha dicho el interlocutor' +
-        '\n- Si ya hay historia previa, haz que las respuestas sean coherentes' +
-        (userName ? `\n- La persona se llama ${userName}` : '') +
-        (condicion ? `\n- Condición: ${condicion}` : '') +
-        (hobbies ? `\n- Intereses del usuario: ${hobbies}` : '') +
-        '\n\nResponde SOLO con un JSON array de 3 strings, sin markdown, sin comentarios.' +
-        '\nEjemplo: ["Sí","No mucho hoy","Ahora mismo estoy un poco cansado, ¿podemos hablar luego?"]';
-
-      // Costruzione del payload messages: una sola riga utente che include la history
-      // formattata come "INTERLOCUTOR:" / "YO:" — più semplice per Haiku di passare
-      // assistant/user alternati (che confonderebbero il ruolo di YO).
-      const convo = S.history.map(h =>
+      const convo = effectiveHistory.map(h =>
         (h.role === 'them' ? 'INTERLOCUTOR: ' : 'YO: ') + h.text
       ).join('\n');
 
@@ -302,8 +357,7 @@
         }),
       });
 
-      if (myToken !== S.chipToken) return;           // nel frattempo è arrivato un altro final
-      if (!S.listening && S.chipToken === myToken) { /* stop premuto: mantieni ultime chip */ }
+      if (myToken !== S.chipToken) return;           // superato (altro pre-gen o final)
 
       if (!resp.ok) throw new Error('AI HTTP ' + resp.status);
       const data = await resp.json();
@@ -323,9 +377,32 @@
     } catch (err) {
       console.warn('[LiveChat] chip gen fallback:', err?.message || err);
       if (myToken !== S.chipToken) return;
-      // Fallback: chips generici universali (sempre utili)
       renderChips(['Sí', 'No lo sé', 'Espera un momento, por favor']);
     }
+  }
+
+  // Alias per leggibilità nei chiamanti che vogliono solo "rigenera sul contesto attuale"
+  function generateChipsFromAI() { return runChipGen(null); }
+
+  // ─── Pre-generazione su interim stabile ───
+  // Quando l'utente sta ancora parlando e l'interim non cambia per PREGEN_STABLE_MS,
+  // lanciamo una chiamata AI "speculativa" usando l'interim come ultimo turno them.
+  // Se il final poi coincide (dopo normalize), le chips sono già pronte → zero attesa.
+  function schedulePreGen(interimText) {
+    if (!interimText) return;
+    const words = interimText.trim().split(/\s+/).filter(Boolean);
+    if (words.length < PREGEN_MIN_WORDS) return;
+
+    // Reset del timer a ogni update dell'interim: parte solo quando l'interim
+    // smette di cambiare per PREGEN_STABLE_MS.
+    if (S.interimStableTimer) clearTimeout(S.interimStableTimer);
+    S.interimStableTimer = setTimeout(() => {
+      S.interimStableTimer = null;
+      // Evita di rilanciare se abbiamo già pre-genato per lo stesso testo
+      if (S.preGenInterim && _isCloseMatch(S.preGenInterim, interimText)) return;
+      S.preGenInterim = interimText;
+      runChipGen(interimText);
+    }, PREGEN_STABLE_MS);
   }
 
   // ─── Token Deepgram ───
@@ -529,6 +606,9 @@
     if (!S.listening) return;
     S.listening = false;
     clearSafety();
+    // Cancella pre-gen in attesa / in volo
+    if (S.interimStableTimer) { clearTimeout(S.interimStableTimer); S.interimStableTimer = null; }
+    S.preGenInterim = null;
 
     // Chiudi WS in modo pulito
     if (S.ws) {
