@@ -433,22 +433,24 @@ body{padding-top:var(--top-h); padding-bottom:40px}
 
 /* ── SFIDA DEL SORRISO ── */
 .sorriso-mirror{
-  border-radius:18px; overflow:hidden; margin-bottom:12px;
+  border-radius:18px; overflow:hidden; margin-bottom:10px;
   background:rgba(0,0,0,.05); position:relative;
-  min-height:100px;
+  min-height:100px; max-height:180px;
 }
 .sorriso-video{
-  width:100%; border-radius:18px; display:block;
+  width:100%; max-height:180px; border-radius:18px; display:block;
+  object-fit:cover;
   transform:scaleX(-1); /* specchio */
 }
 .sorriso-cam-notice{
-  text-align:center; padding:30px 14px;
+  text-align:center; padding:24px 14px;
   font-size:.85rem; font-weight:600; color:var(--muted);
 }
 .sorriso-emoji{
-  text-align:center; font-size:3rem; margin:4px 0;
+  text-align:center; font-size:2rem; margin:2px 0 0;
   animation:emojiPop .4s ease both;
 }
+.sorriso-detect-group{ margin-top:10px; }
 @keyframes emojiPop{from{transform:scale(.6);opacity:0} to{transform:scale(1);opacity:1}}
 /* detection hold meter */
 .sorriso-detect{
@@ -472,10 +474,27 @@ body{padding-top:var(--top-h); padding-bottom:40px}
 .sorriso-detect-label.detecting{color:var(--warn)}
 .sorriso-detect-label.done{color:var(--ok); font-size:.95rem}
 .sorriso-timer-num{
-  text-align:center; font-size:1.5rem; font-weight:800;
+  text-align:center; font-size:1.2rem; font-weight:800;
   font-family:'Bricolage Grotesque',sans-serif;
-  color:var(--violet); min-height:30px;
+  color:var(--violet); min-height:22px;
 }
+
+/* Quando siamo nel Reto de la Sonrisa, compatto Ana hero e card per far entrare
+   il bottone "¡Empezar!" nel viewport senza scroll */
+body.on-sorriso .agent-hero{ padding:12px 16px 10px; margin-bottom:10px; animation:none; }
+body.on-sorriso .agent-hero::before{ display:none; }
+body.on-sorriso .agent-orbit{ width:48px; height:48px; }
+body.on-sorriso .agent-avatar{ width:40px; height:40px; font-size:1.3rem; }
+body.on-sorriso .agent-orbit-ring-1{ inset:-5px; }
+body.on-sorriso .agent-orbit-ring-2{ inset:-11px; }
+body.on-sorriso .agent-name{ font-size:.92rem; }
+body.on-sorriso .agent-role{ font-size:.68rem; }
+body.on-sorriso .agent-mic{ width:32px; height:32px; font-size:.85rem; }
+body.on-sorriso .agent-header{ gap:10px; }
+body.on-sorriso .agent-bubble{ margin-top:8px; padding:7px 11px; font-size:.82rem; min-height:auto; line-height:1.35; }
+body.on-sorriso .exercise-card{ padding:14px 14px; margin-bottom:10px; }
+body.on-sorriso .ex-progress{ margin-bottom:10px; }
+body.on-sorriso .wrap{ padding-top:10px; }
 .sorriso-confirm{
   text-align:center; padding:14px 0;
   animation:fadeUp .3s ease both;

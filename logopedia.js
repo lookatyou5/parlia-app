@@ -154,6 +154,7 @@ function _showCategoriesView(){
   try { window.stopNeural && stopNeural(); } catch(e){}
   try { if (typeof sorrisoPowerDown === 'function') sorrisoPowerDown(); } catch(e){}
   try { if (window._dialogo && _dialogo.recognition) _dialogo.recognition.abort(); }catch(e){}
+  document.body.classList.remove('on-sorriso');
   state.recording = false;
   const hadCategory = !!state.category;
   state.category = null;

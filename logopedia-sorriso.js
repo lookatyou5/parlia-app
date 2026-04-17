@@ -349,6 +349,7 @@ function sorrisoStart(){
   _sorriso.exercises = _pickSorrisoExercises(1);
   _sorriso.idx = 0;
   _sorriso.results = [];
+  document.body.classList.add('on-sorriso');
   showScreen('Sorriso');
   sorrisoStartCamera();
   sorrisoRender();
@@ -375,6 +376,7 @@ function sorrisoRender(){
   _updateDetectUI(0, 'Preparado');
   document.getElementById('sorrisoGoBtn').classList.remove('hidden');
   document.getElementById('sorrisoGoBtn').disabled = false;
+  document.getElementById('sorrisoDetectGroup').classList.add('hidden');
   document.getElementById('sorrisoConfirm').classList.add('hidden');
   document.getElementById('sorrisoNextBtn').classList.add('hidden');
   sayAgent(ex.instruction);
@@ -384,6 +386,7 @@ function sorrisoGo(){
   const ex = _sorriso.exercises[_sorriso.idx];
   if (!ex) return;
   document.getElementById('sorrisoGoBtn').disabled = true;
+  document.getElementById('sorrisoDetectGroup').classList.remove('hidden');
 
   if (_sorriso.mpAvailable){
     // Real detection
@@ -475,6 +478,7 @@ function sorrisoNext(){
 
 function sorrisoComplete(){
   sorrisoPowerDown();
+  document.body.classList.remove('on-sorriso');
   const done = _sorriso.results.filter(r => r === 'done').length;
   const total = _sorriso.results.length;
   _sessionsDone++;
@@ -497,6 +501,7 @@ function sorrisoComplete(){
 
 function sorrisoExit(){
   sorrisoPowerDown();
+  document.body.classList.remove('on-sorriso');
   document.getElementById('screenSorriso').classList.add('hidden');
   backToCategories();
 }

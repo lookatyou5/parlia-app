@@ -7,7 +7,7 @@
 <meta http-equiv="Pragma" content="no-cache">
 <title>Logopedia · Parlia</title>
 <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="logopedia.css?v=20260417a">
+<link rel="stylesheet" href="logopedia.css?v=20260417f">
 </head>
 <body>
 
@@ -153,12 +153,14 @@
       <div class="sorriso-emoji" id="sorrisoEmoji">😊</div>
       <div class="ex-instruction" id="sorrisoTitle">—</div>
       <div class="ex-hint" id="sorrisoInstruction">—</div>
-      <div class="sorriso-detect" id="sorrisoDetect">
-        <div class="sorriso-detect-bar" id="sorrisoDetectBar"></div>
-      </div>
-      <div class="sorriso-detect-label" id="sorrisoDetectLabel">Preparado</div>
-      <div class="sorriso-timer-num" id="sorrisoTimer"></div>
       <button class="btn btn-primary btn-full" id="sorrisoGoBtn" onclick="sorrisoGo()">¡Empezar!</button>
+      <div class="sorriso-detect-group hidden" id="sorrisoDetectGroup">
+        <div class="sorriso-detect" id="sorrisoDetect">
+          <div class="sorriso-detect-bar" id="sorrisoDetectBar"></div>
+        </div>
+        <div class="sorriso-detect-label" id="sorrisoDetectLabel">Preparado</div>
+        <div class="sorriso-timer-num" id="sorrisoTimer"></div>
+      </div>
       <!-- Conferma dopo il timer -->
       <div class="sorriso-confirm hidden" id="sorrisoConfirm">
         <div class="sorriso-confirm-text">¿Lo has conseguido?</div>
@@ -197,8 +199,8 @@
 <script src="userData.js"></script>
 <script src="tts.js?v=20260417a"></script>
 <script src="logopedia-data.js?v=20260417a"></script>
-<script src="logopedia-sorriso.js?v=20260417e"></script>
+<script src="logopedia-sorriso.js?v=20260417f"></script>
 <script src="logopedia-dialogo.js?v=20260417e"></script>
-<script src="logopedia.js?v=20260417e"></script>
+<script src="logopedia.js?v=20260417f"></script>
 </body>
 </html>
