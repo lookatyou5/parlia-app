@@ -19,13 +19,12 @@ const HP = {
   dwellStart: 0,       // timestamp when dwell started
   dwellDone: false,     // already clicked
   DWELL_MS: 1500,
-  // Edge swipe
-  edgeDir: null,       // 'left' | 'right' | null
+  // Edge dwell (swipe / scroll)
+  edgeDir: null,       // 'left' | 'right' | 'top' | 'bottom' | null
   edgeStart: 0,
   EDGE_MS: 1000,
-  EDGE_ZONE: 0.12,     // 12% of screen width
-  // Rest zone
-  REST_TOP: 0.15,       // top 15% of screen
+  EDGE_X: 0.12,        // 12% width for left/right
+  EDGE_Y: 0.10,        // 10% height for top/bottom
   // Lerp
   LERP: 0.2,
   // Sensitivity: amplifies small head movements around center
@@ -127,8 +126,8 @@ function _hpStopCam(){
 function _hpPowerDown(){
   HP.on = false;
   if (HP.animFrame){ cancelAnimationFrame(HP.animFrame); HP.animFrame = null; }
-  if (typeof _hpStopScrollWatch === 'function') _hpStopScrollWatch();
   document.body.classList.remove('hp-on');
+  if (typeof _hpClearEdgeVisuals === 'function') _hpClearEdgeVisuals();
   _hpStopCam();
   if (HP.faceLandmarker){ try{ HP.faceLandmarker.close(); }catch(e){} HP.faceLandmarker = null; }
   const cur = document.getElementById('cursor'); if (cur) cur.classList.remove('active');
@@ -185,67 +184,26 @@ function _hpLoop(){
   ring.style.top = HP.cy + 'px';
 
   const W = window.innerWidth, H = window.innerHeight;
-  // Se il cursore è su un controllo del puntatore (scroll btn o toggle),
-  // by-passa rest/edge zones così il dwell-click funziona normalmente.
-  const _elAt = document.elementFromPoint(HP.cx, HP.cy);
-  const _onHpControl = _elAt && _elAt.closest('.hp-scroll-btn, .hp-toggle');
-  const inRestZone = !_onHpControl && HP.cy < H * HP.REST_TOP;
-  cursor.classList.toggle('resting', inRestZone);
 
-  // ── Edge swipe detection
-  const inLeftEdge = !_onHpControl && HP.cx < W * HP.EDGE_ZONE;
-  const inRightEdge = !_onHpControl && HP.cx > W * (1 - HP.EDGE_ZONE);
-  const arrowL = document.querySelector('.hp-swipe-arrow.left');
-  const arrowR = document.querySelector('.hp-swipe-arrow.right');
-
-  if (inLeftEdge && !inRestZone) {
-    if (arrowL) arrowL.classList.add('show');
-    if (HP.edgeDir !== 'left') { HP.edgeDir = 'left'; HP.edgeStart = now; }
-    else if (now - HP.edgeStart >= HP.EDGE_MS) {
-      _hpSwipe('left');
-      HP.edgeDir = null; HP.edgeStart = 0;
-      if (arrowL) arrowL.classList.remove('show');
-    }
-  } else if (inRightEdge && !inRestZone) {
-    if (arrowR) arrowR.classList.add('show');
-    if (HP.edgeDir !== 'right') { HP.edgeDir = 'right'; HP.edgeStart = now; }
-    else if (now - HP.edgeStart >= HP.EDGE_MS) {
-      _hpSwipe('right');
-      HP.edgeDir = null; HP.edgeStart = 0;
-      if (arrowR) arrowR.classList.remove('show');
-    }
-  } else {
-    HP.edgeDir = null;
-    if (arrowL) arrowL.classList.remove('show');
-    if (arrowR) arrowR.classList.remove('show');
-  }
-
-  // ── Dwell click detection
-  if (inRestZone || inLeftEdge || inRightEdge) {
-    // In rest or edge zone → reset dwell
-    HP.dwellTarget = null; HP.dwellStart = 0; HP.dwellDone = false;
-    ring.style.setProperty('--dwell', '0');
-    cursor.classList.remove('hovering');
-    return;
-  }
-
+  // ── PRIORITY 1: Dwell click su elemento cliccabile (sempre, anche nelle edge zones)
   const el = document.elementFromPoint(HP.cx, HP.cy);
   const clickable = el ? el.closest('[onclick], a, button, .nav-item, .ai-chip, .rehab-card, .cat-card, .agenda-card') : null;
 
   if (clickable) {
     cursor.classList.add('hovering');
+    // Reset edge state (il cliccabile vince sull'edge)
+    HP.edgeDir = null; HP.edgeStart = 0;
+    _hpClearEdgeVisuals();
     if (clickable === HP.dwellTarget) {
       if (HP.dwellDone) return;
       const elapsed = now - HP.dwellStart;
       const pct = Math.min(elapsed / HP.DWELL_MS, 1);
       ring.style.setProperty('--dwell', pct.toFixed(3));
       if (pct >= 1) {
-        // DWELL CLICK
         HP.dwellDone = true;
         _hpPop();
         ring.style.setProperty('--dwell', '0');
         clickable.click();
-        // Reset after click
         setTimeout(() => { HP.dwellTarget = null; HP.dwellDone = false; }, 400);
       }
     } else {
@@ -254,16 +212,70 @@ function _hpLoop(){
       HP.dwellDone = false;
       ring.style.setProperty('--dwell', '0');
     }
+    return;
+  }
+
+  // Nessun cliccabile sotto il cursore
+  cursor.classList.remove('hovering');
+  HP.dwellTarget = null; HP.dwellStart = 0; HP.dwellDone = false;
+  ring.style.setProperty('--dwell', '0');
+
+  // ── PRIORITY 2: Edge zones (4 lati) — dwell 1s → trigger
+  const inLeftEdge = HP.cx < W * HP.EDGE_X;
+  const inRightEdge = HP.cx > W * (1 - HP.EDGE_X);
+  const inTopEdge = HP.cy < H * HP.EDGE_Y;
+  const inBottomEdge = HP.cy > H * (1 - HP.EDGE_Y);
+
+  // Prioritizzazione: top/bottom > left/right (così se stai nell'angolo, vince l'asse verticale)
+  let dir = null;
+  if (inTopEdge) dir = 'top';
+  else if (inBottomEdge) dir = 'bottom';
+  else if (inLeftEdge) dir = 'left';
+  else if (inRightEdge) dir = 'right';
+
+  if (dir){
+    _hpSetEdgeGlow(dir);
+    if (HP.edgeDir !== dir){ HP.edgeDir = dir; HP.edgeStart = now; }
+    else if (now - HP.edgeStart >= HP.EDGE_MS){
+      _hpEdgeTrigger(dir);
+      HP.edgeDir = null; HP.edgeStart = 0;
+      _hpClearEdgeVisuals();
+    }
   } else {
-    cursor.classList.remove('hovering');
-    HP.dwellTarget = null; HP.dwellStart = 0; HP.dwellDone = false;
-    ring.style.setProperty('--dwell', '0');
+    HP.edgeDir = null; HP.edgeStart = 0;
+    _hpClearEdgeVisuals();
   }
 }
 
-// ── Head swipe
-function _hpSwipe(dir){
+function _hpSetEdgeGlow(dir){
+  // Spegne tutte e riaccende solo quella attiva
+  document.querySelectorAll('.hp-edge').forEach(e => e.classList.remove('triggered'));
+  const edge = document.querySelector('.hp-edge-' + dir);
+  if (edge) edge.classList.add('triggered');
+  // Arrows laterali (‹ ›)
+  document.querySelectorAll('.hp-swipe-arrow').forEach(a => a.classList.remove('show'));
+  const arrow = document.querySelector('.hp-swipe-arrow.' + dir);
+  if (arrow) arrow.classList.add('show');
+}
+function _hpClearEdgeVisuals(){
+  document.querySelectorAll('.hp-edge').forEach(e => e.classList.remove('triggered'));
+  document.querySelectorAll('.hp-swipe-arrow').forEach(a => a.classList.remove('show'));
+}
+
+// Trigger quando il dwell di 1s su una edge zone completa
+function _hpEdgeTrigger(dir){
   _hpPop();
+  if (dir === 'top'){ hpScroll('up'); return; }
+  if (dir === 'bottom'){ hpScroll('down'); return; }
+  // LEFT/RIGHT: priorità allo scroll orizzontale di un container interno
+  // (es. .subcat-scroll / .cat-scroll su AAC), fallback a goTo page.
+  const scrollDir = (dir === 'left') ? 'left' : 'right';
+  const sc = _hpFindBestScroller('x');
+  if (sc && _hpCanScroll(sc, scrollDir)){
+    hpScroll(scrollDir);
+    return;
+  }
+  // Fallback: carosello home
   const page = window.curPage;
   if (typeof window.goTo === 'function' && typeof page === 'number'){
     if (dir === 'right' && page < 3) window.goTo(page + 1);
@@ -295,16 +307,18 @@ async function hpToggle(){
   document.body.classList.add('hp-on');
   document.getElementById('cursor').classList.add('active');
   document.getElementById('dwellRing').classList.add('active');
-  if (typeof _hpStartScrollWatch === 'function') _hpStartScrollWatch();
   _hpLoop();
 }
 
-// ═══ SCROLL BUTTONS (↑ ↓ ← →) ═══
-// Trova lo scroller più rilevante nel viewport per l'asse richiesto
+// ═══ SCROLL HELPERS (usati dagli edge triggers top/bottom/left/right) ═══
+// Blacklist: scroller "strutturali" (carosello home) che non vogliamo scrollare manualmente
+const _HP_NO_SCROLL = '.pages-wrap, [data-hp-no-scroll]';
+
 function _hpFindBestScroller(axis){
   const candidates = [];
   const all = document.querySelectorAll('*');
   for (const el of all){
+    if (el.matches && el.matches(_HP_NO_SCROLL)) continue;
     const r = el.getBoundingClientRect();
     if (r.width <= 0 || r.height <= 0) continue;
     if (r.right < 0 || r.bottom < 0 || r.left > window.innerWidth || r.top > window.innerHeight) continue;
@@ -321,14 +335,20 @@ function _hpFindBestScroller(axis){
   if (axis === 'y' && doc.scrollHeight > doc.clientHeight + 2) candidates.push(doc);
   if (axis === 'x' && doc.scrollWidth > doc.clientWidth + 2) candidates.push(doc);
   if (!candidates.length) return null;
-  // Se ce n'è uno solo, è lui. Altrimenti il più grande visibile.
-  let best = null, bestArea = 0;
+  // Preferisci il più grande visibile, con bonus se il cursore ricade nel suo range perpendicolare
+  // (così su AAC: se l'utente è a livello della riga subcats e va a destra, scrolla subcats)
+  let best = null, bestScore = -1;
   for (const el of candidates){
-    const r = (el === doc) ? { left:0, top:0, right:window.innerWidth, bottom:window.innerHeight, width:window.innerWidth, height:window.innerHeight } : el.getBoundingClientRect();
+    const r = (el === doc) ? { left:0, top:0, right:window.innerWidth, bottom:window.innerHeight } : el.getBoundingClientRect();
     const visW = Math.max(0, Math.min(r.right, window.innerWidth) - Math.max(r.left, 0));
     const visH = Math.max(0, Math.min(r.bottom, window.innerHeight) - Math.max(r.top, 0));
-    const area = visW * visH;
-    if (area > bestArea){ bestArea = area; best = el; }
+    let score = visW * visH;
+    if (axis === 'x'){
+      if (HP.cy >= r.top && HP.cy <= r.bottom) score *= 10;
+    } else {
+      if (HP.cx >= r.left && HP.cx <= r.right) score *= 10;
+    }
+    if (score > bestScore){ bestScore = score; best = el; }
   }
   return best;
 }
@@ -349,46 +369,13 @@ function hpScroll(dir){
   const opts = { behavior: 'smooth' };
   if (axis === 'y') opts.top = step * sign;
   else opts.left = step * sign;
-  try { sc.scrollBy(opts); } catch(e){ /* fallback */ sc.scrollTop += (opts.top||0); sc.scrollLeft += (opts.left||0); }
-}
-function _hpUpdateScrollBtnsVisibility(){
-  const vSc = _hpFindBestScroller('y');
-  const hSc = _hpFindBestScroller('x');
-  const map = {
-    hpScrollUp:    _hpCanScroll(vSc, 'up'),
-    hpScrollDown:  _hpCanScroll(vSc, 'down'),
-    hpScrollLeft:  _hpCanScroll(hSc, 'left'),
-    hpScrollRight: _hpCanScroll(hSc, 'right'),
-  };
-  for (const [id, v] of Object.entries(map)){
-    const el = document.getElementById(id);
-    if (el) el.classList.toggle('visible', v);
-  }
-}
-// Update periodico (ogni 400ms) mentre il puntatore è attivo
-HP._scrollUpdateTimer = null;
-function _hpStartScrollWatch(){
-  if (HP._scrollUpdateTimer) return;
-  _hpUpdateScrollBtnsVisibility();
-  HP._scrollUpdateTimer = setInterval(_hpUpdateScrollBtnsVisibility, 400);
-}
-function _hpStopScrollWatch(){
-  if (HP._scrollUpdateTimer){ clearInterval(HP._scrollUpdateTimer); HP._scrollUpdateTimer = null; }
-  // Nascondi tutti
-  ['hpScrollUp','hpScrollDown','hpScrollLeft','hpScrollRight'].forEach(id => {
-    const el = document.getElementById(id);
-    if (el) el.classList.remove('visible');
-  });
+  try { sc.scrollBy(opts); } catch(e){ sc.scrollTop += (opts.top||0); sc.scrollLeft += (opts.left||0); }
 }
 
 // ═══ DOM INJECTION (così funziona anche su pagine senza markup hardcoded) ═══
 function _hpInjectDOM(){
   const make = (tag, attrs, parent) => {
     if (attrs.id && document.getElementById(attrs.id)) return document.getElementById(attrs.id);
-    if (attrs.className && document.querySelector('.' + attrs.className.split(' ')[0])){
-      // Già presente (es. home.html ha .hp-toggle hardcoded)
-      if (tag === 'button' && attrs.className.includes('hp-toggle')) return document.querySelector('.hp-toggle');
-    }
     const el = document.createElement(tag);
     Object.entries(attrs).forEach(([k,v]) => {
       if (k === 'className') el.className = v;
@@ -402,25 +389,26 @@ function _hpInjectDOM(){
   make('div', { id:'cursor' });
   make('div', { id:'dwellRing' });
   make('video', { id:'hpVideo', autoplay:'', playsinline:'', muted:'' });
-  // Toggle button (se non già presente)
+  // Edge bar elements (4 lati)
+  if (!document.querySelector('.hp-edge-left'))   make('div', { className:'hp-edge hp-edge-left' });
+  if (!document.querySelector('.hp-edge-right'))  make('div', { className:'hp-edge hp-edge-right' });
+  if (!document.querySelector('.hp-edge-top'))    make('div', { className:'hp-edge hp-edge-top' });
+  if (!document.querySelector('.hp-edge-bottom')) make('div', { className:'hp-edge hp-edge-bottom' });
+  // Arrow indicators (solo laterali — top/bottom hanno solo il bagliore)
+  if (!document.querySelector('.hp-swipe-arrow.left'))  make('div', { className:'hp-swipe-arrow left', text:'‹' });
+  if (!document.querySelector('.hp-swipe-arrow.right')) make('div', { className:'hp-swipe-arrow right', text:'›' });
+  // Toggle button
   if (!document.querySelector('.hp-toggle')){
     make('button', { className:'hp-toggle', onclick:'hpToggle()', title:'Head Pointer', text:'👁️' });
   }
-  // Scroll buttons
-  make('button', { id:'hpScrollUp',    className:'hp-scroll-btn', onclick:"hpScroll('up')",    'aria-label':'Scroll arriba',  text:'↑' });
-  make('button', { id:'hpScrollDown',  className:'hp-scroll-btn', onclick:"hpScroll('down')",  'aria-label':'Scroll abajo',   text:'↓' });
-  make('button', { id:'hpScrollLeft',  className:'hp-scroll-btn', onclick:"hpScroll('left')",  'aria-label':'Scroll izquierda', text:'←' });
-  make('button', { id:'hpScrollRight', className:'hp-scroll-btn', onclick:"hpScroll('right')", 'aria-label':'Scroll derecha', text:'→' });
 }
 
-// Inietta subito al load dello script (idempotente)
 if (document.readyState === 'loading'){
   document.addEventListener('DOMContentLoaded', _hpInjectDOM);
 } else {
   _hpInjectDOM();
 }
 
-// Espongo le funzioni a window (chiamate via onclick inline)
 window.hpToggle = hpToggle;
 window.hpScroll = hpScroll;
 

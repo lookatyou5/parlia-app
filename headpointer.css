@@ -42,20 +42,23 @@
 }
 #dwellRing.active { display: block; }
 
-/* ── Edge zones (invisible, debug only) ── */
+/* ── Edge zones (4 lati) ── */
 .hp-edge {
-  position: fixed; top: 0; bottom: 0; z-index: 9990;
-  width: 12%; pointer-events: none;
-  /* transition: background .3s; */
+  position: fixed; z-index: 9990;
+  pointer-events: none;
+  transition: background .2s;
 }
-.hp-edge-left  { left: 0; }
-.hp-edge-right { right: 0; }
-.hp-edge.triggered {
-  background: linear-gradient(90deg, rgba(99,102,241,.12), transparent);
-}
-.hp-edge-right.triggered {
-  background: linear-gradient(-90deg, rgba(99,102,241,.12), transparent);
-}
+.hp-edge-left, .hp-edge-right  { top: 0; bottom: 0; width: 12%; }
+.hp-edge-top, .hp-edge-bottom  { left: 0; right: 0; height: 10%; }
+.hp-edge-left   { left: 0; }
+.hp-edge-right  { right: 0; }
+.hp-edge-top    { top: 0; }
+.hp-edge-bottom { bottom: 0; }
+/* Glow quando attiva (mentre il dwell di 1s si accumula) */
+.hp-edge-left.triggered   { background: linear-gradient(90deg,  rgba(99,102,241,.22), transparent); }
+.hp-edge-right.triggered  { background: linear-gradient(-90deg, rgba(99,102,241,.22), transparent); }
+.hp-edge-top.triggered    { background: linear-gradient(180deg, rgba(99,102,241,.22), transparent); }
+.hp-edge-bottom.triggered { background: linear-gradient(0deg,   rgba(99,102,241,.22), transparent); }
 
 /* ── Swipe indicator arrow ── */
 .hp-swipe-arrow {
@@ -93,24 +96,3 @@
   opacity: 0; pointer-events: none;
 }
 
-/* ── Scroll buttons (↑ ↓ ← →) — visibili solo col puntatore attivo ── */
-.hp-scroll-btn {
-  position: fixed; right: 12px; z-index: 200;
-  width: 44px; height: 44px; border-radius: 50%;
-  background: rgba(99,102,241,.82);
-  backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
-  border: 2px solid rgba(255,255,255,.55);
-  color: white; font-size: 1.2rem; font-weight: 800;
-  display: none; align-items: center; justify-content: center;
-  box-shadow: 0 4px 14px rgba(99,102,241,.4);
-  cursor: pointer; -webkit-tap-highlight-color: transparent;
-  transition: transform .12s, background .2s;
-}
-.hp-scroll-btn:active { transform: scale(.92); }
-body.hp-on .hp-scroll-btn.visible { display: flex; }
-/* Vertical group (top-right area) */
-#hpScrollUp   { top: calc(50% - 110px); }
-#hpScrollDown { top: calc(50% - 58px); }
-/* Horizontal group (bottom-right area, sopra toggle) */
-#hpScrollLeft  { top: calc(50% + 10px); }
-#hpScrollRight { top: calc(50% + 62px); }
