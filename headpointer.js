@@ -262,24 +262,32 @@ function _hpClearEdgeVisuals(){
   document.querySelectorAll('.hp-swipe-arrow').forEach(a => a.classList.remove('show'));
 }
 
-// Trigger quando il dwell di 1s su una edge zone completa
+// Trigger quando il dwell di 1s su una edge zone completa.
+// Pop sound SOLO se l'azione avviene davvero (altrimenti ri-innesca ogni
+// secondo con pop ma senza fare nulla).
 function _hpEdgeTrigger(dir){
-  _hpPop();
-  if (dir === 'top'){ hpScroll('up'); return; }
-  if (dir === 'bottom'){ hpScroll('down'); return; }
-  // LEFT/RIGHT: priorità allo scroll orizzontale di un container interno
-  // (es. .subcat-scroll / .cat-scroll su AAC), fallback a goTo page.
-  const scrollDir = (dir === 'left') ? 'left' : 'right';
-  const sc = _hpFindBestScroller('x');
-  if (sc && _hpCanScroll(sc, scrollDir)){
-    hpScroll(scrollDir);
+  // Top / bottom → scroll verticale (se c'è qualcosa da scrollare)
+  if (dir === 'top' || dir === 'bottom'){
+    const d = (dir === 'top') ? 'up' : 'down';
+    const sc = _hpFindBestScroller('y');
+    if (sc && _hpCanScroll(sc, d)){ hpScroll(d); _hpPop(); }
     return;
   }
-  // Fallback: carosello home
+  // Left / right → (1) scroll orizzontale di container interno
+  const scrollDir = (dir === 'left') ? 'left' : 'right';
+  const hsc = _hpFindBestScroller('x');
+  if (hsc && _hpCanScroll(hsc, scrollDir)){
+    hpScroll(scrollDir); _hpPop(); return;
+  }
+  // (2) carosello home (goTo)
   const page = window.curPage;
   if (typeof window.goTo === 'function' && typeof page === 'number'){
-    if (dir === 'right' && page < 3) window.goTo(page + 1);
-    if (dir === 'left' && page > 0) window.goTo(page - 1);
+    if (dir === 'right' && page < 3){ window.goTo(page + 1); _hpPop(); return; }
+    if (dir === 'left' && page > 0){ window.goTo(page - 1); _hpPop(); return; }
+  }
+  // (3) fallback sinistra → back del browser (esce dall'esercizio/pagina)
+  if (dir === 'left' && history.length > 1){
+    _hpPop(); history.back();
   }
 }
 
