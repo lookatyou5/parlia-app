@@ -437,8 +437,8 @@ body{padding-top:var(--top-h); padding-bottom:40px}
   border-radius:24px;
   overflow:hidden;
   background:#1a1a2e;
-  aspect-ratio:3/4;
-  max-height:65vh;
+  aspect-ratio:2/3;
+  max-height:72vh;
   margin:0 auto 12px;
   box-shadow:0 12px 36px rgba(126,34,206,.22), 0 0 0 1px rgba(255,255,255,.4) inset;
   animation:cardIn .35s ease both;
