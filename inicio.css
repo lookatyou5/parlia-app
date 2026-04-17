@@ -418,6 +418,18 @@ body.is-scrolling .ai-hero-inner .agenda-scroll .agenda-done-card { animation-pl
 .agenda-sleep-text { font-size: 0.75rem; font-weight: 600; color: var(--muted); line-height: 1.4; }
 .agenda-sleep-title { font-size: 0.85rem; font-weight: 800; color: var(--ink); margin-bottom: 2px; }
 
+/* Override quando .agenda-sleep è dentro il core AI viola — niente testo
+   scuro su gradient viola: diventa illeggibile (effetto "olivastro") */
+.ai-hero-inner .agenda-sleep {
+  background: rgba(255,255,255,.12);
+  border: 1px solid rgba(255,255,255,.2);
+  border-radius: 14px;
+  padding: 12px 14px;
+  margin: 4px 8px 0;
+}
+.ai-hero-inner .agenda-sleep-title { color: white; }
+.ai-hero-inner .agenda-sleep-text  { color: rgba(255,255,255,.82); }
+
 /* Agenda card timeline row */
 .ac-time { font-size: 0.62rem; font-weight: 800; color: var(--muted); margin-bottom: 3px; display: flex; align-items: center; gap: 4px; }
 .ac-now-badge { background: var(--blue); color: white; font-size: 0.48rem; font-weight: 800; border-radius: 20px; padding: 1px 5px; letter-spacing: .04em; }
