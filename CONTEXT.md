@@ -20,6 +20,8 @@ Parlia è una PWA (app web progressiva) per comunicazione aumentativa (AAC) dest
 - `userData.js` — data layer condiviso `parlia_user_data` con migrazione legacy
 - `memoriaAI.html` — redirect a `profile.html` (mantiene compat con bookmark)
 - `comunicador.html` — comunicador AAC standalone
+- `vision.html` — **Visión Asistida** — pagina standalone con camera posteriore, OCR + riconoscimento oggetti via Google Cloud Vision, lettura automatica in Neural2-H
+- `vision.css` · `vision.js` — stili palette teal/cyan + logica (capture → Worker → TTS/AI describe)
 - `logopedia.html` — **shell HTML** della pagina logopedia (140 righe, solo struttura + import)
 - `logopedia.css` — stili della logopedia (330 righe)
 - `logopedia-data.js` — **exercise bank** per livello + metadata categorie/suoni (131 righe — file da toccare per aggiungere/cambiare esercizi)
@@ -811,6 +813,104 @@ Idempotente (check `document.getElementById`/`querySelector` prima di creare). U
 
 ### Cache-bust della sessione
 `headpointer.*`: v20260416c → v20260417k (via i, j intermedi durante dev)
+
+---
+
+## Sessione 17 aprile 2026 (notte) — Visión Asistida (Google Cloud Vision)
+
+Nuova feature: **`vision.html`** — pagina standalone che usa la camera posteriore per leggere testi (OCR) e descrivere oggetti, con lettura automatica via TTS Neural2-H.
+
+### URL
+- Pagina: `https://app.parlia.app/vision.html`
+- Worker proxy: `https://parlia-vision.luca-peltrini.workers.dev`
+
+### Architettura
+```
+[Browser] --POST {image: base64}--> [parlia-vision Worker] --+ GOOGLE_VISION_KEY --> [Google Cloud Vision API]
+[Browser] <-- JSON {text,labels,objects} -- [Worker] <-- annotations --------------+
+                                                          │
+                                                          └── se NO text → [voci-ai-proxy → Claude Haiku]
+                                                                           → "Veo una botella de…"
+                                                          │
+                                                          └── TTS via [parlia-tts → Google Neural2-H]
+```
+
+### Worker `parlia-vision` (nuovo, separato)
+- URL: `parlia-vision.luca-peltrini.workers.dev`
+- Secret cifrato: `GOOGLE_VISION_KEY` (chiave Google Cloud ristretta a SOLO Cloud Vision API)
+- CORS allowlist: `app.parlia.app`, `laura.parlia.app`, `parlia.app`, localhost
+- Validazione: immagine base64, max 5MB
+- Features richieste per request: `TEXT_DETECTION` + `LABEL_DETECTION` + `OBJECT_LOCALIZATION` (3 in una chiamata)
+- `imageContext.languageHints: ['es', 'it', 'en']` per migliorare OCR multilingua
+- Risposta normalizzata: `{ text: string, labels: [{desc,score}], objects: [{name,score}] }`
+- Free tier Google: **1000 req/mese/feature** (≈3000/mese effettive per Laura) — ampiamente coperto
+
+### Pagina `vision.html` — layout full-camera (stesso pattern del Reto de la Sonrisa)
+```
+┌─────────────────────────────┐
+│ ← Visión Asistida      🔄   │ topbar teal
+├─────────────────────────────┤
+│                             │
+│ Apunta a un texto o objeto  │ ← overlay top (gradient)
+│                             │
+│     [CAMERA POSTERIORE]     │ ← aspect 3/4, max 72vh,
+│          live               │   object-fit cover, NO mirror
+│                             │
+│  ═════ scanner line ═════   │ ← solo durante analisi
+│                             │
+│ ┌─ Texto detectado ──────┐  │ ← overlay bottom (gradient)
+│ │ Resultado leído aquí   │  │   glass card scrollabile
+│ └────────────────────────┘  │
+│ [   🔍 Analizar       ]    │ ← bottone grande gradient teal→cyan
+└─────────────────────────────┘
+[🔊 Escuchar de nuevo] [↻ Nuevo]
+```
+
+Palette verde/ciano (`#0d9488 → #06b6d4 → #22d3ee`) per differenziare da Tutorial viola, AI core blu, Reto sorriso viola/rosa. Scanner line ciano con glow + `@keyframes scannerScan` ping-pong 1.6s durante analisi.
+
+### Logica client (`vision.js`)
+1. **startCamera** al load: `getUserMedia({facingMode:{ideal:'environment'}, width:1280, height:960})`. Flip 🔄 visibile solo se ci sono ≥2 camere.
+2. **analyzeFrame**: cattura frame → canvas downscale a max 1024px lato lungo → JPEG 0.82 → POST al Worker
+3. **_handleResult** (priorità):
+   - **Testo "significativo"** (≥3 parole **E** ≥15 caratteri) → legge tutto con Neural2-H. Etichetta "Texto detectado"
+   - Altrimenti → Claude Haiku via `voci-ai-proxy` genera frase in spagnolo iniziando con "Veo…" (max 10 parole). Il testo breve eventuale (brand, etichetta) viene passato come **hint** a Claude così può dire "Veo una botella de Coca-Cola" invece di "Veo una botella"
+   - Nessun segnale affidabile → fallback testuale + lettura
+4. **UI stato analisi**: bottone disabilitato + `.vis-scanner.active` (linea che scorre) + spinner overlay
+5. **🔊 Escuchar de nuevo**: ripete `VIS.lastText` — arriva dalla cache LRU client di `tts.js` → **zero consumo API**
+6. **Stop TTS precedente** prima di nuova lettura (evita sovrapposizioni)
+7. **Power down automatico**: `visibilitychange`/`pagehide`/`beforeunload` → stop stream + `stopNeural()`
+
+### Heuristica "testo significativo" (evita falsi positivi)
+Vision API rileva qualsiasi testo, incluso "COCA-COLA 500ml" su una lattina. Leggere quello invece di descrivere l'oggetto è disorientante. Fix: testo viene letto solo se sembra un testo vero (pagina, cartello, menu — ≥3 parole E ≥15 char). Brand/etichette brevi cadono sul path AI → descrizione naturale.
+
+### Integrazione nella home
+Card compatta in `components/inicio.html` (tra Tutorial e Meteo):
+```html
+🔍 Visión Asistida
+Lee textos y reconoce objetos       [Abrir →]
+```
+Gradient teal→cyan, link diretto a `vision.html`. Posizione scelta per essere sempre visibile in cima sia con tutorial attivo sia dopo averlo nascosto.
+
+### File creati/toccati
+- **Nuovi**:
+  - `vision.html` (75 righe) — shell + overlay camera
+  - `vision.css` (250 righe) — palette teal/cyan, scanner line, spinner, overlay gradient
+  - `vision.js` (180 righe) — camera + analyzeFrame + _handleResult + AI describe
+- **Modificati**:
+  - `components/inicio.html` — card di ingresso
+  - `home.html` — cache-bust partial v20260416b → v20260417a
+
+### Costi
+- Google Cloud Vision: free tier 1000 req/mese per feature. Richiesta combinata TEXT+LABEL+OBJECT conta come 3 feature-req → 1000 analisi/mese. Laura probabilmente ~50-100/mese.
+- Google TTS Neural2: 1M char/mese free. Letture vision tipiche ~30-80 char → trascurabile (si era già detto).
+- Claude Haiku (via voci-ai-proxy): consumo token minimo (~100 token per descrizione).
+
+### Istruzioni di setup (per Luca in futuro, se serve replicare)
+1. Google Cloud Console → abilitare **Cloud Vision API** sullo stesso progetto del TTS
+2. Credentials → crea API key → restringi a SOLO Cloud Vision API
+3. Cloudflare Workers → crea Worker `parlia-vision` con il codice in `notes/parlia-vision-worker.js` (NON in repo, lo ho fornito come testo nella chat di sviluppo)
+4. Nel Worker: Settings → Variables → Secret `GOOGLE_VISION_KEY` = la API key
+5. Deploy
 
 ---
 
