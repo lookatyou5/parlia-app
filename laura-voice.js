@@ -249,14 +249,25 @@
     return t + '.';
   }
 
+  // Whitelist delle emozioni accettate da MiniMax speech-01/02. Valore invalido
+  // → default 'neutral' (tono piatto, stabile, meno variabilità sul clone).
+  const EMOTIONS = ['happy','sad','angry','fearful','surprised','disgusted','neutral'];
+  function _normalizeEmotion(e) {
+    const v = typeof e === 'string' ? e.toLowerCase().trim() : '';
+    return EMOTIONS.includes(v) ? v : 'neutral';
+  }
+
   async function fetchMiniMaxAudio(text, opts) {
     text = _ensureTerminalPunct(String(text || '').trim());
     if (!text) return;
     opts = opts || {};
-    const onEnd  = typeof opts.onend  === 'function' ? opts.onend  : null;
-    const onErr  = typeof opts.onerror === 'function' ? opts.onerror : null;
-    const speed  = typeof opts.speed  === 'number'   ? opts.speed  : 1.0;
-    const key    = _normalize(text);
+    const onEnd   = typeof opts.onend   === 'function' ? opts.onend   : null;
+    const onErr   = typeof opts.onerror === 'function' ? opts.onerror : null;
+    const speed   = typeof opts.speed   === 'number'   ? opts.speed   : 1.0;
+    const emotion = _normalizeEmotion(opts.emotion);
+    // Cache key include anche emotion: "tengo hambre | neutral" ≠ "tengo hambre | happy"
+    // così varianti emotive vivono in cache come entry separate (audio diversi).
+    const key     = _normalize(text) + '|' + emotion;
 
     _stopCurrent();
     const myToken = ++_currentToken;
@@ -303,7 +314,7 @@
       const res = await _fetchWithTimeout(PROXY_URL, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ text, speed }),
+        body: JSON.stringify({ text, speed, emotion }),
       }, FETCH_TIMEOUT);
 
       if (!res.ok) {
@@ -381,9 +392,14 @@
   function lauraVoiceReady() { return _idbReady || Promise.resolve(); }
 
   // Check se un testo specifico è già in cache (usato dalla UI per marcare
-  // i bottoni che non costerebbero nulla prima ancora di essere toccati)
-  function isLauraCached(text) {
-    return _cache.has(_normalize(text));
+  // i bottoni che non costerebbero nulla prima ancora di essere toccati).
+  // Ora la chiave include l'emotion → applichiamo la stessa normalizzazione
+  // del path di play (ensureTerminalPunct + emotion). Senza opts → neutral.
+  function isLauraCached(text, opts) {
+    const t = _ensureTerminalPunct(String(text || '').trim());
+    if (!t) return false;
+    const emo = _normalizeEmotion(opts && opts.emotion);
+    return _cache.has(_normalize(t) + '|' + emo);
   }
 
   // Stop audio quando la tab va in background
