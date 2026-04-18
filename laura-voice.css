@@ -92,6 +92,51 @@ html, body {
   gap: 20px;
 }
 
+/* ═══ Emotion chips (tono voce) ═══ */
+.lv-emo-wrap {
+  display: flex; flex-direction: column; gap: 8px;
+  padding: 12px 14px;
+  border-radius: 18px;
+  background: rgba(255,255,255,.75);
+  border: 1px solid rgba(124,58,237,.14);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+}
+.lv-emo-label {
+  font-size: 0.64rem; font-weight: 800;
+  text-transform: uppercase; letter-spacing: .1em;
+  color: var(--lv-1); opacity: .85;
+  font-family: 'Bricolage Grotesque', sans-serif;
+}
+.lv-emo-chips {
+  display: flex; gap: 6px; overflow-x: auto;
+  scrollbar-width: none; -ms-overflow-style: none;
+  padding-bottom: 2px;
+}
+.lv-emo-chips::-webkit-scrollbar { display: none; }
+.lv-emo-chip {
+  flex-shrink: 0;
+  display: inline-flex; align-items: center; gap: 5px;
+  padding: 7px 12px;
+  border-radius: 100px;
+  background: #f1eaff;
+  border: 1.5px solid transparent;
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  font-size: 0.78rem; font-weight: 700;
+  color: var(--lv-1);
+  cursor: pointer; transition: all .18s;
+  -webkit-tap-highlight-color: transparent;
+  user-select: none; -webkit-user-select: none; -webkit-touch-callout: none;
+  white-space: nowrap;
+}
+.lv-emo-chip:active { transform: scale(.95); }
+.lv-emo-chip.active {
+  background: var(--accent-gradient);
+  color: white;
+  border-color: rgba(255,255,255,.4);
+  box-shadow: 0 3px 10px rgba(124,58,237,.35);
+}
+
 /* ═══ Input libero (scrivi + leer) ═══ */
 .lv-custom {
   padding: 14px;
