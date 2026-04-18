@@ -153,12 +153,16 @@ body.is-scrolling .cursor-blink,
 body.is-scrolling .typing-dots span,
 body.is-scrolling .agenda-card.now,
 body.is-scrolling .agenda-card.now .ac-now-badge { animation-play-state: paused !important; }
-/* Rimuove i filtri costosi (blur, backdrop) durante lo scroll */
-body.is-scrolling .ai-hero-inner .agenda-card,
-body.is-scrolling .meteo-widget {
+/* Rimuove TUTTI i backdrop-filter durante lo scroll/swipe.
+   Su Android di fascia bassa anche un singolo backdrop-filter attivo basta a
+   far perdere frame durante lo swipe → bloccato globalmente con !important. */
+body.is-scrolling *,
+body.is-scrolling *::before,
+body.is-scrolling *::after {
   backdrop-filter: none !important;
   -webkit-backdrop-filter: none !important;
 }
+body.is-scrolling .topbar { background: rgba(245,246,250,1) !important; }
 /* Nascondi completamente gli elementi decorativi più pesanti (glow, mesh blobs,
    grid pattern) mentre si swipa → il contenuto principale resta visibile e
    leggero da compositare. Al fine-scroll tornano visibili. */
@@ -948,7 +952,11 @@ if ('scrollRestoration' in history) try { history.scrollRestoration = 'manual'; 
     const isAndroid = /Android/i.test(ua);
     const mem = navigator.deviceMemory || 8;
     const cpu = navigator.hardwareConcurrency || 8;
-    if (isAndroid && (mem <= 4 || cpu <= 4)) {
+    // Default: ON su qualsiasi Android. La differenza visiva è minima
+    // (no mesh blob animati, no backdrop blur), il guadagno di fluidità è grande
+    // anche su flagship (Chrome Android ha throttling aggressivo).
+    // Override manuale: localStorage.setItem('parlia_low_power','0') per disattivare.
+    if (isAndroid) {
       document.body.classList.add('low-power');
       console.log('[parlia] low-power mode attivata (Android,', 'mem:', mem, 'cpu:', cpu, ')');
     }
