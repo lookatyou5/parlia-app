@@ -400,11 +400,24 @@ function stopRecord(){
   }
 }
 
+// Per esercizi brevi (vocali + sillabe ≤3 char) mostriamo la versione
+// fonetica normalizzata dell'heard in uppercase: "ah"→"A", "eh"→"E", "y"→"I",
+// "mah"→"MA". Così l'utente vede il suono REALE che ha prodotto, non la
+// parola che STT ha "indovinato" — evita di pensare di aver sbagliato
+// quando invece è solo il motore di trascrizione a essere impreciso.
+function displayHeard(heard, target){
+  if (!heard) return '';
+  const tt = (target || '').toLowerCase();
+  if (tt.length > 3) return heard;   // parole lunghe: testo raw
+  const ph = normPhonetic(heard);
+  return (ph || heard).toUpperCase();
+}
 function evaluate(alternatives){
   const ex = state.exercises[state.idx];
   if (!ex) return;
   const heard = alternatives[0] || '';
-  document.getElementById('sfHeard').textContent = heard ? `Oído: "${heard}"` : '';
+  const heardDisplay = displayHeard(heard, ex.word);
+  document.getElementById('sfHeard').textContent = heardDisplay ? `Oído: "${heardDisplay}"` : '';
   let level, msg;
   if (ex.type === 'list'){
     const count = countDistinctWords(heard);
