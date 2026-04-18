@@ -131,9 +131,21 @@
       }, FETCH_TIMEOUT);
 
       if (!res.ok) {
-        let detail = '';
-        try { detail = (await res.json())?.error || ''; } catch (e) {}
-        throw new Error('MiniMax HTTP ' + res.status + (detail ? ' · ' + detail : ''));
+        // Estrai tutto il detail utile dal JSON di errore del Worker
+        // (error + base_resp.status_code/msg + upstream status)
+        let errBody = null;
+        try { errBody = await res.json(); } catch (e) {}
+        const parts = ['HTTP ' + res.status];
+        if (errBody) {
+          if (errBody.error)   parts.push(errBody.error);
+          if (errBody.status)  parts.push('up_status ' + errBody.status);
+          if (errBody.base_resp) {
+            const br = errBody.base_resp;
+            parts.push('minimax ' + (br.status_code ?? '?') + ': ' + (br.status_msg || '').slice(0, 120));
+          }
+          if (errBody.detail)  parts.push(String(errBody.detail).slice(0, 160));
+        }
+        throw new Error(parts.join(' · '));
       }
 
       const blob = await res.blob();
