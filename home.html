@@ -88,9 +88,15 @@ html, body {
 .logo-text span { color: var(--blue); }
 .beta-badge { font-size: 0.52rem; font-weight: 800; background: var(--blue-light); color: var(--blue); border-radius: 20px; padding: 2px 7px; vertical-align: middle; letter-spacing: .04em; }
 .topbar-logo {
-  height: 36px; width: auto;
+  /* topbar è alta --top-h (56px), logo un po' meno per respiro verticale */
+  height: 48px; width: auto; max-width: 55%;
   display: block;
-  flex-shrink: 0;
+  flex-shrink: 1;
+  object-fit: contain;
+  /* Mix-blend-mode multiply: i pixel bianchi del logo si fondono col colore
+     chiaro della topbar diventando invisibili; i colori scuri/saturi del logo
+     restano. Funziona perché la topbar ha sfondo #f5f6fa (quasi bianco). */
+  mix-blend-mode: multiply;
   -webkit-user-select: none; user-select: none;
   -webkit-user-drag: none;
 }
