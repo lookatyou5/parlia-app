@@ -1210,7 +1210,7 @@ document.addEventListener('touchend', () => {
       .then(() => { try { buildAgenda(); } catch(e){} })
       .then(() => { try { loadMeteo(); } catch(e){} })
       .then(() => { try { loadGoal(); } catch(e){} })
-      .then(() => { try { if (!_IS_NIGHT) _sendMsg(null); } catch(e){} })
+      .then(() => { try { if (!_IS_NIGHT) showAiStarter(); } catch(e){} })
       .then(() => { try { loadAISuggestions(); } catch(e){} })
       .finally(() => {
         setTimeout(() => {
@@ -1750,6 +1750,10 @@ function initAIHero() {
       </div>`;
     _updateSessionPill();
     _applyAiMode();
+    // Stato "in attesa": mostra il bottone "Empezar conversación" senza fare
+    // chiamate AI finché l'utente non lo tocca → risparmio costi + primo
+    // paint più leggero (niente generazione chips/thread/typing).
+    showAiStarter();
   }
 }
 
@@ -2061,6 +2065,32 @@ async function _sendMsg(userText) {
       if (f) f.focus();
     }
   });
+}
+
+// Stato iniziale del core AI: niente chat automatica. L'utente tocca
+// "Empezar conversación" per avviare il saluto AI (e quindi la chiamata
+// all'API Claude Haiku). Evita chiamate a vuoto quando la home viene aperta
+// solo per vedere ora/meteo/agenda.
+function showAiStarter(){
+  const thread  = document.getElementById('chatThread');
+  const chipsEl = document.getElementById('aiChips');
+  if (chipsEl) chipsEl.innerHTML = '';
+  if (!thread) return;
+  const name = (typeof profile !== 'undefined' && profile && profile.userName) ? profile.userName : '';
+  const greet = name ? `Hola, ${name}` : 'Hola';
+  thread.innerHTML = `
+    <div class="ai-chat-ended">
+      <div class="ai-chat-ended-icon">👋</div>
+      <div class="ai-chat-ended-text">${greet} · Toca para charlar conmigo</div>
+      <button class="ai-chat-ended-btn" onclick="restartAiChat()">Empezar conversación →</button>
+    </div>`;
+  const status = document.getElementById('aiStatusText');
+  if (status) status.textContent = 'Listo';
+  _history = [];
+  _lastAiText = '';
+  _hasChipsForLastAi = false;
+  _isTyping = false;
+  try { window.stopNeural && stopNeural(); } catch(e){}
 }
 
 // Termina la conversazione: svuota history + thread, mostra placeholder con
@@ -2489,11 +2519,10 @@ function init() {
   buildFrasi();
   showHint();
   loadMeteo();
-  if (!_IS_NIGHT) {
-    setTimeout(()=>{ _sendMsg(null); loadGoal(); loadAISuggestions(); }, 400);
-  } else {
-    setTimeout(()=>{ loadGoal(); loadAISuggestions(); }, 400);
-  }
+  // NB: niente _sendMsg(null) auto. Il saluto AI parte solo quando l'utente
+  // tocca "Empezar conversación" (vedi showAiStarter). Risparmia costi API
+  // e rende il primo paint più leggero.
+  setTimeout(()=>{ loadGoal(); loadAISuggestions(); }, 400);
 }
 init();
 
@@ -2607,7 +2636,7 @@ Object.assign(window, {
   toggleSettings, closeSettings,
   openMeteo, closeMeteo, closeMeteoBtn,
   replayLast, selCat, selSub, tapFrase, toggleTTS,
-  setAiMode, sendAiText, endAiChat, restartAiChat,
+  setAiMode, sendAiText, endAiChat, restartAiChat, showAiStarter,
   lauraVoiceGate, openLauraPin, closeLauraPin, submitLauraPin
 });
 
