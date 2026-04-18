@@ -661,6 +661,13 @@ body.low-power .topbar { background: rgba(245,246,250,1); }
 }
 .settings-item:active { background: var(--blue-light); }
 .settings-item-icon { font-size: 1rem; width: 22px; text-align: center; flex-shrink: 0; }
+.settings-item.coming-soon { opacity: .5; pointer-events: none; cursor: default; }
+.settings-item .soon-pill {
+  margin-left: auto; font-size: 0.54rem; font-weight: 800;
+  text-transform: uppercase; letter-spacing: .08em;
+  background: #e5e7eb; color: #4b5563;
+  border-radius: 100px; padding: 2px 7px;
+}
 .settings-divider { height: 1px; background: var(--border); margin: 4px 0; }
 
 /* SOS PILL */
@@ -762,23 +769,20 @@ body.low-power .topbar { background: rgba(245,246,250,1); }
 
 <!-- SETTINGS MENU -->
 <div class="settings-menu" id="settingsMenu">
-  <a class="settings-item" href="roadmap.html">
-    <div class="settings-item-icon">🛠️</div>
-    <div>Roadmap</div>
-  </a>
-  <div class="settings-divider"></div>
   <a class="settings-item" href="profile.html">
     <div class="settings-item-icon">👤</div>
     <div>Editar perfil</div>
   </a>
   <div class="settings-divider"></div>
-  <div class="settings-item" onclick="closeSettings();toast('Próximamente…')">
+  <div class="settings-item coming-soon">
     <div class="settings-item-icon">🔔</div>
     <div>Notificaciones</div>
+    <div class="soon-pill">Próximamente</div>
   </div>
-  <div class="settings-item" onclick="closeSettings();toast('Próximamente…')">
+  <div class="settings-item coming-soon">
     <div class="settings-item-icon">🌍</div>
     <div>Idioma</div>
+    <div class="soon-pill">Próximamente</div>
   </div>
   <div class="settings-divider"></div>
   <a class="settings-item" href="tutorial.html">
