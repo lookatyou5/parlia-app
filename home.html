@@ -264,6 +264,80 @@ body.is-scrolling .mesh { opacity: 0; transition: opacity .25s ease; }
 .reminder-item-label { flex: 1; font-size: 0.78rem; font-weight: 700; color: var(--ink); }
 .reminder-item-del { font-size: 0.9rem; cursor: pointer; color: var(--muted); padding: 2px 4px; -webkit-tap-highlight-color: transparent; }
 
+/* PIN modal · accesso Voz de Laura */
+.pin-overlay {
+  position: fixed; inset: 0; z-index: 1200;
+  background: rgba(15, 10, 40, .55); backdrop-filter: blur(6px);
+  display: flex; align-items: center; justify-content: center;
+  opacity: 0; pointer-events: none; transition: opacity .25s;
+}
+.pin-overlay.open { opacity: 1; pointer-events: all; }
+.pin-modal {
+  background: linear-gradient(180deg,#ffffff 0%,#faf7ff 100%);
+  border: 1.5px solid rgba(124,58,237,.18);
+  border-radius: 22px; width: min(320px, 88vw);
+  padding: 22px 22px 20px;
+  box-shadow: 0 20px 60px rgba(124,58,237,.25);
+  transform: scale(.92); transition: transform .28s cubic-bezier(.34,1.56,.64,1);
+  text-align: center;
+}
+.pin-overlay.open .pin-modal { transform: scale(1); }
+.pin-modal.shake { animation: pinShake .4s; }
+@keyframes pinShake {
+  0%,100% { transform: translateX(0); }
+  20% { transform: translateX(-8px); }
+  40% { transform: translateX(8px); }
+  60% { transform: translateX(-6px); }
+  80% { transform: translateX(6px); }
+}
+.pin-icon {
+  font-size: 2rem; margin-bottom: 8px;
+  display: inline-block;
+  background: linear-gradient(135deg,#7c3aed 0%,#a78bfa 100%);
+  -webkit-background-clip: text; background-clip: text;
+  -webkit-text-fill-color: transparent;
+  filter: drop-shadow(0 2px 8px rgba(124,58,237,.35));
+}
+.pin-title {
+  font-family: 'Bricolage Grotesque', sans-serif;
+  font-size: 1.05rem; font-weight: 800; color: #1f1033;
+  margin-bottom: 4px;
+}
+.pin-sub {
+  font-size: 0.78rem; font-weight: 600; color: #6b5b85;
+  margin-bottom: 16px; line-height: 1.4;
+}
+.pin-input {
+  width: 100%; text-align: center;
+  background: #f5f1ff; border: 1.5px solid rgba(124,58,237,.25);
+  border-radius: 14px; padding: 14px;
+  font-family: 'Bricolage Grotesque', sans-serif;
+  font-size: 1.6rem; font-weight: 800; letter-spacing: 0.5em; color: #1f1033;
+  outline: none; caret-color: #7c3aed;
+  margin-bottom: 6px; padding-left: calc(14px + 0.25em);
+}
+.pin-input:focus { border-color: #7c3aed; background: white; }
+.pin-error {
+  min-height: 18px; font-size: 0.75rem; font-weight: 700;
+  color: #dc2626; margin-bottom: 10px;
+}
+.pin-submit {
+  width: 100%;
+  background: linear-gradient(135deg,#7c3aed 0%,#8b5cf6 55%,#a78bfa 100%);
+  border: none; border-radius: 14px; padding: 13px;
+  color: white; font-family: 'Plus Jakarta Sans', sans-serif;
+  font-size: 0.9rem; font-weight: 800; cursor: pointer;
+  box-shadow: 0 6px 18px rgba(124,58,237,.35);
+  -webkit-tap-highlight-color: transparent;
+}
+.pin-submit:active { transform: scale(.98); }
+.pin-cancel {
+  margin-top: 8px; background: transparent; border: none;
+  color: #6b5b85; font-size: 0.8rem; font-weight: 700;
+  cursor: pointer; padding: 6px;
+  -webkit-tap-highlight-color: transparent;
+}
+
 /* Pull to refresh */
 .ptr-indicator {
   position: fixed; top: var(--top-h); left: 50%; transform: translateX(-50%) translateY(-48px);
@@ -794,6 +868,19 @@ body.is-scrolling .mesh { opacity: 0; transition: opacity .25s ease; }
   </div>
 </div>
 
+<!-- MODAL PIN · accesso Voz de Laura -->
+<div class="pin-overlay" id="lauraPinOverlay" onclick="closeLauraPin(event)">
+  <div class="pin-modal" id="lauraPinModal" onclick="event.stopPropagation()">
+    <div class="pin-icon">🔐</div>
+    <div class="pin-title">Voz de Laura · acceso privado</div>
+    <div class="pin-sub">Esta sección usa una voz clonada de pago. Introduce el PIN para continuar.</div>
+    <input id="lauraPinInput" class="pin-input" type="password" inputmode="numeric" pattern="[0-9]*" maxlength="4" autocomplete="off" placeholder="••••">
+    <div class="pin-error" id="lauraPinError"></div>
+    <button class="pin-submit" onclick="submitLauraPin()">Entrar →</button>
+    <button class="pin-cancel" onclick="closeLauraPin()">Cancelar</button>
+  </div>
+</div>
+
 <div id="toast"></div>
 
 <script src="userData.js"></script>
@@ -809,7 +896,7 @@ if ('scrollRestoration' in history) try { history.scrollRestoration = 'manual'; 
 // e non parte sfasato.
 (async function bootstrap(){
   // Cache-bust anche sui partial HTML (query string forza il browser/SW a rifetchare)
-  const V = '20260418a';
+  const V = '20260418b';
   try {
     const [inicio, aac, rehab, perfil] = await Promise.all([
       fetch('components/inicio.html?v=' + V, {cache: 'no-cache'}).then(r => r.ok ? r.text() : Promise.reject(r.status)),
@@ -2375,6 +2462,67 @@ window.addEventListener('popstate', (e) => {
   // else: curPage===0, browser default (chiusura app)
 });
 
+// ── Gate PIN per "Voz de Laura · Test" ──
+// Sezione a pagamento: chi riceve il link dell'app non può entrare senza PIN.
+// Sblocco persistente in localStorage (un solo PIN corretto per device).
+const LAURA_PIN = '0512';
+const LAURA_UNLOCK_KEY = 'parlia_laura_voice_unlocked';
+function lauraVoiceIsUnlocked(){ try { return localStorage.getItem(LAURA_UNLOCK_KEY) === '1'; } catch(e){ return false; } }
+function lauraVoiceGate(ev){
+  if (lauraVoiceIsUnlocked()) return true; // lascia il link navigare
+  ev.preventDefault();
+  openLauraPin();
+  return false;
+}
+function openLauraPin(){
+  const ov = document.getElementById('lauraPinOverlay');
+  const inp = document.getElementById('lauraPinInput');
+  const err = document.getElementById('lauraPinError');
+  if (!ov || !inp) return;
+  inp.value = ''; err.textContent = '';
+  ov.classList.add('open');
+  setTimeout(() => { try { inp.focus(); } catch(e){} }, 200);
+}
+function closeLauraPin(){
+  document.getElementById('lauraPinOverlay')?.classList.remove('open');
+}
+function submitLauraPin(){
+  const inp = document.getElementById('lauraPinInput');
+  const err = document.getElementById('lauraPinError');
+  const modal = document.getElementById('lauraPinModal');
+  const val = (inp?.value || '').trim();
+  if (val === LAURA_PIN) {
+    try { localStorage.setItem(LAURA_UNLOCK_KEY, '1'); } catch(e){}
+    const icon = document.getElementById('lauraLockIcon');
+    if (icon) icon.textContent = '';
+    document.getElementById('lauraPinOverlay')?.classList.remove('open');
+    location.href = 'laura-voice.html';
+  } else {
+    err.textContent = 'PIN incorrecto. Inténtalo de nuevo.';
+    modal?.classList.remove('shake'); void modal?.offsetWidth; modal?.classList.add('shake');
+    inp.value = ''; try { inp.focus(); } catch(e){}
+  }
+}
+// Submit con Enter + auto-submit al quarto digit
+document.addEventListener('keydown', (e) => {
+  const ov = document.getElementById('lauraPinOverlay');
+  if (!ov?.classList.contains('open')) return;
+  if (e.key === 'Enter') { e.preventDefault(); submitLauraPin(); }
+  else if (e.key === 'Escape') { closeLauraPin(); }
+});
+document.addEventListener('input', (e) => {
+  if (e.target?.id !== 'lauraPinInput') return;
+  // solo cifre
+  e.target.value = e.target.value.replace(/\D/g, '').slice(0, 4);
+  if (e.target.value.length === 4) setTimeout(submitLauraPin, 80);
+});
+// All'apertura della home: se già sbloccato, rimuovi il lucchetto dal widget.
+// runApp() gira DOPO l'iniezione dei partial → l'elemento #lauraLockIcon esiste già.
+if (lauraVoiceIsUnlocked()) {
+  const icon = document.getElementById('lauraLockIcon');
+  if (icon) icon.textContent = '';
+}
+
 // Espone le funzioni chiamate dagli onclick="..." nell'HTML (dopo il wrap in runApp
 // tutte le funzioni sono locali, quindi vanno promosse esplicitamente a window.*)
 Object.defineProperty(window, 'curPage', { get(){ return curPage; }, configurable:true });
@@ -2385,7 +2533,8 @@ Object.assign(window, {
   toggleSettings, closeSettings,
   openMeteo, closeMeteo, closeMeteoBtn,
   replayLast, selCat, selSub, tapFrase, toggleTTS,
-  setAiMode, sendAiText, endAiChat, restartAiChat
+  setAiMode, sendAiText, endAiChat, restartAiChat,
+  lauraVoiceGate, openLauraPin, closeLauraPin, submitLauraPin
 });
 
 } // fine runApp()
