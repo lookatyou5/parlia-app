@@ -1217,6 +1217,7 @@ document.addEventListener('touchend', () => {
     // dinamici in-place, poi nascondiamo l'indicatore. Così resta più "PWA".
     Promise.resolve()
       .then(() => { try { buildAgenda(); } catch(e){} })
+      .then(() => { try { initProfile(); } catch(e){} })
       .then(() => { try { loadMeteo(); } catch(e){} })
       // loadGoal() rimosso: la card "Objetivo de hoy" è WIP (Próximamente).
       // loadAISuggestions() rimosso da pull-to-refresh: si genera solo la prima
@@ -2548,6 +2549,14 @@ function init() {
   // va mai in AAC → 0 chiamate Claude Haiku per i suggerimenti AAC.
 }
 init();
+
+// Se l'utente torna alla home da profile.html (back button, bfcache), il
+// DOM viene ripristinato stale: barra + nomi + campi memoria restano quelli
+// al momento in cui è uscito. Rieseguiamo initProfile() al pageshow per
+// rinfrescare con i valori appena salvati in localStorage.
+window.addEventListener('pageshow', (ev) => {
+  try { initProfile(); } catch(e){}
+});
 
 // Stato iniziale: sostituisce l'entry corrente con {page: 0}.
 // La history conterrà al massimo 2 voci: questa + una pushata quando si lascia Inicio.
