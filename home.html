@@ -14,6 +14,21 @@
 <style>
 *, *::before, *::after { box-sizing: border-box !important; margin: 0; padding: 0; }
 
+/* ── No-select su tutta l'app ──
+   Su Android, un tap leggermente lungo o con micro-movimento attiva il menu
+   "Cerca su Google" / selezione testo, anche su pulsanti. Disabilitiamo la
+   selezione ovunque per default e la riabilitiamo solo dove serve davvero
+   (input, textarea, contenteditable, bolle chat, frasi AAC). */
+html, body, button, a, .page, .card, [onclick] {
+  -webkit-user-select: none; -moz-user-select: none; -ms-user-select: none; user-select: none;
+  -webkit-touch-callout: none;
+  -webkit-tap-highlight-color: transparent;
+}
+input, textarea, [contenteditable="true"], .ai-bubble, .frase-hero, .reminder-item-label {
+  -webkit-user-select: text; -moz-user-select: text; -ms-user-select: text; user-select: text;
+  -webkit-touch-callout: default;
+}
+
 html, body {
   width: 100vw; max-width: 100vw;
   height: 100%;
@@ -152,6 +167,35 @@ body.is-scrolling .ai-hero-grid,
 body.is-scrolling .ai-orbit-ring,
 body.is-scrolling .mesh { opacity: 0; transition: opacity .25s ease; }
 .page::-webkit-scrollbar { display: none; }
+
+/* ── Low-power mode ──
+   Attivata via JS su Android con poca RAM/CPU. Spegne effetti decorativi
+   pesanti (backdrop-filter, animazioni infinite, mesh blob) per dare priorità
+   alla reattività dei tap e dello scroll. */
+body.low-power .mesh { display: none; }
+body.low-power .blob { animation: none !important; }
+body.low-power *,
+body.low-power *::before,
+body.low-power *::after {
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+body.low-power .ai-core-wrap::before,
+body.low-power .ai-hero-grid,
+body.low-power .ai-orbit-ring,
+body.low-power .ai-orb-halo,
+body.low-power .ai-orb-core,
+body.low-power .ai-bar,
+body.low-power .ai-online,
+body.low-power .agenda-card.now,
+body.low-power .agenda-card.now .ac-now-badge,
+body.low-power .wx-star,
+body.low-power .cloud,
+body.low-power .rain-drop,
+body.low-power .snow-flake,
+body.low-power .lightning,
+body.low-power .fog { animation: none !important; }
+body.low-power .topbar { background: rgba(245,246,250,1); }
 
 /* ── NAV ── */
 /* Navbar — pill SOLIDA bianca, senza trasparenze/blur (zero costo GPU) */
@@ -888,6 +932,28 @@ body.is-scrolling .mesh { opacity: 0; transition: opacity .25s ease; }
 <script>
 // Disabilita lo scroll-restoration del browser (iOS/Safari può ripristinare posizioni stale)
 if ('scrollRestoration' in history) try { history.scrollRestoration = 'manual'; } catch(e){}
+
+// ── Low-power mode detection ──
+// Su Android di fascia bassa (poca RAM o CPU) attiviamo body.low-power per
+// spegnere effetti decorativi pesanti (backdrop-filter, mesh blob animati,
+// halo/orbit pulsanti). Forzabile manualmente con localStorage:
+//   parlia_low_power = '1' → forza ON · '0' → forza OFF
+// Default: ON se Android E (deviceMemory ≤ 4 OR hardwareConcurrency ≤ 4).
+(function detectLowPower(){
+  try {
+    let forced = localStorage.getItem('parlia_low_power');
+    if (forced === '1') { document.body.classList.add('low-power'); return; }
+    if (forced === '0') return;
+    const ua = navigator.userAgent || '';
+    const isAndroid = /Android/i.test(ua);
+    const mem = navigator.deviceMemory || 8;
+    const cpu = navigator.hardwareConcurrency || 8;
+    if (isAndroid && (mem <= 4 || cpu <= 4)) {
+      document.body.classList.add('low-power');
+      console.log('[parlia] low-power mode attivata (Android,', 'mem:', mem, 'cpu:', cpu, ')');
+    }
+  } catch (e) {}
+})();
 
 // ── BOOTSTRAP ──
 // Carica i partial HTML delle 4 pagine in parallelo, poi avvia l'app.
