@@ -339,7 +339,9 @@ const SPEECH_SUPPORTED = !!SR;
 function initRecognition(){
   if (!SPEECH_SUPPORTED) return null;
   const r = new SR();
-  r.lang = 'es-ES'; r.continuous = false; r.interimResults = false; r.maxAlternatives = 3;
+  // maxAlternatives più alto = più candidati da STT, aumenta chance di cogliere
+  // la trascrizione "fonetica" giusta ("ah" invece di "eh" ecc.).
+  r.lang = 'es-ES'; r.continuous = false; r.interimResults = false; r.maxAlternatives = 6;
   return r;
 }
 function toggleRecord(){
@@ -399,8 +401,14 @@ function evaluate(alternatives){
     else if (count >= need-1){ level='yellow'; msg=`Casi: oí ${count} elementos.`; }
     else                     { level='red';    msg=`Solo ${count} elementos, inténtalo otra vez.`; }
   } else {
+    // Target breve (vocali + sillabe, ≤3 char) → matching fonetico permissivo.
+    // Target lungo → Levenshtein classico.
+    const isShort = (ex.word || '').length <= 3;
     let best = 0;
-    alternatives.forEach(a => { const s = similarity(a, ex.word); if (s>best) best=s; });
+    alternatives.forEach(a => {
+      const s = isShort ? matchShortSound(a, ex.word) : similarity(a, ex.word);
+      if (s>best) best=s;
+    });
     if (best >= 0.82)      { level='green';  msg='¡Muy bien pronunciado!'; }
     else if (best >= 0.55) { level='yellow'; msg='Casi, repite con más claridad.'; }
     else                   { level='red';    msg='No se entendió bien, vamos otra vez.'; }
@@ -418,6 +426,36 @@ function evaluate(alternatives){
 // ═══ SIMILARITY ═══
 function norm(s){
   return (s||'').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[¿?¡!.,;:]/g,'').replace(/\s+/g,' ').trim();
+}
+// Mapping fonetico spagnolo: cosa può tornare Web Speech API → come suona
+// realmente. Usato SOLO per target brevi (vocali isolate + sillabe). Senza
+// questo, l'STT trascrive "A" come "ah"/"ha"/"eh", "I" come "y" ecc., e
+// Levenshtein dà 0 di similarity → falso rosso.
+const PHONETIC_EQUIV = {
+  'y': 'i',   // spagnolo "y" = suono "i" isolato
+  'and': 'i',
+  'hay': 'ay',
+};
+function normPhonetic(s){
+  let t = norm(s);
+  // strip h (mute in spagnolo) → "ah"→"a", "ha"→"a", "hoh"→"o"
+  t = t.replace(/h/g, '');
+  // strip ripetizioni vocaliche → "aaa"→"a", "ooooh"→"o"
+  t = t.replace(/([aeiou])\1+/g, '$1');
+  if (PHONETIC_EQUIV[t]) t = PHONETIC_EQUIV[t];
+  return t;
+}
+// Match permissivo per suoni brevi (vocali, sillabe 2-3 char). Usa
+// normalizzazione fonetica + containment: STT che restituisce "aha" per "a"
+// o "mah" per "ma" matcha GREEN invece di rosso.
+function matchShortSound(heard, target){
+  const th = normPhonetic(heard);
+  const tt = normPhonetic(target);
+  if (!th || !tt) return 0;
+  if (th === tt) return 1;
+  if (th.includes(tt)) return 0.95;    // target dentro heard: "a" in "ahora"
+  if (tt.includes(th)) return 0.70;    // heard dentro target: "m" in "ma"
+  return 1 - levenshtein(th, tt) / Math.max(th.length, tt.length);
 }
 function similarity(a, b){
   a = norm(a); b = norm(b);
