@@ -2,6 +2,14 @@
 
 Parlia è una PWA (app web progressiva) per comunicazione aumentativa (AAC) destinata a persone con difficoltà del linguaggio, sviluppata per Laura che è in riabilitazione neurologica al Institut Guttmann di Barcellona.
 
+## 🚧 TODO — Prossimi lavori
+> **Claude: leggi sempre questa sezione a inizio sessione e ricorda all'utente i punti aperti.**
+
+- **Portare `tts.js` su cache IndexedDB (persistente)**. Oggi ha solo Map in memoria (60 frasi LRU), che si svuota a ogni chiusura PWA → al riavvio ogni frase paga una nuova call Google TTS. Applicando lo stesso pattern a 2 livelli di `laura-voice.js` (Map + IndexedDB `audio` store), le frasi ripetute restano istantanee anche dopo chiusura/riavvio del device → risparmio reale di chiamate API e più snappy sul primo uso di ogni sessione. ~30 min di lavoro. Priorità media — il free tier Google è generoso (1M char/mese) ma la fluidità migliora.
+- **Setup worker in repo (`workers/voci-ai-proxy`, `workers/parlia-tts`, `workers/parlia-minimax`)** con `wrangler.toml`. Oggi i worker vivono solo sul dashboard Cloudflare → nessun version control, nessuna diff visibility. I secret (API key) restano su Cloudflare come env secrets. ~15 min setup, da fare quando serve la prossima modifica a un worker.
+- **Supporto emozione nella voce di Laura (MiniMax)**. Passare il parametro `emotion` (happy/sad/tranquila/ecc.) in `laura-voice.js` + UI con chips preset. Richiede modifica del worker `parlia-minimax` per accettare e inoltrare il campo. ~30 min totali.
+- **Voice cloning per altri utenti (in ottica futura)**. Flusso di onboarding voce → upload audio → worker `parlia-voice-clone` → `voice_id` MiniMax per-utente. Punto critico: flusso di consenso legale, non la tecnica. Vedi discussione sessione 18 aprile 2026.
+
 ## URL
 - App Parlia: https://app.parlia.app
 - App Laura: https://laura.parlia.app
