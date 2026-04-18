@@ -386,6 +386,18 @@ function stopRecord(){
   const btn = document.getElementById('micBtn');
   btn.classList.remove('recording'); btn.textContent = '🎤';
   try{ if (state.recognition) state.recognition.stop(); }catch(e){}
+  // Rimuovi le label transitorie "Grabando…" / "Escuchando…" se nessun altro
+  // (evaluate / onerror) ha già scritto un messaggio: devono apparire SOLO
+  // mentre sta effettivamente registrando.
+  const fb = document.getElementById('sfFeedback');
+  const st = document.getElementById('exStatus');
+  if (fb && fb.textContent === 'Grabando…') {
+    fb.textContent = 'Pulsa el micrófono y habla';
+    fb.className = 'sf-feedback';
+  }
+  if (st && st.textContent === 'Escuchando… habla ahora') {
+    st.textContent = '';
+  }
 }
 
 function evaluate(alternatives){
