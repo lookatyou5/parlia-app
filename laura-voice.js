@@ -73,14 +73,37 @@
     try { localStorage.removeItem(LIFETIME_KEY); } catch (e) {}
   }
 
-  // Stato privato (cache + stats)
-  const _cache = new Map();      // key → blobUrl
+  // ─── Cache a 2 livelli: in-memory (Map) + persistente (IndexedDB) ───
+  //
+  // Layer 1 — Map<key, blobUrl>
+  //   Serve la riproduzione istantanea (URL.createObjectURL già risolto,
+  //   nessuna lettura async dal disco).
+  //
+  // Layer 2 — IndexedDB 'parlia-laura-voice' / store 'audio'
+  //   Entry schema: { key: string, blob: Blob, ts: number, chars: number }
+  //   Sopravvive a refresh, chiusura PWA, riavvio del dispositivo.
+  //   Al page load ogni entry viene letta una volta sola e il blob
+  //   convertito in URL locale che popola la Map → da lì in poi la
+  //   riproduzione è identica a una cache in-memory.
+  //
+  // Se IndexedDB non è disponibile (Firefox in privacy mode, Safari in
+  // private browsing su iOS ≤13, ecc.) si degrada silenziosamente al
+  // solo layer in-memory — zero errori utente.
+  const IDB_NAME = 'parlia-laura-voice';
+  const IDB_VERSION = 1;
+  const IDB_STORE = 'audio';
+
+  const _cache = new Map();      // key → blobUrl (memoria)
   const _stats = {
     plays: 0,           // riproduzioni totali (cache + API)
     cacheHits: 0,       // riproduzioni servite da cache
     charsSent: 0,       // caratteri effettivamente spediti a MiniMax
     charsSaved: 0,      // caratteri risparmiati grazie alla cache
   };
+
+  let _db = null;
+  let _idbAvailable = true;
+  let _idbReady = null;          // Promise risolta al termine del preload
 
   let _currentAudio = null;
   let _currentToken = 0;
@@ -89,20 +112,111 @@
     return String(text || '').toLowerCase().trim();
   }
 
+  // ─── IndexedDB helpers ───
+  function _idbOpen() {
+    return new Promise((resolve, reject) => {
+      if (!('indexedDB' in window)) { _idbAvailable = false; reject(new Error('no_idb')); return; }
+      const req = indexedDB.open(IDB_NAME, IDB_VERSION);
+      req.onupgradeneeded = () => {
+        const db = req.result;
+        if (!db.objectStoreNames.contains(IDB_STORE)) {
+          db.createObjectStore(IDB_STORE, { keyPath: 'key' });
+        }
+      };
+      req.onsuccess = () => { _db = req.result; resolve(_db); };
+      req.onerror = () => { _idbAvailable = false; reject(req.error); };
+      req.onblocked = () => { /* no-op: il vecchio DB viene chiuso dal tab precedente */ };
+    });
+  }
+  function _idbTx(mode = 'readonly') {
+    return _db.transaction(IDB_STORE, mode).objectStore(IDB_STORE);
+  }
+  function _idbGetAll() {
+    return new Promise((resolve, reject) => {
+      try {
+        const req = _idbTx().getAll();
+        req.onsuccess = () => resolve(req.result || []);
+        req.onerror = () => reject(req.error);
+      } catch (e) { reject(e); }
+    });
+  }
+  function _idbPut(entry) {
+    return new Promise((resolve, reject) => {
+      try {
+        const req = _idbTx('readwrite').put(entry);
+        req.onsuccess = () => resolve();
+        req.onerror = () => reject(req.error);
+      } catch (e) { reject(e); }
+    });
+  }
+  function _idbDelete(key) {
+    return new Promise((resolve, reject) => {
+      try {
+        const req = _idbTx('readwrite').delete(key);
+        req.onsuccess = () => resolve();
+        req.onerror = () => reject(req.error);
+      } catch (e) { reject(e); }
+    });
+  }
+  function _idbClear() {
+    return new Promise((resolve, reject) => {
+      try {
+        const req = _idbTx('readwrite').clear();
+        req.onsuccess = () => resolve();
+        req.onerror = () => reject(req.error);
+      } catch (e) { reject(e); }
+    });
+  }
+
+  async function _preloadCacheFromIDB() {
+    try {
+      await _idbOpen();
+      const entries = await _idbGetAll();
+      // Ordina per timestamp crescente così le entry più vecchie finiscono
+      // "in fondo" alla LRU Map (saranno le prime a essere sfrattate se
+      // superiamo CACHE_MAX durante la sessione).
+      entries.sort((a, b) => (a.ts || 0) - (b.ts || 0));
+      for (const e of entries) {
+        if (!e || !e.blob || !e.key) continue;
+        try {
+          const url = URL.createObjectURL(e.blob);
+          _cache.set(e.key, url);
+        } catch (err) { /* skip entry corrotta */ }
+      }
+      console.log('[laura-voice] IDB preload:', entries.length, 'frases en caché persistente');
+    } catch (err) {
+      _idbAvailable = false;
+      console.warn('[laura-voice] IndexedDB no disponible, solo caché en memoria:', err && err.message);
+    }
+  }
+  _idbReady = _preloadCacheFromIDB();
+
   function _cacheGet(key) {
     if (!_cache.has(key)) return null;
     const v = _cache.get(key);
     _cache.delete(key); _cache.set(key, v);   // LRU touch
     return v;
   }
-  function _cacheSet(key, blobUrl) {
+  async function _cacheSet(key, blob, chars) {
+    // Evict oldest from Map se superiamo CACHE_MAX
     if (_cache.size >= CACHE_MAX) {
       const oldestKey = _cache.keys().next().value;
       const oldUrl = _cache.get(oldestKey);
       _cache.delete(oldestKey);
       try { URL.revokeObjectURL(oldUrl); } catch (e) {}
+      // Rimuovi anche da IDB per non far crescere il DB all'infinito
+      if (_idbAvailable) {
+        try { await _idbDelete(oldestKey); } catch (e) {}
+      }
     }
+    const blobUrl = URL.createObjectURL(blob);
     _cache.set(key, blobUrl);
+    // Persist in IDB (fire-and-forget: non bloccare la riproduzione)
+    if (_idbAvailable) {
+      _idbPut({ key, blob, ts: Date.now(), chars: chars || 0 })
+        .catch(err => console.warn('[laura-voice] IDB put fail:', err && err.message));
+    }
+    return blobUrl;
   }
 
   function _stopCurrent() {
@@ -134,6 +248,15 @@
 
     _stopCurrent();
     const myToken = ++_currentToken;
+
+    // Aspetta il preload IDB prima di controllare la cache — così il primo
+    // tap dopo un refresh NON paga API se la frase era persistita da una
+    // sessione precedente. Il wait è tipicamente <100ms (getAll di una
+    // manciata di entry); se IDB non è disponibile, la promise si risolve
+    // subito senza bloccare.
+    if (_idbReady) { try { await _idbReady; } catch (e) {} }
+
+    if (myToken !== _currentToken) return;
 
     const playBlobUrl = (url, fromCache) => {
       if (myToken !== _currentToken) return;
@@ -191,8 +314,7 @@
 
       const blob = await res.blob();
       if (myToken !== _currentToken) return;   // nel frattempo stopped
-      const blobUrl = URL.createObjectURL(blob);
-      _cacheSet(key, blobUrl);
+      const blobUrl = await _cacheSet(key, blob, text.length);
       _stats.charsSent += text.length;
       _addLifetimeChars(text.length);
       playBlobUrl(blobUrl, false);
@@ -226,15 +348,31 @@
     };
   }
 
-  function clearLauraVoiceCache() {
+  async function clearLauraVoiceCache() {
+    // 1. Memory
     for (const url of _cache.values()) {
       try { URL.revokeObjectURL(url); } catch (e) {}
     }
     _cache.clear();
+    // 2. IndexedDB (persistente)
+    if (_idbAvailable) {
+      try { await _idbClear(); } catch (e) { console.warn('[laura-voice] IDB clear fail:', e && e.message); }
+    }
   }
 
   function setLauraPricePer1K(v) { return _setPricePer1K(v); }
   function resetLauraLifetimeCounter() { _resetLifetime(); }
+
+  // Promise risolta quando la cache persistente è stata precaricata in memoria.
+  // Esposta così la UI può mostrare lo stato "cargando caché…" e aggiornare
+  // il counter 'Entradas en caché' una volta completato.
+  function lauraVoiceReady() { return _idbReady || Promise.resolve(); }
+
+  // Check se un testo specifico è già in cache (usato dalla UI per marcare
+  // i bottoni che non costerebbero nulla prima ancora di essere toccati)
+  function isLauraCached(text) {
+    return _cache.has(_normalize(text));
+  }
 
   // Stop audio quando la tab va in background
   document.addEventListener('visibilitychange', () => {
@@ -248,4 +386,6 @@
   window.clearLauraVoiceCache      = clearLauraVoiceCache;
   window.setLauraPricePer1K        = setLauraPricePer1K;
   window.resetLauraLifetimeCounter = resetLauraLifetimeCounter;
+  window.lauraVoiceReady           = lauraVoiceReady;
+  window.isLauraCached             = isLauraCached;
 })();
