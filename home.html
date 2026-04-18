@@ -8,7 +8,7 @@
 <!-- Stili specifici di ogni pagina della home (?v= cache-bust su ogni deploy) -->
 <link rel="stylesheet" href="inicio.css?v=20260417d">
 <link rel="stylesheet" href="aac.css?v=20260414aa">
-<link rel="stylesheet" href="rehab.css?v=20260414aa">
+<link rel="stylesheet" href="rehab.css?v=20260418c">
 <link rel="stylesheet" href="perfil.css?v=20260414aa">
 <link rel="stylesheet" href="headpointer.css?v=20260417j">
 <style>
@@ -970,7 +970,7 @@ if ('scrollRestoration' in history) try { history.scrollRestoration = 'manual'; 
 // e non parte sfasato.
 (async function bootstrap(){
   // Cache-bust anche sui partial HTML (query string forza il browser/SW a rifetchare)
-  const V = '20260418b';
+  const V = '20260418c';
   try {
     const [inicio, aac, rehab, perfil] = await Promise.all([
       fetch('components/inicio.html?v=' + V, {cache: 'no-cache'}).then(r => r.ok ? r.text() : Promise.reject(r.status)),
@@ -1209,7 +1209,7 @@ document.addEventListener('touchend', () => {
     Promise.resolve()
       .then(() => { try { buildAgenda(); } catch(e){} })
       .then(() => { try { loadMeteo(); } catch(e){} })
-      .then(() => { try { loadGoal(); } catch(e){} })
+      // loadGoal() rimosso: la card "Objetivo de hoy" è WIP (Próximamente).
       .then(() => { try { if (!_IS_NIGHT) showAiStarter(); } catch(e){} })
       .then(() => { try { loadAISuggestions(); } catch(e){} })
       .finally(() => {
@@ -2522,7 +2522,8 @@ function init() {
   // NB: niente _sendMsg(null) auto. Il saluto AI parte solo quando l'utente
   // tocca "Empezar conversación" (vedi showAiStarter). Risparmia costi API
   // e rende il primo paint più leggero.
-  setTimeout(()=>{ loadGoal(); loadAISuggestions(); }, 400);
+  // loadGoal() rimosso: la card "Objetivo de hoy" è WIP (Próximamente).
+  setTimeout(()=>{ loadAISuggestions(); }, 400);
 }
 init();
 
