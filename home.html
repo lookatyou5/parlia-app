@@ -1804,6 +1804,14 @@ let _history=[], _isTyping=false;
 function _getCtx() {
   const cur=_H*60+_M;
   const timeStr=_timeStr(_H);
+  // Weekend (sab/dom): niente sessioni terapeutiche → tutti i campi session
+  // vuoti. Impedisce che la pill mostri "AHORA · X" pescando da SESSIONS
+  // (hardcoded solo lun-ven 10:00-16:00).
+  const dow = new Date().getDay();
+  const isWeekend = dow === 0 || dow === 6;
+  if (isWeekend) {
+    return {timeStr, now:null, soon:null, done:null, next:null, allDone:[], cur, dayOver:false, isWeekend:true};
+  }
   const now=_sessions.find(s=>{const[sh,sm]=s.time.split(':').map(Number);return cur>=sh*60+sm&&cur<=s.end;});
   const soon=_sessions.find(s=>{const[sh,sm]=s.time.split(':').map(Number);const st=sh*60+sm;return cur<st&&st-cur<=15;});
   const done=_sessions.slice().reverse().find(s=>cur>s.end&&cur-s.end<=10);
@@ -1811,7 +1819,7 @@ function _getCtx() {
   const allDone=_sessions.filter(s=>cur>s.end);
   // Flag: giornata terminata (tutte le sessioni passate)
   const dayOver = _sessions.length > 0 && allDone.length === _sessions.length && !now;
-  return {timeStr,now,soon,done,next,allDone,cur,dayOver};
+  return {timeStr,now,soon,done,next,allDone,cur,dayOver,isWeekend:false};
 }
 function _showCtxBadge(ctx) {
   const badge=document.getElementById('ctxBadge'),dot=document.getElementById('ctxDot'),txt=document.getElementById('ctxTxt');
@@ -1822,6 +1830,7 @@ function _showCtxBadge(ctx) {
   else if (ctx.allDone.length===_sessions.length) {label='🎉 Todas las sesiones completadas';color='#4ade80';}
   else if (ctx.next) {label=`📅 Próximo: ${ctx.next.emoji} ${ctx.next.time}`;color='#60a5fa';}
   if (label) {txt.textContent=label;dot.style.background=color;badge.style.display='flex';}
+  else {badge.style.display='none';}
 }
 // Modalità di interazione con Parlia AI — letta da parlia_user_data.functions.aiMode
 // 'chips' (default): il modello genera "CHIPS: a|b|c|d" per risposte-tap rapide
