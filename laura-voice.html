@@ -7,7 +7,7 @@
 <meta http-equiv="Pragma" content="no-cache">
 <title>Voz de Laura · Test</title>
 <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="laura-voice.css?v=20260418c">
+<link rel="stylesheet" href="laura-voice.css?v=20260418d">
 </head>
 <body>
 
@@ -23,6 +23,16 @@
 </header>
 
 <main class="lv-wrap">
+
+  <!-- Input libero: scrivi + Leer -->
+  <section class="lv-custom">
+    <div class="lv-section-title" style="margin-bottom:8px;">✏️ Escribe y escucha</div>
+    <textarea id="customText" class="lv-custom-input" placeholder="Escribe aquí la frase que quieras que Laura diga…" rows="2" maxlength="500"></textarea>
+    <div class="lv-custom-foot">
+      <span class="lv-custom-count" id="customCount">0/500</span>
+      <button id="customReadBtn" class="lv-btn-read" onclick="readCustom()">🔊 Leer con voz de Laura</button>
+    </div>
+  </section>
 
   <div class="lv-section">
     <div class="lv-section-title">🟣 Frases cortas</div>
@@ -197,6 +207,50 @@ function clearCache() {
   document.querySelectorAll('.lv-btn.cached').forEach(b => b.classList.remove('cached'));
   setStatus('🧹 Caché vaciada. Las próximas llamadas irán a la API.');
   updateStats();
+}
+
+// ─── Input libero ───
+const customInput = $('customText');
+const customBtn   = $('customReadBtn');
+const customCount = $('customCount');
+const BTN_LABEL   = '🔊 Leer con voz de Laura';
+
+function updateCustomCount() {
+  const len = customInput.value.length;
+  customCount.textContent = len + '/500';
+}
+customInput.addEventListener('input', () => {
+  updateCustomCount();
+  try { localStorage.setItem('parlia_laura_last_text', customInput.value); } catch(e) {}
+});
+// Restore ultimo testo digitato (sopravvive a refresh/chiusure)
+try {
+  const saved = localStorage.getItem('parlia_laura_last_text');
+  if (saved) { customInput.value = saved; updateCustomCount(); }
+} catch(e) {}
+
+async function readCustom() {
+  const text = customInput.value.trim();
+  if (!text) { setStatus('Escribe algo primero.'); customInput.focus(); return; }
+  if (customBtn.disabled) return;
+
+  customBtn.disabled = true;
+  customBtn.innerHTML = '⏳ Generando…';
+  setStatus('Generando…');
+
+  try {
+    const res = await window.fetchMiniMaxAudio(text, {
+      onend:   () => { customBtn.disabled = false; customBtn.innerHTML = BTN_LABEL; updateStats(); },
+      onerror: () => { customBtn.disabled = false; customBtn.innerHTML = BTN_LABEL; },
+    });
+    customBtn.innerHTML = '🔊 Leyendo…';
+    setStatus(res && res.fromCache ? '⚡ Desde caché' : '☁️ Generada y guardada en caché');
+    updateStats();
+  } catch (err) {
+    customBtn.disabled = false;
+    customBtn.innerHTML = BTN_LABEL;
+    setStatus('❌ Error: ' + (err.message || err));
+  }
 }
 
 // Init
