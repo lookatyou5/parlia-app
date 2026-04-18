@@ -7,7 +7,7 @@
 <meta http-equiv="Pragma" content="no-cache">
 <title>Voz de Laura · Test</title>
 <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="laura-voice.css?v=20260418e">
+<link rel="stylesheet" href="laura-voice.css?v=20260418f">
 <script>
 // Guard PIN: se non sbloccato, rimanda subito alla home prima che la pagina renderizzi.
 // Stesso schema del widget in home.html (stessa chiave localStorage).
@@ -34,6 +34,20 @@
 </header>
 
 <main class="lv-wrap">
+
+  <!-- Emotion selector: tono globale per tutte le frasi -->
+  <section class="lv-emo-wrap">
+    <div class="lv-emo-label">🎭 Tono de voz</div>
+    <div class="lv-emo-chips" id="emoChips">
+      <div class="lv-emo-chip active" data-emo="neutral">😐 Neutra</div>
+      <div class="lv-emo-chip" data-emo="happy">😊 Feliz</div>
+      <div class="lv-emo-chip" data-emo="sad">🥲 Triste</div>
+      <div class="lv-emo-chip" data-emo="angry">😠 Enfadada</div>
+      <div class="lv-emo-chip" data-emo="surprised">😲 Sorprendida</div>
+      <div class="lv-emo-chip" data-emo="fearful">😨 Asustada</div>
+      <div class="lv-emo-chip" data-emo="disgusted">🤢 Disgustada</div>
+    </div>
+  </section>
 
   <!-- Input libero: scrivi + Leer -->
   <section class="lv-custom">
@@ -134,6 +148,28 @@ const PHRASES = {
 
 const $ = id => document.getElementById(id);
 
+// ─── Emotion state ───
+// Persistita in localStorage così la scelta sopravvive a refresh/chiusura PWA.
+let currentEmotion = 'neutral';
+try {
+  const saved = localStorage.getItem('parlia_laura_emotion');
+  if (saved) currentEmotion = saved;
+} catch(e) {}
+
+function setEmotion(emo) {
+  currentEmotion = emo;
+  try { localStorage.setItem('parlia_laura_emotion', emo); } catch(e) {}
+  document.querySelectorAll('#emoChips .lv-emo-chip').forEach(c => {
+    c.classList.toggle('active', c.dataset.emo === emo);
+  });
+}
+
+// Bind click sulle chips + restore stato visivo iniziale
+document.querySelectorAll('#emoChips .lv-emo-chip').forEach(chip => {
+  chip.addEventListener('click', () => setEmotion(chip.dataset.emo));
+});
+setEmotion(currentEmotion); // applica stato salvato
+
 function renderGrid(containerId, phrases) {
   const el = $(containerId);
   el.innerHTML = '';
@@ -161,6 +197,7 @@ async function onTap(btn, text) {
 
   try {
     const res = await window.fetchMiniMaxAudio(text, {
+      emotion: currentEmotion,
       onend: () => { btn.classList.remove('playing'); updateStats(); },
       onerror: () => { btn.classList.remove('playing', 'loading'); },
     });
@@ -254,6 +291,7 @@ async function readCustom() {
 
   try {
     const res = await window.fetchMiniMaxAudio(text, {
+      emotion: currentEmotion,
       onend:   () => { customBtn.disabled = false; customBtn.innerHTML = BTN_LABEL; updateStats(); },
       onerror: () => { customBtn.disabled = false; customBtn.innerHTML = BTN_LABEL; },
     });
