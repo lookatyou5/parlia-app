@@ -1072,6 +1072,8 @@ function _closeSettingsOutside(e) {
 // Il browser gestisce il drag fisico; noi sincronizziamo curPage + nav + history.
 // History management lineare: al massimo 2 voci — [{page:0}, {page:currentIdx}].
 let curPage = 0;
+// Flag: suggerimenti AI AAC già generati in questa sessione? (lazy init)
+let _aacSugsInitialized = false;
 const wrap = document.getElementById('pagesWrap');
 const track = document.getElementById('track'); // mantenuto per retrocompat
 
@@ -1094,6 +1096,13 @@ function _syncNavAndHistory(idx, fromBack){
   document.querySelectorAll('.nav-item').forEach((el,i) => el.classList.toggle('active', i===idx));
   document.querySelectorAll('.nav-dot').forEach((d,i) => d.classList.toggle('active', i===idx));
   hideHint();
+  // Lazy init suggerimenti AI AAC: li generiamo SOLO la prima volta che l'utente
+  // raggiunge la pagina AAC (page 1), non all'avvio della home. Evita una
+  // chiamata Claude Haiku sprecata se apre la home ma non usa l'AAC.
+  if (idx === 1 && !_aacSugsInitialized) {
+    _aacSugsInitialized = true;
+    try { loadAISuggestions(); } catch(e){}
+  }
   if (fromBack) return; // durante popstate non tocchiamo la history
   const cur = history.state;
   const curIdx = (cur && typeof cur.page !== 'undefined') ? cur.page : 0;
@@ -1210,6 +1219,8 @@ document.addEventListener('touchend', () => {
       .then(() => { try { buildAgenda(); } catch(e){} })
       .then(() => { try { loadMeteo(); } catch(e){} })
       // loadGoal() rimosso: la card "Objetivo de hoy" è WIP (Próximamente).
+      // loadAISuggestions() rimosso da pull-to-refresh: si genera solo la prima
+      // volta che l'utente apre la pagina AAC (vedi _syncNavAndHistory).
       .then(() => { try { if (!_IS_NIGHT) showAiStarter(); } catch(e){} })
       .then(() => { try { loadAISuggestions(); } catch(e){} })
       .finally(() => {
@@ -2532,7 +2543,9 @@ function init() {
   // tocca "Empezar conversación" (vedi showAiStarter). Risparmia costi API
   // e rende il primo paint più leggero.
   // loadGoal() rimosso: la card "Objetivo de hoy" è WIP (Próximamente).
-  setTimeout(()=>{ loadAISuggestions(); }, 400);
+  // loadAISuggestions() NON è più chiamato qui: parte in lazy il primo tap
+  // su AAC (page 1) via _syncNavAndHistory. Se l'utente apre la home e non
+  // va mai in AAC → 0 chiamate Claude Haiku per i suggerimenti AAC.
 }
 init();
 
