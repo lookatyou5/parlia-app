@@ -1085,6 +1085,136 @@ Oggi è **sempre visibile** (l'app la usa solo Luca per ora). Quando Laura inizi
 
 ---
 
+## Sessione 18 aprile 2026 — Polish Live AI Chat + Voz de Laura (MiniMax)
+
+### Interlocutore selector in Live AI Chat
+Porting del pattern dall'app di Laura (aaclaura): 4 categorie preset hardcoded in `CONTACTS` dentro `live-chat.js`:
+- 💑 **Luca** — pareja/compañero sentimental (íntimo, cariñoso)
+- 🩺 **Médicos** — equipo médico/terapéutico (respetuoso colaborativo)
+- 👨‍👩‍👧 **Familia** — familiar (cálido familiar, senza tecnicismi)
+- 🙋 **Amigos** — amigo/a (rilassato con umorismo ligero)
+
+UI: riga `.lc-interlocutors` scrollable orizzontale sopra il thread. Pill bianche + active rose-gradient. `scroll-snap-type: x proximity`, scrollbar nascosta, touch-momentum.
+
+Comportamento:
+- Default: primo contatto (Luca). Scelta persistita in `localStorage.parlia_live_interlocutor`
+- Tap cambio → reset totale (history `[]`, thread vuoto, chips clear, preGen cancellato, chipToken invalidato), nuovo empty state, toast conferma
+- `_buildChipPrompt()` include una sezione `🗣️ CONTEXTO DEL INTERLOCUTOR` con `categoría · relación · contexto` + istruzioni esplicite di adattamento tono (pareja íntimo, médicos formal ecc.)
+
+Non tocca il flusso Deepgram/audio — cambia solo il system prompt di Claude Haiku. Zero costo aggiuntivo streaming.
+
+### Polish home: Vision spostato in topbar
+Visión Asistida era una card grande in Inicio — rubava spazio dopo l'introduzione di Live AI Chat (feature più usata). Spostato a icona 🔍 compatta 32×32 nella topbar di `home.html`, subito prima dell'ingranaggio ⚙️, stile `.vision-btn` (bianco + bordo, active state cyan). Rimossa la card corrispondente da `components/inicio.html`.
+
+### Fix contrasto agenda-sleep su weekend
+Il blocco `.agenda-sleep` (*"¡Sábado libre! · Sin compromisos programados hoy"*) usava colori `--ink` e `--muted` pensati per fondo bianco ma veniva renderizzato DENTRO il gradient viola del core AI → testo illeggibile (effetto olivastro/marrone). Override scoped in `.ai-hero-inner .agenda-sleep` con bianco su glass (bianco 12% + bordo bianco 20%), stessa tecnica già usata per `.agenda-done-card` e `.agenda-card`.
+
+### Voz de Laura — MiniMax speech-01-turbo cloned voice
+Nuova feature di test: pagina standalone **`laura-voice.html`** con frasi preset + input libero per verificare la qualità della voce clonata di Laura su MiniMax prima di integrarla nei punti d'uso reali.
+
+#### Architettura
+```
+[Browser] --POST {text,speed}--> [parlia-minimax Worker]
+                                       │ + MINIMAX_API_KEY
+                                       │ + MINIMAX_GROUP_ID
+                                       │ + MINIMAX_LAURA_VOICE_ID
+                                       ↓
+                          api.minimax.io/v1/t2a_v2
+                          (model: speech-01-turbo, mp3 128k/32kHz)
+[Browser] <-- audio/mpeg blob <- [Worker decode hex]
+```
+
+Secret e voice_id NON toccano mai il browser/repo: vivono solo come secret cifrati nel Worker `parlia-minimax` (NON in repo, stesso pattern di `parlia-tts` / `parlia-vision` / `parlia-deepgram`).
+
+#### Worker `parlia-minimax`
+- URL: `parlia-minimax.luca-peltrini.workers.dev`
+- Endpoint unico: `POST /`
+- Body accettato: `{ text, speed? }` — max 500 char
+- Decodifica hex della risposta MiniMax (`data.audio` è hex-encoded, non base64) → ritorna `audio/mpeg` binario al browser
+- `Cache-Control: public, max-age=86400` per edge cache Cloudflare
+- Errori: JSON `{ error, status?, base_resp?, detail? }` (il client ora estrae e mostra `base_resp.status_code/status_msg` per debug — es. `1008 insufficient balance`, `1004 invalid voice_id`)
+
+#### File client
+
+**`laura-voice.js`** (~320 righe) — modulo globale:
+- `fetchMiniMaxAudio(text, opts?)` — cache-first, riproduzione automatica, stop del precedente
+- `stopLauraVoice()` — stop immediato
+- `lauraVoiceStats()` → `{ plays, cacheHits, charsSent, charsSaved, cacheSize, pricePer1K, lifetimeChars, costSession, costSaved, costLifetime }`
+- `clearLauraVoiceCache()` — async, pulisce memoria + IndexedDB
+- `setLauraPricePer1K(v)` / `resetLauraLifetimeCounter()`
+- `lauraVoiceReady()` — promise risolta al termine del preload IDB
+- `isLauraCached(text)` — check sync per pre-marcare i bottoni già in cache
+
+**Cache a 2 livelli:**
+- **Layer 1** — `Map<key, blobUrl>` in memoria: riproduzione istantanea. Max 120 entries (LRU eviction con `URL.revokeObjectURL`)
+- **Layer 2** — IndexedDB `parlia-laura-voice` store `audio` (schema `{key, blob, ts, chars}`): sopravvive a refresh, chiusura PWA, riavvio device
+  - Al page load: `_preloadCacheFromIDB()` legge tutte le entries, converte blob → URL, popola Map
+  - `fetchMiniMaxAudio` fa `await _idbReady` prima del lookup → primo tap dopo refresh NON paga API se la frase era persistita
+  - LRU eviction rimuove entry sia da Map sia da IDB per non far crescere il DB all'infinito
+  - Se IndexedDB non disponibile (Firefox privacy mode ecc.) → fallback silenzioso a solo Layer 1
+
+**Key normalization**: `lowercase(trim(text))` → "Hola", "hola", "hola " colpiscono la stessa entry.
+
+#### Pricing tracking (stima client-side)
+- Default tasso: **$0.060 per 1000 caratteri** (fonte ufficiale: https://platform.minimax.io/docs/guides/pricing-paygo → speech-02-turbo $60/M chars, coerente con la misura empirica di Luca: 307 char → $0.02)
+- Pricing HD: $100/M chars per speech-02-hd / 2.6-hd / 2.8-hd (per riferimento)
+- Voice Cloning: $1.5 per voice (una tantum, non per uso)
+- Tasso editabile via bottone "✏️" nella UI (prompt + persistenza in `localStorage.parlia_laura_price_per_1k`)
+- Contatore lifetime chars persistito in `localStorage.parlia_laura_lifetime_chars` → sopravvive a chiusure
+- Link diretto a `platform.minimax.io/user-center/basic-information/bill-info` per confrontare stima vs saldo reale
+
+#### Pagina `laura-voice.html`
+Palette lavender `#7c3aed → #8b5cf6 → #a78bfa` (distintiva da Tutorial viola-indigo, Vision teal, Live-chat rosa, AI blu).
+
+Sezioni:
+1. **✏️ Escribe y escucha** — textarea 2 righe (max 500 char con counter "N/500") + bottone "🔊 Leer con voz de Laura" full-width gradient. Auto-save ultimo testo digitato in `localStorage.parlia_laura_last_text`
+2. **🟣 Frases cortas** — grid 2 col con 8 frasi preset (Hola, Gracias, Sí/No, Te quiero, ecc.)
+3. **🟣🟣 Frases medias** — 5 frasi conversazionali (¿Cómo estás?, ecc.)
+4. **🟣🟣🟣 Frases largas** — 4 frasi lunghe per testare prosodia su ~15-25 parole
+5. **Pannello stats** nero stile terminal:
+   - Header con badge "ESTADÍSTICAS · caché N" (N = entries IDB persistite)
+   - 6 celle: Reproducciones · Desde caché · Chars enviados · Chars ahorrados · ~Coste sesión · ~Coste histórico
+   - Footer: "Tasa: $X.XXX/1K chars ✏️" (editabile) + link "Ver billing MiniMax ↗"
+   - Note: status message dinamico (left-align, word-break, selezionabile per copiare errori da mobile)
+
+Stati visuali bottone:
+- `.cached` → badge ⚡ (in cache, gratis al tap)
+- `.loading` → spinner rotella (fetching API)
+- `.playing` → rosa gradient + icona 🔊 pulsante
+
+Card d'ingresso lavender in `components/inicio.html` sotto Live AI Chat.
+
+#### Costi attesi uso Laura (calcolo empirico)
+- 80 frasi uniche/giorno, 30 char media, cache hit ~70% dopo settimane di uso
+- Fresh char/giorno: ~720 → costo: $0.043/giorno → ~$1.30/mese
+- Pre-cache IDB: dopo 1-2 settimane saturazione tipica (~300-500 frasi in libreria) → cost marginale verso zero
+- $25 caricati → **~18+ mesi** di uso quotidiano una volta raggiunta saturazione cache
+
+#### Risultato test iniziale (Luca, 18 aprile)
+- Voce clonata risulta abbastanza buona per il test (conferma Luca)
+- Deepgram + Haiku + Neural2 restano su tutta l'app; Laura voice al momento **solo su pagina test**
+- Prossimo step pianificato: integrare `fetchMiniMaxAudio` al posto di `speakNeural` in punti specifici (Live AI Chat `onChipTap`, comunicador AAC, frasi SOS) con toggle globale "Voz propia" nel profilo + fallback automatico a Neural2 se MiniMax fallisce
+
+#### File creati/toccati
+- **Nuovi:**
+  - `laura-voice.html` · `laura-voice.css` · `laura-voice.js`
+  - Worker `parlia-minimax` (NON in repo)
+- **Modificati:**
+  - `components/inicio.html` — card d'ingresso lavender
+  - `home.html` — cache-bust partial V `20260417c` → `20260418a`, topbar con `.vision-btn`
+  - `inicio.css` — fix contrasto `.ai-hero-inner .agenda-sleep`
+  - `live-chat.html/css/js` — interlocutor pills + reset su cambio + contesto nel prompt
+
+#### Cache-bust sessione
+- `live-chat.js`: v20260417e → f
+- `live-chat.css`: v20260417c → d
+- `laura-voice.js`: v20260418a → b → c → d → e
+- `laura-voice.css`: v20260418a → b → c → d → e
+- `inicio.css`: v20260414aa → v20260417d
+- `home.html` partial V: v20260417b → c → v20260418a
+
+---
+
 ## Istruzioni per Claude Code
 - Prima di qualsiasi modifica, fai sempre un commit git con messaggio "backup pre-modifica"
 - Dopo ogni sessione di lavoro, fai un commit con le modifiche fatte
