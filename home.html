@@ -87,6 +87,8 @@ html, body {
 }
 .logo-text span { color: var(--blue); }
 .beta-badge { font-size: 0.52rem; font-weight: 800; background: var(--blue-light); color: var(--blue); border-radius: 20px; padding: 2px 7px; vertical-align: middle; letter-spacing: .04em; }
+.logo-svg { display: flex; align-items: center; line-height: 1; }
+.logo-svg svg { display: block; height: 32px; width: auto; }
 
 .avatar {
   width: 32px; height: 32px; border-radius: 50%;
@@ -730,10 +732,27 @@ body.low-power .topbar { background: rgba(245,246,250,1); }
 
 <!-- TOPBAR -->
 <div class="topbar">
-  <div class="logo-mark">
-    <svg width="18" height="18" viewBox="0 0 60 60" fill="none"><path d="M6 14C6 10.69 8.69 8 12 8H48C51.31 8 54 10.69 54 14V38C54 41.31 51.31 44 48 44H34L24 55V44H12C8.69 44 6 41.31 6 38V14Z" fill="white" fill-opacity=".2" stroke="white" stroke-opacity=".6" stroke-width="2"/><rect x="14" y="22" width="5" height="14" rx="2.5" fill="white" opacity=".9"/><rect x="23" y="16" width="5" height="20" rx="2.5" fill="white"/><rect x="32" y="19" width="5" height="17" rx="2.5" fill="white" opacity=".95"/><rect x="41" y="23" width="5" height="13" rx="2.5" fill="white" opacity=".85"/></svg>
+  <!-- Logo Parlia · SVG inline (prova — ricreato da PNG fornito il 2026-04-18) -->
+  <div class="logo-svg" aria-label="Parlia">
+    <svg width="140" height="36" viewBox="0 0 180 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <linearGradient id="pLogoGrad" x1="0" y1="0" x2="1" y2="1">
+          <stop offset="0%" stop-color="#60a5fa"/>
+          <stop offset="100%" stop-color="#14b8a6"/>
+        </linearGradient>
+      </defs>
+      <!-- Speech-bubble "P" a sinistra -->
+      <path d="M 6 12 Q 6 4, 14 4 L 34 4 Q 42 4, 42 12 L 42 28 Q 42 36, 34 36 L 20 36 L 16 46 L 14 36 Q 6 36, 6 28 Z" fill="url(#pLogoGrad)"/>
+      <!-- Freccia diagonale dentro -->
+      <path d="M 16 28 L 32 12 M 32 12 L 25 12 M 32 12 L 32 19" stroke="white" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+      <!-- Wordmark PARLIA -->
+      <text x="50" y="33" font-family="'Bricolage Grotesque', sans-serif" font-size="24" font-weight="800" fill="#0f172a" letter-spacing="0.5">PARLIA</text>
+      <!-- Barre audio (cyan) sopra la "I" di PARLIA -->
+      <rect x="134" y="7" width="2.6" height="7"  rx="1.3" fill="#3b82f6"/>
+      <rect x="138" y="4" width="2.6" height="10" rx="1.3" fill="#22d3ee"/>
+      <rect x="142" y="7" width="2.6" height="7"  rx="1.3" fill="#3b82f6"/>
+    </svg>
   </div>
-  <div class="logo-text">Parlia<span>.app</span> <span class="beta-badge">BETA</span></div>
   <div style="flex:1"></div>
   <a class="vision-btn" href="vision.html" aria-label="Visión Asistida" title="Visión Asistida">🔍</a>
   <div class="settings-btn" onclick="toggleSettings()">⚙️</div>
