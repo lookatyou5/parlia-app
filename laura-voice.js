@@ -237,8 +237,20 @@
     });
   }
 
+  // Aggiunge un punto finale se il testo non termina con punteggiatura di
+  // chiusura. Il voice clone MiniMax tende ad allungare/sospirare frasi
+  // corte senza terminatore (probabilmente ereditato dai pattern emotivi
+  // dell'audio di training). Un '.' finale dà un segnale netto di stop.
+  function _ensureTerminalPunct(text) {
+    const t = text.trim();
+    if (!t) return t;
+    // Gli ellipsi e i doppi punteggi contano come terminali (niente retrocompat)
+    if (/[.!?…]$/.test(t)) return t;
+    return t + '.';
+  }
+
   async function fetchMiniMaxAudio(text, opts) {
-    text = String(text || '').trim();
+    text = _ensureTerminalPunct(String(text || '').trim());
     if (!text) return;
     opts = opts || {};
     const onEnd  = typeof opts.onend  === 'function' ? opts.onend  : null;
