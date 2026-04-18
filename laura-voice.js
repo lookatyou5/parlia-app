@@ -33,9 +33,14 @@
   const FETCH_TIMEOUT = 12000;   // MiniMax può essere lento su testi lunghi
 
   // ─── Tracking costi (stima client-side) ───
-  // Default: $0.065 per 1000 caratteri (misurato empiricamente: 307 char → $0.02
-  // su speech-01-turbo con cloned voice). L'utente può ritarare via setPricePer1K().
-  const DEFAULT_PRICE_PER_1K = 0.065;
+  // Default: $0.060 per 1000 caratteri (pricing ufficiale MiniMax
+  // https://platform.minimax.io/docs/guides/pricing-paygo — speech-02-turbo
+  // $60/M chars. speech-01-turbo non è esplicitamente listato ma la misura
+  // empirica — 307 char → $0.02 = $0.065/1K — è coerente con lo stesso rate
+  // più eventuale rounding upstream.
+  // Per speech-02-hd / 2.6-hd / 2.8-hd il rate corretto è $0.100/1K ($100/M).
+  // L'utente può ritarare via setPricePer1K() / bottone "Tasa ✏️" nella UI.
+  const DEFAULT_PRICE_PER_1K = 0.060;
   const PRICE_KEY    = 'parlia_laura_price_per_1k';
   const LIFETIME_KEY = 'parlia_laura_lifetime_chars';
 
