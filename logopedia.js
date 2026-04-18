@@ -47,6 +47,9 @@ function sayAgent(text, opts={}){
   if (_typeIV){ clearInterval(_typeIV); _typeIV = null; }
   try { window.stopNeural && stopNeural(); } catch(e){}
   b.innerHTML = '';
+  // TTS parte subito in parallelo all'effetto di typing: niente attesa della
+  // fine del typewriter (che per frasi lunghe erano >1.5s di silenzio).
+  if (opts.speak !== false) speak(text, opts);
   let i = 0;
   _typeIV = setInterval(() => {
     if (i <= text.length) {
@@ -55,7 +58,6 @@ function sayAgent(text, opts={}){
     } else {
       b.innerHTML = text;
       clearInterval(_typeIV); _typeIV = null;
-      if (opts.speak !== false) speak(text, opts);
     }
   }, 22);
 }
@@ -521,8 +523,8 @@ window.addEventListener('load', () => {
     setTimeout(() => {
       sayAgent(`${USER_NAME?'Hola '+USER_NAME+'. ':''}Soy Ana. Antes de empezar, dime qué sonidos puedes decir para adaptar los ejercicios a ti.`);
       setTimeout(() => openAssessment(), 1200);
-    }, 400);
+    }, 150);
   } else {
-    setTimeout(() => sayAgent(greetingText()), 400);
+    setTimeout(() => sayAgent(greetingText()), 150);
   }
 });
