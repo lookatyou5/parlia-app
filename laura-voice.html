@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<meta http-equiv="Pragma" content="no-cache">
+<title>Voz de Laura · Test</title>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="laura-voice.css?v=20260418a">
+</head>
+<body>
+
+<div class="mesh"><div class="blob blob1"></div><div class="blob blob2"></div></div>
+
+<header class="topbar">
+  <a href="home.html" class="back-btn" aria-label="Volver" onclick="event.preventDefault(); if(history.length>1) history.back(); else location.href='home.html';">←</a>
+  <div class="topbar-title">
+    <span class="lv-dot"></span>
+    <span>Voz de Laura · Test</span>
+  </div>
+  <button class="topbar-stop" id="stopBtn" onclick="stopAll()" aria-label="Detener">⏹</button>
+</header>
+
+<main class="lv-wrap">
+
+  <div class="lv-section">
+    <div class="lv-section-title">🟣 Frases cortas</div>
+    <div class="lv-grid" id="gridShort"></div>
+  </div>
+
+  <div class="lv-section">
+    <div class="lv-section-title">🟣🟣 Frases medias</div>
+    <div class="lv-grid lv-grid-wide" id="gridMid"></div>
+  </div>
+
+  <div class="lv-section">
+    <div class="lv-section-title">🟣🟣🟣 Frases largas</div>
+    <div class="lv-grid lv-grid-wide" id="gridLong"></div>
+  </div>
+
+  <!-- Stats panel -->
+  <section class="lv-stats" id="lvStats">
+    <div class="lv-stats-head">
+      <span class="lv-stats-label">ESTADÍSTICAS</span>
+      <button class="lv-stats-clear" onclick="clearCache()">🗑️ Limpiar caché</button>
+    </div>
+    <div class="lv-stats-grid">
+      <div class="lv-stats-cell">
+        <div class="lv-stats-k">Reproducciones</div>
+        <div class="lv-stats-v" id="stPlays">0</div>
+      </div>
+      <div class="lv-stats-cell">
+        <div class="lv-stats-k">Desde caché</div>
+        <div class="lv-stats-v" id="stCache">0</div>
+      </div>
+      <div class="lv-stats-cell">
+        <div class="lv-stats-k">Chars enviados</div>
+        <div class="lv-stats-v" id="stChars">0</div>
+      </div>
+      <div class="lv-stats-cell">
+        <div class="lv-stats-k">Chars ahorrados</div>
+        <div class="lv-stats-v" id="stSaved">0</div>
+      </div>
+    </div>
+    <div class="lv-stats-note" id="stStatus">Toca una frase para empezar.</div>
+  </section>
+
+</main>
+
+<script src="laura-voice.js?v=20260418a"></script>
+<script>
+// ─── Frasi di test (modificabili direttamente qui) ───
+const PHRASES = {
+  short: [
+    'Hola',
+    'Gracias',
+    'Sí, por favor',
+    'No, gracias',
+    'Muy bien',
+    'Te quiero',
+    'Estoy cansada',
+    'Tengo hambre',
+  ],
+  mid: [
+    '¿Cómo estás hoy?',
+    'Me encuentro bien, gracias',
+    '¿Puedes ayudarme un momento?',
+    'Hoy he dormido bastante bien',
+    'Tengo ganas de salir a pasear',
+  ],
+  long: [
+    'Hoy me he levantado con ganas de salir a pasear por el parque un rato.',
+    'Estoy descansando en casa después de la rehabilitación de esta mañana, todo ha ido bien.',
+    'Gracias por venir a verme, me alegra mucho tenerte aquí conmigo.',
+    'Esta tarde me apetece ver una película tranquila y luego cenar algo ligero contigo.',
+  ],
+};
+
+const $ = id => document.getElementById(id);
+
+function renderGrid(containerId, phrases) {
+  const el = $(containerId);
+  el.innerHTML = '';
+  phrases.forEach(text => {
+    const btn = document.createElement('button');
+    btn.className = 'lv-btn';
+    btn.type = 'button';
+    btn.innerHTML = `<span class="lv-btn-text">${text}</span><span class="lv-btn-state" aria-hidden="true"></span>`;
+    btn.dataset.text = text;
+    btn.onclick = () => onTap(btn, text);
+    el.appendChild(btn);
+  });
+}
+
+async function onTap(btn, text) {
+  // Evita doppi tap mentre sta caricando
+  if (btn.classList.contains('loading')) return;
+  // Reset "playing" agli altri
+  document.querySelectorAll('.lv-btn.playing, .lv-btn.loading').forEach(b => {
+    if (b !== btn) b.classList.remove('playing', 'loading');
+  });
+
+  btn.classList.add('loading');
+  setStatus('Generando…');
+
+  try {
+    const res = await window.fetchMiniMaxAudio(text, {
+      onend: () => { btn.classList.remove('playing'); updateStats(); },
+      onerror: () => { btn.classList.remove('playing', 'loading'); },
+    });
+    btn.classList.remove('loading');
+    btn.classList.add('playing');
+    if (res && res.fromCache) {
+      btn.classList.add('cached');
+      setStatus('⚡ Desde caché');
+    } else {
+      btn.classList.add('cached');
+      setStatus('☁️ Generada y guardada en caché');
+    }
+    updateStats();
+  } catch (err) {
+    btn.classList.remove('loading', 'playing');
+    setStatus('❌ Error: ' + (err.message || err));
+  }
+}
+
+function updateStats() {
+  const s = window.lauraVoiceStats ? window.lauraVoiceStats() : null;
+  if (!s) return;
+  $('stPlays').textContent = s.plays;
+  $('stCache').textContent = s.cacheHits;
+  $('stChars').textContent = s.charsSent;
+  $('stSaved').textContent = s.charsSaved;
+}
+
+function setStatus(msg) { $('stStatus').textContent = msg; }
+
+function stopAll() {
+  if (window.stopLauraVoice) window.stopLauraVoice();
+  document.querySelectorAll('.lv-btn').forEach(b => b.classList.remove('playing', 'loading'));
+  setStatus('Detenido.');
+}
+
+function clearCache() {
+  if (window.clearLauraVoiceCache) window.clearLauraVoiceCache();
+  document.querySelectorAll('.lv-btn.cached').forEach(b => b.classList.remove('cached'));
+  setStatus('🧹 Caché vaciada. Las próximas llamadas irán a la API.');
+  updateStats();
+}
+
+// Init
+renderGrid('gridShort', PHRASES.short);
+renderGrid('gridMid',   PHRASES.mid);
+renderGrid('gridLong',  PHRASES.long);
+updateStats();
+</script>
+</body>
+</html>
