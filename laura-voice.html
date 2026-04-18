@@ -7,7 +7,7 @@
 <meta http-equiv="Pragma" content="no-cache">
 <title>Voz de Laura · Test</title>
 <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="laura-voice.css?v=20260418b">
+<link rel="stylesheet" href="laura-voice.css?v=20260418c">
 </head>
 <body>
 
@@ -62,13 +62,27 @@
         <div class="lv-stats-k">Chars ahorrados</div>
         <div class="lv-stats-v" id="stSaved">0</div>
       </div>
+      <div class="lv-stats-cell">
+        <div class="lv-stats-k">~Coste sesión</div>
+        <div class="lv-stats-v" id="stCostSession">$0.0000</div>
+      </div>
+      <div class="lv-stats-cell">
+        <div class="lv-stats-k">~Coste histórico</div>
+        <div class="lv-stats-v" id="stCostLifetime">$0.0000</div>
+      </div>
+    </div>
+    <div class="lv-stats-foot">
+      <div class="lv-stats-rate">
+        Tasa: <button class="lv-rate-btn" onclick="editRate()"><span id="stRate">$0.065</span>/1K chars ✏️</button>
+      </div>
+      <a class="lv-billing-link" href="https://platform.minimax.io/user-center/basic-information/bill-info" target="_blank" rel="noopener">Ver billing MiniMax ↗</a>
     </div>
     <div class="lv-stats-note" id="stStatus">Toca una frase para empezar.</div>
   </section>
 
 </main>
 
-<script src="laura-voice.js?v=20260418b"></script>
+<script src="laura-voice.js?v=20260418c"></script>
 <script>
 // ─── Frasi di test (modificabili direttamente qui) ───
 const PHRASES = {
@@ -152,6 +166,22 @@ function updateStats() {
   $('stCache').textContent = s.cacheHits;
   $('stChars').textContent = s.charsSent;
   $('stSaved').textContent = s.charsSaved;
+  $('stCostSession').textContent  = '$' + s.costSession.toFixed(4);
+  $('stCostLifetime').textContent = '$' + s.costLifetime.toFixed(4);
+  $('stRate').textContent = '$' + s.pricePer1K.toFixed(4).replace(/0+$/, '').replace(/\.$/, '');
+}
+
+function editRate() {
+  const cur = window.lauraVoiceStats().pricePer1K;
+  const v = prompt('Tasa MiniMax en USD por 1000 caracteres.\n\nCálculo desde tu dashboard:\n  (saldo inicial − saldo actual) / chars enviados × 1000\n\nActual: ' + cur, cur);
+  if (v === null) return;
+  const ok = window.setLauraPricePer1K(v);
+  if (ok) {
+    updateStats();
+    setStatus('✅ Tasa actualizada a $' + parseFloat(v).toFixed(4) + '/1K chars.');
+  } else {
+    setStatus('❌ Valor inválido. Usa un número entre 0 y 10.');
+  }
 }
 
 function setStatus(msg) { $('stStatus').textContent = msg; }

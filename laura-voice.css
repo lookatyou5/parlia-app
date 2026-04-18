@@ -227,6 +227,41 @@ html, body {
   color: white;
   font-variant-numeric: tabular-nums;
 }
+.lv-stats-foot {
+  display: flex; align-items: center; justify-content: space-between;
+  gap: 8px; flex-wrap: wrap;
+  padding: 8px 0;
+  border-top: 1px solid rgba(255,255,255,.08);
+}
+.lv-stats-rate {
+  font-size: .68rem;
+  color: rgba(255,255,255,.65);
+}
+.lv-rate-btn {
+  background: rgba(255,255,255,.06);
+  border: 1px solid rgba(255,255,255,.14);
+  color: white;
+  font-family: inherit;
+  font-size: .68rem;
+  font-weight: 700;
+  padding: 4px 8px;
+  border-radius: 8px;
+  cursor: pointer;
+  margin-left: 2px;
+}
+.lv-rate-btn:active { transform: scale(.96); }
+.lv-billing-link {
+  font-size: .68rem;
+  font-weight: 700;
+  color: #c4b5fd;
+  text-decoration: none;
+  padding: 4px 8px;
+  border-radius: 8px;
+  background: rgba(167,139,250,.12);
+  border: 1px solid rgba(167,139,250,.22);
+}
+.lv-billing-link:active { transform: scale(.96); }
+
 .lv-stats-note {
   font-size: .72rem;
   color: rgba(255,255,255,.65);

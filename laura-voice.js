@@ -32,6 +32,42 @@
   const CACHE_MAX     = 120;     // frasi max in LRU (alta perché Laura ne riuserà molte)
   const FETCH_TIMEOUT = 12000;   // MiniMax può essere lento su testi lunghi
 
+  // ─── Tracking costi (stima client-side) ───
+  // Default: $0.065 per 1000 caratteri (misurato empiricamente: 307 char → $0.02
+  // su speech-01-turbo con cloned voice). L'utente può ritarare via setPricePer1K().
+  const DEFAULT_PRICE_PER_1K = 0.065;
+  const PRICE_KEY    = 'parlia_laura_price_per_1k';
+  const LIFETIME_KEY = 'parlia_laura_lifetime_chars';
+
+  function _getPricePer1K() {
+    try {
+      const raw = localStorage.getItem(PRICE_KEY);
+      const v = parseFloat(raw);
+      if (isFinite(v) && v >= 0 && v < 10) return v;
+    } catch (e) {}
+    return DEFAULT_PRICE_PER_1K;
+  }
+  function _setPricePer1K(v) {
+    const n = parseFloat(v);
+    if (!isFinite(n) || n < 0 || n >= 10) return false;
+    try { localStorage.setItem(PRICE_KEY, String(n)); return true; } catch (e) { return false; }
+  }
+  function _getLifetimeChars() {
+    try {
+      const v = parseInt(localStorage.getItem(LIFETIME_KEY) || '0', 10);
+      return isFinite(v) && v >= 0 ? v : 0;
+    } catch (e) { return 0; }
+  }
+  function _addLifetimeChars(n) {
+    try {
+      const cur = _getLifetimeChars();
+      localStorage.setItem(LIFETIME_KEY, String(cur + n));
+    } catch (e) {}
+  }
+  function _resetLifetime() {
+    try { localStorage.removeItem(LIFETIME_KEY); } catch (e) {}
+  }
+
   // Stato privato (cache + stats)
   const _cache = new Map();      // key → blobUrl
   const _stats = {
@@ -153,6 +189,7 @@
       const blobUrl = URL.createObjectURL(blob);
       _cacheSet(key, blobUrl);
       _stats.charsSent += text.length;
+      _addLifetimeChars(text.length);
       playBlobUrl(blobUrl, false);
       return { fromCache: false };
     } catch (err) {
@@ -168,12 +205,19 @@
   }
 
   function lauraVoiceStats() {
+    const pricePer1K = _getPricePer1K();
+    const lifetimeChars = _getLifetimeChars();
     return {
       plays: _stats.plays,
       cacheHits: _stats.cacheHits,
       charsSent: _stats.charsSent,
       charsSaved: _stats.charsSaved,
       cacheSize: _cache.size,
+      pricePer1K,
+      lifetimeChars,
+      costSession: (_stats.charsSent / 1000) * pricePer1K,
+      costSaved:   (_stats.charsSaved / 1000) * pricePer1K,
+      costLifetime: (lifetimeChars / 1000) * pricePer1K,
     };
   }
 
@@ -184,14 +228,19 @@
     _cache.clear();
   }
 
+  function setLauraPricePer1K(v) { return _setPricePer1K(v); }
+  function resetLauraLifetimeCounter() { _resetLifetime(); }
+
   // Stop audio quando la tab va in background
   document.addEventListener('visibilitychange', () => {
     if (document.hidden) stopLauraVoice();
   });
 
   // Esposizione globale
-  window.fetchMiniMaxAudio    = fetchMiniMaxAudio;
-  window.stopLauraVoice       = stopLauraVoice;
-  window.lauraVoiceStats      = lauraVoiceStats;
-  window.clearLauraVoiceCache = clearLauraVoiceCache;
+  window.fetchMiniMaxAudio         = fetchMiniMaxAudio;
+  window.stopLauraVoice            = stopLauraVoice;
+  window.lauraVoiceStats           = lauraVoiceStats;
+  window.clearLauraVoiceCache      = clearLauraVoiceCache;
+  window.setLauraPricePer1K        = setLauraPricePer1K;
+  window.resetLauraLifetimeCounter = resetLauraLifetimeCounter;
 })();
