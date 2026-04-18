@@ -1310,9 +1310,53 @@ Prima di aggiungere il supporto emotion è stato creato il branch `backup/pre-em
 ### Cache-bust questa parte 2
 - `home.html` partial V: `20260418a` → `b` → `c`
 - `rehab.css`: `20260414aa` → `20260418c`
-- `logopedia.js`: `20260417f` → `20260418d`
+- `logopedia.js`: `20260417f` → `20260418d` → `e` → `f` → `g`
 - `laura-voice.js`: `20260418e` → `f` → `g`
 - `laura-voice.css`: `20260418e` → `f`
+
+---
+
+## Sessione 18 aprile 2026 (parte 3, sera-tardi) — STT logopedia + logo Parlia
+
+### STT logopedia — matching fonetico permissivo (vocali/sillabe)
+Problema riportato: esercizi di suoni isolati (A, E, I, O, U, NA, MA, ecc.) non venivano riconosciuti anche quando Laura diceva il suono giusto. Web Speech API (Chrome Android, non Neural2 che è TTS) trascrive suoni isolati come *parole*: "A" → "ah"/"ha"/"eh"/"y", "I" → "y" (spagnolo "y" suona come "i"), "Aaaa" prolungata → "aa". Levenshtein stretto dava falsi rossi.
+
+Fix in `logopedia.js`:
+- **`normPhonetic(s)`**: rimuove h mute, collassa vocali ripetute (`"aaa"→"a"`, `"ooooh"→"o"`), applica mapping `PHONETIC_EQUIV` (`y`→`i`, `and`→`i`, `hay`→`ay`)
+- **`matchShortSound(heard, target)`**: per target ≤3 char usa `normPhonetic` + containment invece di Levenshtein puro. `"ah"` per "A" = 1.0, `"y"` per "I" = 1.0, `"mah"` per "MA" = 1.0
+- **`evaluate()`** sceglie quale funzione di matching usare in base alla lunghezza del target (short=fonetico, long=Levenshtein). Word lunghe come "Mamá" / "Casa" continuano col matching stretto di prima
+- **`maxAlternatives`**: 3 → 6 (più candidati = più chance di coglierne uno fonetico-corretto)
+
+### STT logopedia — label "Grabando/Escuchando" solo durante registrazione
+Bug: dopo che lo STT terminava senza risultato (silenzio, timeout, auto-stop), `stopRecord()` ripristinava il bottone mic ma lasciava i testi `"Grabando…"` e `"Escuchando… habla ahora"` visibili → sembrava fosse ancora in registrazione.
+
+Fix: `stopRecord()` ora, se nessun altro (evaluate/onerror) ha già aggiornato `#sfFeedback` / `#exStatus`, li ripristina a `"Pulsa el micrófono y habla"` / `""`. Label transitorie visibili SOLO durante la registrazione effettiva.
+
+### STT logopedia — "Oído" mostra la vocale/sillaba reale
+Visualmente l'utente vedeva `Oído: "eh"` quando aveva detto "A" → sembrava sbagliato anche quando il verde era stato assegnato.
+
+Fix con `displayHeard(heard, target)`: per target ≤3 char applica `normPhonetic` + uppercase all'heard. Output: `Oído: "A"` / `"E"` / `"I"` / `"MA"` ecc. anche se lo STT raw diceva `"ah"` / `"eh"` / `"y"` / `"mah"`. Per parole lunghe resta il testo raw.
+
+### Backup branch pre-STT-fix
+Creato `backup/pre-stt-fix-20260418` prima della sessione STT come snapshot rollback.
+
+### Logo Parlia nel topbar home
+Sostituiti `.logo-mark` + `.logo-text` + `.beta-badge` con una singola immagine **`parlia-logo.webp`** (29 KB) fornita dall'utente via upload diretto su GitHub.
+
+Dettagli implementativi:
+- `<img class="topbar-logo" src="parlia-logo.webp?v=...">` al posto dei 3 div
+- CSS: `height: 62px` + `max-width: 70%` + `object-fit: contain`
+- **`mix-blend-mode: multiply`** per eliminare lo sfondo bianco non-trasparente del WEBP senza dover rigenerare il file — i pixel bianchi si fondono col `#f5f6fa` della topbar diventando invisibili, colori scuri/saturi preservati
+- **`--top-h`**: `56px` → `72px` per dare respiro verticale al logo più grande. Propaga automaticamente a `.pages-wrap` `.ptr-indicator` `.settings-menu` che già usavano la variabile
+- CSS `.logo-mark` / `.logo-text` / `.beta-badge` lasciati nel file ma non più referenziati — facile revert
+
+### File nuovi / toccati parte 3
+- **Nuovi**:
+  - `parlia-logo.webp` (asset logo)
+- **Modificati**:
+  - `home.html` (topbar rewritten, `--top-h` 56→72, nuovo `.topbar-logo` CSS)
+  - `logopedia.js` (normPhonetic + matchShortSound + displayHeard + stopRecord fix + maxAlternatives 6)
+  - `logopedia.html` (cache-bust)
 
 ---
 
