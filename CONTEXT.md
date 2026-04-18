@@ -1223,6 +1223,99 @@ Card d'ingresso lavender in `components/inicio.html` sotto Live AI Chat.
 
 ---
 
+## Sessione 18 aprile 2026 (parte 2) — Polish massivo + PIN Laura + performance Android + emozioni voce
+
+Sessione lunga di ottimizzazioni, bug fix e piccole feature. Di seguito i blocchi principali.
+
+### PIN gate per widget "Voz de Laura · Test"
+Siccome la sezione usa la voce clonata MiniMax a pagamento, si condivide l'app con altre persone ma quel widget deve restare accessibile solo al proprietario. Pin `0512` salvato in `localStorage.parlia_laura_voice_unlocked`:
+- Tap widget (con lucchetto 🔒) → modal lavender con input PIN (auto-submit al 4° digit, shake se sbagliato)
+- Sblocco persistente sul device → lucchetto sparisce, tap successivi aprono direttamente
+- `laura-voice.html` ha guard script in testa: se `localStorage` non contiene `'1'`, fa `location.replace('home.html')` prima di renderizzare (protegge anche accesso diretto via URL)
+- Per cambiare il PIN: costante `LAURA_PIN` in `home.html`
+
+### Performance Android — no-select + low-power mode
+Risolti due problemi visti sul telefono Android di Laura (Redmi/Xiaomi):
+1. **Popup "Cerca su Google"** su tap di pulsanti → CSS globale `user-select:none` + `-webkit-touch-callout:none` su tutta la home. Riabilitato solo su `input`, `textarea`, `.ai-bubble`, `.frase-hero` (dove ha senso selezionare). Fix esteso anche al link "Ir directo a la home" in `onboarding.html`.
+2. **Swipe e transizioni lente**. Attivato **low-power mode di default su QUALSIASI Android** (Chrome Android ha throttling anche su flagship). La classe `body.low-power` spegne: `backdrop-filter` globale, mesh blob animati, halo/orbit pulsanti AI core, animazioni meteo. Override manuale con `localStorage.setItem('parlia_low_power','0')` per disattivare. In più `body.is-scrolling` ora rimuove ogni `backdrop-filter` del DOM durante lo swipe (non solo su elementi selezionati).
+
+### Bottone "Empezar conversación" + lazy loading AI
+Trasformate in lazy / on-demand tutte le chiamate AI che prima partivano auto:
+- **Parlia AI (home)**: niente `_sendMsg(null)` all'apertura. La card AI mostra solo `👋 Hola, [nome] · Toca para charlar conmigo` + bottone "Empezar conversación →". La chiamata a Claude Haiku parte solo al tap. Stesso comportamento sul pull-to-refresh (reset a stato starter). Nuova funzione `showAiStarter()` che riusa gli stili `.ai-chat-ended` già esistenti.
+- **`loadGoal()`** rimosso da init + pull-to-refresh: la card "Objetivo de hoy" è stata resa WIP/Próximamente nella pagina Rehab (vedi sotto).
+- **`loadAISuggestions()`** rimosso da init + pull-to-refresh: parte ora solo la prima volta che l'utente raggiunge la pagina AAC (page 1), tramite hook in `_syncNavAndHistory` con flag `_aacSugsInitialized`. Se l'utente apre la home 20× ma usa AAC 3× → 17 chiamate Claude Haiku in meno.
+
+**Bilancio totale**: da 3 chiamate AI automatiche per apertura → **0 chiamate automatiche**.
+
+### Rehab "Próximamente"
+Solo la **Logopedia** è funzionante. Le altre card (Objetivo de hoy, Estimulación cognitiva, Mis progresos) sono state marcate come WIP:
+- Classe `.coming-soon` in `rehab.css` → opacity .55, grayscale .35, pointer-events:none, box-shadow:none, badge "Próximamente" in alto a destra tramite `::after`
+- `components/rehab.html` aggiornato con la classe e testo statico sulla goal card (niente più skel/AI-generated)
+
+### Fix weekend session pill
+Bug: sabato/domenica il core AI mostrava "AHORA · Logopedia" perché `_getCtx()` pescava da `SESSIONS` (hardcoded lun-ven) senza controllo del giorno. Se l'ora corrente cadeva in uno slot (es. sab 12:24 ∈ 12:15-13:00) → falso positivo + system prompt AI contraddittorio.
+Fix: `_getCtx()` ora fa early return con tutti i campi session `null` + `isWeekend: true` se `dow === 0 || dow === 6`. `_showCtxBadge` ora nasconde esplicitamente il badge se `label` vuoto.
+
+### Fix onboarding — nome errato in home dopo configurazione
+Bug: dopo "Empezar configuración" la home mostrava "Test" invece del nome digitato (es. Laura). Causa: `onboarding.html` scrive solo la chiave legacy `parlia_profile`; se la home era stata aperta prima (es. via "Modo test"), `parlia_user_data` era già materializzato con "Test" e `ParliaUser.get()` non rifaceva la migrazione.
+Fix: `finish()` e `openHome()` ora fanno `localStorage.removeItem('parlia_user_data')` → la home rimigra da `parlia_profile` fresco. Dati custom (hobbies, memoria) preservati perché `ParliaUser.save()` mantiene i legacy keys sincronizzati.
+
+### Fix profile bar stale al back
+Bug: dopo aver editato dati in `profile.html`, tornando alla home la barra e il conteggio campi restavano sui valori stale del primo load (43% su profilo vs 21% su home). Causa: `bfcache` del browser ripristina il DOM della home com'era all'uscita, `initProfile()` non viene rieseguito.
+Fix: listener `window.addEventListener('pageshow', () => initProfile())` → rinfresca sempre al ritorno. Aggiunto anche `initProfile()` al pull-to-refresh per simmetria.
+
+### Logopedia — Ana parla subito
+Prima: `sayAgent()` faceva typewriter (22ms/char) e chiamava `speak()` SOLO alla fine → per un saluto di 70 char erano ~1.5s di silenzio + 400ms di setTimeout iniziale = quasi 2s.
+Fix: `speak()` ora parte IN PARALLELO al typewriter (non più alla fine). `setTimeout` iniziale ridotto 400ms → 150ms. Ana parte ~1.7s prima. Effetto visivo "Ana sta scrivendo" resta (stile ChatGPT Voice).
+
+### Settings menu ⚙️ — pulito
+- Rimossa voce "🛠️ Roadmap" (era per uso interno)
+- "Notificaciones" e "Idioma" ora hanno classe `.coming-soon` (opacity .5, pointer-events:none) + pill inline "Próximamente" a destra
+- Nuovo CSS: `.settings-item.coming-soon` + `.soon-pill`
+
+### Topbar — BETA badge inline
+Su schermi stretti il badge "BETA" andava a capo sotto "Parlia.app". Aggiunto `white-space: nowrap` su `.logo-text`.
+
+### Voz de Laura — auto-punteggiatura + emotion
+Il voice clone MiniMax tendeva ad allungare/sospirare su frasi corte senza punteggiatura finale (es. "Tengo hambre" → "Tengo hambreeee"). Pattern ereditato dal training audio di Laura.
+
+**Fix 1 — auto-punteggiatura**: `_ensureTerminalPunct()` in `laura-voice.js` aggiunge `.` se il testo non termina con `[.!?…]`. Applicato prima del normalize → la cache key resta coerente.
+
+**Fix 2 — parametro `emotion`**: aggiunto supporto per `voice_setting.emotion` di MiniMax con whitelist `happy|sad|angry|fearful|surprised|disgusted|neutral`. Default `neutral` → tono piatto, stabile, molto meno variabilità tra generazioni.
+- `laura-voice.js`: `fetchMiniMaxAudio(text, {emotion})`, cache key ora include l'emozione (`key = text + '|' + emotion`) così varianti emotive vivono come entry separate
+- **Worker `parlia-minimax` aggiornato** (sempre NON in repo, edit manuale su dashboard Cloudflare): aggiunta costante `EMOTIONS`, parsing + validazione di `body.emotion`, inserimento in `voice_setting.emotion`. Retro-compatibile (client vecchi ricevono automaticamente `neutral`)
+- **UI chips** in `laura-voice.html`: riga orizzontale scrollabile in testa con 7 chips (😐 Neutra · 😊 Feliz · 🥲 Triste · 😠 Enfadada · 😲 Sorprendida · 😨 Asustada · 🤢 Disgustada). Tap su chip la attiva (gradient lavender) e diventa il tono globale per tutte le riproduzioni. Stato persistito in `localStorage.parlia_laura_emotion`
+- Nuovi stili in `laura-voice.css`: `.lv-emo-wrap` + `.lv-emo-chips` + `.lv-emo-chip` + `.lv-emo-chip.active`
+
+**Limite osservato**: con `speech-01-turbo` la gamma emotiva è volutamente compressa (bilanciamento identità/emozione del voice clone). Le differenze ci sono ma sottili. Possibili upgrade futuri:
+- Modello `speech-02-hd` (qualità + emozione più marcate, ~3x costo per char)
+- Combinare `emotion` con `speed` modulato per amplificare percezione
+
+### Backup branch pre-emotion
+Prima di aggiungere il supporto emotion è stato creato il branch `backup/pre-emotion-20260418` su GitHub (commit `6a74cf0`) come snapshot rollback in caso di problemi con MiniMax o con il worker.
+
+### File nuovi / toccati questa parte 2
+- **Nuovi**: nessuno
+- **Modificati**:
+  - `home.html` (tantissimo: user-select, low-power mode, PIN modal, showAiStarter, lazy loadAISuggestions, weekend fix in `_getCtx`, pageshow listener, settings menu, BETA nowrap, cache-bust V partial)
+  - `onboarding.html` (user-select fix + removeItem parlia_user_data)
+  - `components/inicio.html` (widget Laura voice con lucchetto + onclick gate)
+  - `components/rehab.html` (coming-soon markup)
+  - `rehab.css` (classe `.coming-soon`)
+  - `logopedia.js` + `logopedia.html` (parallel TTS, setTimeout ridotto)
+  - `laura-voice.html` (chips emozione + stato + markup)
+  - `laura-voice.css` (stili chips)
+  - `laura-voice.js` (ensureTerminalPunct, emotion param, isLauraCached aggiornato)
+
+### Cache-bust questa parte 2
+- `home.html` partial V: `20260418a` → `b` → `c`
+- `rehab.css`: `20260414aa` → `20260418c`
+- `logopedia.js`: `20260417f` → `20260418d`
+- `laura-voice.js`: `20260418e` → `f` → `g`
+- `laura-voice.css`: `20260418e` → `f`
+
+---
+
 ## Istruzioni per Claude Code
 - Prima di qualsiasi modifica, fai sempre un commit git con messaggio "backup pre-modifica"
 - Dopo ogni sessione di lavoro, fai un commit con le modifiche fatte
