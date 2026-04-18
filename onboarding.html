@@ -973,12 +973,17 @@
 
   function finish() {
     localStorage.setItem('parlia_profile', JSON.stringify(profile));
+    // Invalida parlia_user_data così ParliaUser.get() nella home rimigra dal
+    // legacy parlia_profile aggiornato (altrimenti resta un user_data stale,
+    // es. "Test" se l'utente aveva fatto skipToHome in precedenza).
+    try { localStorage.removeItem('parlia_user_data'); } catch(e){}
     goTo(6);
   }
 
   function openHome() {
     localStorage.setItem('parlia_profile', JSON.stringify(profile));
     localStorage.setItem('parlia_show_tutorial', '1');
+    try { localStorage.removeItem('parlia_user_data'); } catch(e){}
     window.location.replace('/home.html');
   }
 
