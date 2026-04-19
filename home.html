@@ -251,19 +251,11 @@ body.low-power .topbar { background: rgba(245,246,250,1); }
 .nav-item {
   pointer-events: auto;
   display: flex; flex-direction: column; align-items: center; gap: 2px;
-  cursor: pointer; padding: 7px 10px; border-radius: 22px;
+  cursor: pointer; padding: 7px 14px; border-radius: 22px;
   transition: background .2s, color .2s;
   -webkit-tap-highlight-color: transparent;
   position: relative;
   background: transparent;
-}
-/* Live Chat: accento rosa sempre visibile (non è una pagina del carosello,
-   è un link a live-chat.html → mai .active) */
-.nav-item-live .nav-icon {
-  filter: drop-shadow(0 2px 6px rgba(236,72,153,.35));
-}
-.nav-item-live .nav-lbl {
-  color: #ec4899;
 }
 .nav-item:active { transform: scale(.92); }
 .nav-icon {
@@ -858,10 +850,6 @@ body.low-power .topbar { background: rgba(245,246,250,1); }
       <div class="nav-icon">🗣️</div>
       <div class="nav-lbl">AAC</div>
     </div>
-    <div class="nav-item nav-item-live" onclick="location.href='live-chat.html'" aria-label="Live AI Chat">
-      <div class="nav-icon">🎙️</div>
-      <div class="nav-lbl">Live</div>
-    </div>
     <div class="nav-item" id="nav2" data-page="2" onclick="goTo(2)">
       <div class="nav-icon">🧠</div>
       <div class="nav-lbl">Rehab</div>
@@ -1009,7 +997,7 @@ if ('scrollRestoration' in history) try { history.scrollRestoration = 'manual'; 
 // e non parte sfasato.
 (async function bootstrap(){
   // Cache-bust anche sui partial HTML (query string forza il browser/SW a rifetchare)
-  const V = '20260419c';
+  const V = '20260419d';
   try {
     const [inicio, aac, rehab, perfil] = await Promise.all([
       fetch('components/inicio.html?v=' + V, {cache: 'no-cache'}).then(r => r.ok ? r.text() : Promise.reject(r.status)),
@@ -2617,16 +2605,6 @@ window.addEventListener('load', () => {
   _forceResetToPage0();
   requestAnimationFrame(() => requestAnimationFrame(_forceResetToPage0));
   setTimeout(_forceResetToPage0, 150);
-  // Deep link da live-chat.html / altre pagine: #page=N → naviga alla pagina
-  // richiesta dopo il forceReset. Ripulisce l'hash per non re-triggerarsi.
-  setTimeout(() => {
-    const m = /^#page=([0-3])$/.exec(location.hash);
-    if (m && typeof window.goTo === 'function') {
-      const n = Number(m[1]);
-      history.replaceState(history.state, '', location.pathname);
-      if (n !== 0) window.goTo(n);
-    }
-  }, 220);
 });
 
 // Intercetta il back del telefono.

@@ -102,62 +102,11 @@ html, body {
 .lc-wrap {
   position: relative; z-index: 1;
   max-width: 560px; margin: 0 auto;
-  padding: 14px 14px 104px;  /* 104px bottom: spazio per navbar + copyright */
+  padding: 14px 14px 24px;
   display: flex; flex-direction: column;
   gap: 12px;
   min-height: calc(100vh - 60px);
 }
-
-/* ═══ Navbar condivisa (copia stile home.html) ═══ */
-.pnav {
-  position: fixed; bottom: 0; left: 0; right: 0; z-index: 100;
-  height: 80px;
-  padding: 0 12px 14px;
-  display: flex; align-items: flex-end; justify-content: center;
-  pointer-events: none;
-  background: transparent;
-}
-.pnav-inner {
-  pointer-events: auto;
-  display: flex; gap: 4px; align-items: center;
-  background: #ffffff;
-  border: 1px solid #e5e7eb;
-  border-radius: 28px;
-  padding: 6px 8px;
-  box-shadow: 0 6px 18px rgba(0,0,0,.08), 0 1px 3px rgba(0,0,0,.05);
-  width: 100%; max-width: 420px;
-  justify-content: space-around;
-}
-.pnav-item {
-  pointer-events: auto;
-  display: flex; flex-direction: column; align-items: center; gap: 2px;
-  cursor: pointer; padding: 7px 10px; border-radius: 22px;
-  transition: background .2s, color .2s;
-  -webkit-tap-highlight-color: transparent;
-  background: transparent;
-  text-decoration: none;
-}
-.pnav-item:active { transform: scale(.92); }
-.pnav-icon {
-  font-size: 1.55rem; line-height: 1;
-  display: flex; align-items: center; justify-content: center;
-  transition: transform .25s;
-  filter: drop-shadow(0 2px 6px rgba(0,0,0,.15));
-}
-.pnav-lbl {
-  font-size: 0.56rem; font-weight: 700; color: var(--muted);
-  letter-spacing: .08em; text-transform: uppercase;
-}
-.pnav-item.active {
-  background: linear-gradient(135deg, #ec4899 0%, #f43f5e 55%, #fb7185 100%);
-  box-shadow: 0 8px 24px rgba(236,72,153,.45), 0 2px 6px rgba(244,63,94,.25);
-  transform: translateY(-2px);
-}
-.pnav-item.active .pnav-icon { transform: scale(1.08); filter: drop-shadow(0 2px 8px rgba(0,0,0,.25)); }
-.pnav-item.active .pnav-lbl { color: white; }
-.pnav-item-live .pnav-icon { filter: drop-shadow(0 2px 6px rgba(236,72,153,.35)); }
-.pnav-item-live .pnav-lbl { color: #ec4899; }
-.pnav-copyright { position: fixed; bottom: 3px; left: 0; right: 0; text-align: center; font-size: 0.56rem; color: #c4c4c4; font-weight: 600; letter-spacing: .02em; pointer-events: none; z-index: 99; }
 
 /* ═══ Selector interlocutor ═══ */
 .lc-interlocutors {
