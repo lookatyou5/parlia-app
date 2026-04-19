@@ -2617,6 +2617,16 @@ window.addEventListener('load', () => {
   _forceResetToPage0();
   requestAnimationFrame(() => requestAnimationFrame(_forceResetToPage0));
   setTimeout(_forceResetToPage0, 150);
+  // Deep link da live-chat.html / altre pagine: #page=N → naviga alla pagina
+  // richiesta dopo il forceReset. Ripulisce l'hash per non re-triggerarsi.
+  setTimeout(() => {
+    const m = /^#page=([0-3])$/.exec(location.hash);
+    if (m && typeof window.goTo === 'function') {
+      const n = Number(m[1]);
+      history.replaceState(history.state, '', location.pathname);
+      if (n !== 0) window.goTo(n);
+    }
+  }, 220);
 });
 
 // Intercetta il back del telefono.
