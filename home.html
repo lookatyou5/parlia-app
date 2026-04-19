@@ -56,7 +56,7 @@ html, body {
   --shadow: 0 2px 12px rgba(0,0,0,0.06), 0 1px 3px rgba(0,0,0,0.04);
   --shadow-lg: 0 8px 32px rgba(37,99,235,0.12), 0 2px 8px rgba(0,0,0,0.06);
   --nav-h: 80px;
-  --top-h: 72px;
+  --top-h: 86px;
 }
 
 /* ── MESH ── */
@@ -86,10 +86,20 @@ html, body {
   white-space: nowrap;
 }
 .logo-text span { color: var(--blue); }
-.beta-badge { font-size: 0.52rem; font-weight: 800; background: var(--blue-light); color: var(--blue); border-radius: 20px; padding: 2px 7px; vertical-align: middle; letter-spacing: .04em; }
+.topbar-brand {
+  display: flex; align-items: center; gap: 8px;
+  max-width: 78%; flex-shrink: 1; min-width: 0;
+}
+.topbar-beta {
+  font-size: 0.58rem; font-weight: 800;
+  background: var(--blue-light); color: var(--blue);
+  border-radius: 10px; padding: 3px 8px;
+  letter-spacing: .08em; flex-shrink: 0;
+  font-family: 'Plus Jakarta Sans', sans-serif;
+}
 .topbar-logo {
-  /* topbar ora alta 72px, logo a 62px → respira ma domina visivamente */
-  height: 62px; width: auto; max-width: 70%;
+  /* topbar 86px, logo 76px → occupa quasi tutta la topbar verticale */
+  height: 76px; width: auto; max-width: 100%;
   display: block;
   flex-shrink: 1;
   object-fit: contain;
@@ -743,7 +753,10 @@ body.low-power .topbar { background: rgba(245,246,250,1); }
 
 <!-- TOPBAR -->
 <div class="topbar">
-  <img class="topbar-logo" src="parlia-logo.webp?v=20260418a" alt="Parlia">
+  <div class="topbar-brand">
+    <img class="topbar-logo" src="parlia-logo.webp?v=20260418a" alt="Parlia">
+    <span class="topbar-beta">BETA</span>
+  </div>
   <div style="flex:1"></div>
   <a class="vision-btn" href="vision.html" aria-label="Visión Asistida" title="Visión Asistida">🔍</a>
   <div class="settings-btn" onclick="toggleSettings()">⚙️</div>
