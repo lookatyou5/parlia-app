@@ -1360,6 +1360,78 @@ Dettagli implementativi:
 
 ---
 
+## Sessione 19 aprile 2026 — Rebrand logo + polish navbar/AAC + Objetivo lazy
+
+Sessione di rebrand visivo e riorganizzazione UX della Live Chat.
+
+### Nuovo logo Parlia (rebrand completo)
+Vecchio logo: stilizzato "P" blu-teal (wordmark `PARLIA` a destra).
+Nuovo logo: **waveform audio** in gradient ciano→blu→viola→magenta + wordmark **`PARLIA`** in viola + tagline **"Tu voz, siempre."**
+
+Source asset forniti dall'utente via GitHub web upload su main:
+- `FullLogo.png` (1280x1024, canvas con sfondo bianco)
+- `Print.svg` (vector source Fabric.js, 1280x1024)
+
+Generati da FullLogo.png con PIL (script `python3`):
+1. `parlia-logo.webp` (641x492, trasparente) — icon + PARLIA + tagline completa. Alpha ramp 230-250 per bordi antialiased → bianco → trasparente smooth. **Usato in home topbar + 6 screen onboarding.**
+2. PWA icons rigenerati dalla sola waveform icon (cropped y=200-487 da FullLogo.png) con padding 16% safe-zone per maskable Android:
+   - `icon-192.png` (10.7 KB)
+   - `icon-512.png` (44.8 KB)
+   - `apple-touch-icon.png` (180x180, 9.8 KB)
+
+### Home topbar
+- `--top-h: 86px → 64px` (topbar compatta dopo la prima iterazione troppo grande)
+- `.topbar-logo` height 76 → 54px
+- Rimosso `mix-blend-mode: multiply` (non serve, il PNG ha alpha vera)
+- BETA pill (inline accanto al logo): `.topbar-beta` font 0.48rem, padding 2/6px, gap 3px, `translateY(1px)` per baseline
+- Struttura: `<div class="topbar-brand">` flex wrapper con `<img>` + `<span>BETA</span>`
+
+### Onboarding — logo uniforme
+Tutti e 6 gli screen usano `.logo-wordmark` (height 58px) con lo stesso `parlia-logo.webp`. Rimossi gli SVG chat-bubble inline (sostituiti prima con un P icon ritagliato `parlia-p.webp`, poi con il logo completo a fine sessione). Screen 0 conserva il selettore lingua ES/CA separato.
+
+### Live Chat — spostamenti multipli (scelta finale: widget in AAC)
+Lunga iterazione sulla posizione di accesso a Live Chat:
+1. **Widget in Inicio** (stato iniziale pre-sessione) — rubava spazio dopo Visión/Laura Voice
+2. **Nav-item in navbar** (Inicio / AAC / **🎙️ Live** / Rehab / Perfil) — ma lo swipe AAC↔Rehab saltava Live (Live è pagina standalone, non slide del carosello). Aggiunta navbar condivisa anche in `live-chat.html` + deep-link `#page=N` in `home.html` per navigazione cross-URL
+3. **Widget hero in AAC** (scelta finale) — concettualmente coerente: AAC = "frasi pre-fatte", Live = "conversazione dal vivo", entrambi = comunicazione. Navbar torna a 4 items (swipe coerente)
+
+File a cambio finale:
+- `components/aac.html`: card rosa gradient `.aac-livechat-widget` in cima (sopra hero frase), "🎙️ Conversación en vivo · Habla y recibe respuestas al instante · Abrir →" → `live-chat.html`
+- `home.html`: nav-item Live rimosso, ripristinato padding 7/14px, `.nav-item-live` CSS rimosso
+- `live-chat.html`: navbar condivisa rimossa
+- `live-chat.css`: stili `.pnav*` rimossi, padding wrap 104 → 24px
+- Mantenuto `data-page="0..3"` sui nav-item carousel (robustezza futura: qualsiasi nav-item esterno non influenza `_syncNavAndHistory` / `_forceResetToPage0`)
+
+### Objetivo de hoy — riabilitato lazy
+Era stato disabilitato nella sessione 18 apr parte 2 (rimosso da init + pull-to-refresh, card marcata `.coming-soon`). Riabilitato con pattern lazy identico a `loadAISuggestions`:
+- Flag `_goalInitialized = false` in closure di `runApp()`
+- Trigger in `_syncNavAndHistory(idx)`: se `idx === 2 && !_goalInitialized` → `loadGoal()` + flag true
+- Cache per data (`parlia_goal_YYYY-MM-DD` in localStorage) → max 1 chiamata Claude Haiku/giorno anche aprendo Rehab 20×
+- `components/rehab.html`: rimossa classe `.coming-soon`, skeleton "Generando tu objetivo del día…" come stato iniziale
+
+### Cache-bust sessione
+- `home.html` partial V: `20260418c → 20260419c → 20260419d → 20260419e`
+- `parlia-logo.webp`: `v20260418a → v20260419b → v20260419e → v20260419f`
+- `live-chat.css`: `v20260417d → v20260419c → v20260419d`
+
+### File nuovi / toccati
+- **Nuovi**:
+  - `FullLogo.png`, `Print.svg` (source asset rebrand)
+- **Modificati**:
+  - `parlia-logo.webp` (completamente rigenerato dal nuovo brand)
+  - `icon-192.png`, `icon-512.png`, `apple-touch-icon.png` (rigenerati dal waveform)
+  - `home.html` (topbar compatta, BETA pill, nav 4→5→4 items, data-page attributes, lazy `_goalInitialized`, deep-link `#page=N` aggiunto poi rimosso)
+  - `onboarding.html` (logo unificato, 6 screen con wordmark)
+  - `components/aac.html` (widget hero Live Chat)
+  - `components/rehab.html` (goal-card riabilitata)
+  - `components/inicio.html` (rimosso widget Live Chat rosa)
+  - `live-chat.html`, `live-chat.css` (navbar aggiunta poi rimossa)
+- **Rimossi**:
+  - `parlia-p.webp` (vecchia P icon ritagliata, rimpiazzata dal logo completo)
+  - `IMG_20260419_005707_877.webp` (source iniziale, non più necessario dopo il rebrand FullLogo)
+
+---
+
 ## Istruzioni per Claude Code
 - Prima di qualsiasi modifica, fai sempre un commit git con messaggio "backup pre-modifica"
 - Dopo ogni sessione di lavoro, fai un commit con le modifiche fatte
