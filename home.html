@@ -251,11 +251,19 @@ body.low-power .topbar { background: rgba(245,246,250,1); }
 .nav-item {
   pointer-events: auto;
   display: flex; flex-direction: column; align-items: center; gap: 2px;
-  cursor: pointer; padding: 7px 14px; border-radius: 22px;
+  cursor: pointer; padding: 7px 10px; border-radius: 22px;
   transition: background .2s, color .2s;
   -webkit-tap-highlight-color: transparent;
   position: relative;
   background: transparent;
+}
+/* Live Chat: accento rosa sempre visibile (non è una pagina del carosello,
+   è un link a live-chat.html → mai .active) */
+.nav-item-live .nav-icon {
+  filter: drop-shadow(0 2px 6px rgba(236,72,153,.35));
+}
+.nav-item-live .nav-lbl {
+  color: #ec4899;
 }
 .nav-item:active { transform: scale(.92); }
 .nav-icon {
@@ -842,19 +850,23 @@ body.low-power .topbar { background: rgba(245,246,250,1); }
 <!-- NAV — pill solida bianca, leggera per la GPU -->
 <div class="nav">
   <div class="nav-inner">
-    <div class="nav-item active" id="nav0" onclick="goTo(0)">
+    <div class="nav-item active" id="nav0" data-page="0" onclick="goTo(0)">
       <div class="nav-icon">🏠</div>
       <div class="nav-lbl">Inicio</div>
     </div>
-    <div class="nav-item" id="nav1" onclick="goTo(1)">
+    <div class="nav-item" id="nav1" data-page="1" onclick="goTo(1)">
       <div class="nav-icon">🗣️</div>
       <div class="nav-lbl">AAC</div>
     </div>
-    <div class="nav-item" id="nav2" onclick="goTo(2)">
+    <div class="nav-item nav-item-live" onclick="location.href='live-chat.html'" aria-label="Live AI Chat">
+      <div class="nav-icon">🎙️</div>
+      <div class="nav-lbl">Live</div>
+    </div>
+    <div class="nav-item" id="nav2" data-page="2" onclick="goTo(2)">
       <div class="nav-icon">🧠</div>
       <div class="nav-lbl">Rehab</div>
     </div>
-    <div class="nav-item" id="nav3" onclick="goTo(3)">
+    <div class="nav-item" id="nav3" data-page="3" onclick="goTo(3)">
       <div class="nav-icon">👤</div>
       <div class="nav-lbl">Perfil</div>
     </div>
@@ -997,7 +1009,7 @@ if ('scrollRestoration' in history) try { history.scrollRestoration = 'manual'; 
 // e non parte sfasato.
 (async function bootstrap(){
   // Cache-bust anche sui partial HTML (query string forza il browser/SW a rifetchare)
-  const V = '20260418c';
+  const V = '20260419c';
   try {
     const [inicio, aac, rehab, perfil] = await Promise.all([
       fetch('components/inicio.html?v=' + V, {cache: 'no-cache'}).then(r => r.ok ? r.text() : Promise.reject(r.status)),
@@ -1120,7 +1132,7 @@ let _fromPopstate = false;
 // In questo modo, da qualsiasi pagina, un solo back porta a Inicio; da Inicio
 // un solo back chiude l'app (history vuota).
 function _syncNavAndHistory(idx, fromBack){
-  document.querySelectorAll('.nav-item').forEach((el,i) => el.classList.toggle('active', i===idx));
+  document.querySelectorAll('.nav-item[data-page]').forEach(el => el.classList.toggle('active', Number(el.dataset.page) === idx));
   document.querySelectorAll('.nav-dot').forEach((d,i) => d.classList.toggle('active', i===idx));
   hideHint();
   // Lazy init suggerimenti AI AAC: li generiamo SOLO la prima volta che l'utente
@@ -2594,7 +2606,7 @@ curPage = 0;
 function _forceResetToPage0(){
   curPage = 0;
   wrap.scrollLeft = 0;
-  document.querySelectorAll('.nav-item').forEach((el,i) => el.classList.toggle('active', i===0));
+  document.querySelectorAll('.nav-item[data-page]').forEach(el => el.classList.toggle('active', Number(el.dataset.page) === 0));
   document.querySelectorAll('.nav-dot').forEach((d,i) => d.classList.toggle('active', i===0));
 }
 _forceResetToPage0();
