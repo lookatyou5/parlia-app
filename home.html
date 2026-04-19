@@ -997,7 +997,7 @@ if ('scrollRestoration' in history) try { history.scrollRestoration = 'manual'; 
 // e non parte sfasato.
 (async function bootstrap(){
   // Cache-bust anche sui partial HTML (query string forza il browser/SW a rifetchare)
-  const V = '20260419d';
+  const V = '20260419e';
   try {
     const [inicio, aac, rehab, perfil] = await Promise.all([
       fetch('components/inicio.html?v=' + V, {cache: 'no-cache'}).then(r => r.ok ? r.text() : Promise.reject(r.status)),
@@ -1101,6 +1101,7 @@ function _closeSettingsOutside(e) {
 let curPage = 0;
 // Flag: suggerimenti AI AAC già generati in questa sessione? (lazy init)
 let _aacSugsInitialized = false;
+let _goalInitialized = false;
 const wrap = document.getElementById('pagesWrap');
 const track = document.getElementById('track'); // mantenuto per retrocompat
 
@@ -1129,6 +1130,12 @@ function _syncNavAndHistory(idx, fromBack){
   if (idx === 1 && !_aacSugsInitialized) {
     _aacSugsInitialized = true;
     try { loadAISuggestions(); } catch(e){}
+  }
+  // Lazy init Objetivo de hoy: solo quando l'utente raggiunge Rehab (page 2).
+  // loadGoal() ha cache per data → 1 chiamata Claude Haiku/giorno max.
+  if (idx === 2 && !_goalInitialized) {
+    _goalInitialized = true;
+    try { loadGoal(); } catch(e){}
   }
   if (fromBack) return; // durante popstate non tocchiamo la history
   const cur = history.state;
