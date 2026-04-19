@@ -56,7 +56,7 @@ html, body {
   --shadow: 0 2px 12px rgba(0,0,0,0.06), 0 1px 3px rgba(0,0,0,0.04);
   --shadow-lg: 0 8px 32px rgba(37,99,235,0.12), 0 2px 8px rgba(0,0,0,0.06);
   --nav-h: 80px;
-  --top-h: 86px;
+  --top-h: 64px;
 }
 
 /* ── MESH ── */
@@ -101,8 +101,9 @@ html, body {
   transform: translateY(1px);
 }
 .topbar-logo {
-  /* topbar 86px, logo 76px → occupa quasi tutta la topbar verticale */
-  height: 76px; width: auto; max-width: 100%;
+  /* topbar 64px, logo 54px → logo completo (waveform + PARLIA + tagline)
+     resta leggibile senza rubare spazio verticale. */
+  height: 54px; width: auto; max-width: 100%;
   display: block;
   flex-shrink: 1;
   object-fit: contain;
@@ -753,7 +754,7 @@ body.low-power .topbar { background: rgba(245,246,250,1); }
 <!-- TOPBAR -->
 <div class="topbar">
   <div class="topbar-brand">
-    <img class="topbar-logo" src="parlia-logo.webp?v=20260419e" alt="Parlia">
+    <img class="topbar-logo" src="parlia-logo.webp?v=20260419f" alt="Parlia">
     <span class="topbar-beta">BETA</span>
   </div>
   <div style="flex:1"></div>
