@@ -629,11 +629,29 @@ body.low-power .topbar { background: rgba(245,246,250,1); }
 .wx-loc-row { font-size:0.65rem;color:rgba(255,255,255,.32);margin:6px 0 10px;display:flex;align-items:center;gap:4px; }
 .wx-divider { height:1px;background:rgba(255,255,255,.08);margin-bottom:10px; }
 .wx-stats-grid { display:grid;grid-template-columns:repeat(4,1fr);padding-bottom:16px; }
-.wx-stat { display:flex;flex-direction:column;align-items:center;gap:3px;padding:0 3px; }
+.wx-stat { display:flex;flex-direction:column;align-items:center;gap:3px;padding:0 3px;color:rgba(255,255,255,.65); }
 .wx-stat+.wx-stat { border-left:1px solid rgba(255,255,255,.07); }
+.wx-stat svg { display:block; }
 .wx-stat-val { font-size:0.8rem;font-weight:700;color:white; }
 .wx-stat-lbl { font-size:0.47rem;font-weight:600;color:rgba(255,255,255,.35);text-transform:uppercase;letter-spacing:.05em; }
 .wx-bottom-pad { display:none; }
+
+/* Icona meteo "reale" dinamica sovrapposta alla scena canvas */
+.wx-big-icon {
+  position: absolute;
+  top: 18px; right: 20px;
+  width: 64px; height: 64px;
+  color: rgba(255,255,255,.9);
+  filter: drop-shadow(0 3px 10px rgba(0,0,0,.25));
+  pointer-events: none;
+  z-index: 3;
+  animation: wxBigIconFloat 5s ease-in-out infinite;
+}
+.wx-big-icon svg { width: 100%; height: 100%; display: block; }
+@keyframes wxBigIconFloat {
+  0%,100% { transform: translateY(0); }
+  50%     { transform: translateY(-4px); }
+}
 
 .ai-night-card {
   border-radius: var(--radius); overflow: hidden; position: relative;
@@ -924,6 +942,8 @@ body.low-power .topbar { background: rgba(245,246,250,1); }
       <div id="wxLightning" style="position:absolute;display:none;top:16px;left:44%;transform:translateX(-50%);filter:drop-shadow(0 0 12px #fde047) drop-shadow(0 0 4px #fff);animation:lightningFlash 4.5s ease-in-out infinite;pointer-events:none;">
         <svg width="22" height="44" viewBox="0 0 22 44" fill="none"><path d="M13 2L3 24h8l-2 18L20 18h-8L13 2z" fill="#fde047" stroke="#fbbf24" stroke-width="1"/></svg>
       </div>
+      <!-- Icona meteo "reale" dinamica (Phosphor Fill), sovrapposta alla scena -->
+      <div class="wx-big-icon" id="wxBigIcon" aria-hidden="true"></div>
     </div>
     <div class="wx-body">
       <div class="wx-top-row">
@@ -941,22 +961,22 @@ body.low-power .topbar { background: rgba(245,246,250,1); }
       <div class="wx-divider"></div>
       <div class="wx-stats-grid">
         <div class="wx-stat">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,.5)" stroke-width="2"><path d="M12 2a7 7 0 017 7c0 5.25-7 13-7 13S5 14.25 5 9a7 7 0 017-7z"/><circle cx="12" cy="9" r="2.5"/></svg>
+          <svg width="18" height="18" viewBox="0 0 256 256" fill="currentColor"><path d="M174,47.75a254.19,254.19,0,0,0-41.45-38.3,8,8,0,0,0-9.18,0A254.19,254.19,0,0,0,82,47.75C54.51,79.32,40,112.6,40,144a88,88,0,0,0,176,0C216,112.6,201.49,79.32,174,47.75Zm9.85,105.59a57.6,57.6,0,0,1-46.56,46.55A8.75,8.75,0,0,1,136,200a8,8,0,0,1-1.32-15.89c16.57-2.79,30.63-16.85,33.44-33.45a8,8,0,0,1,15.78,2.68Z"/></svg>
           <div class="wx-stat-val" id="wxHumVal">—%</div>
           <div class="wx-stat-lbl">Humedad</div>
         </div>
         <div class="wx-stat">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,.5)" stroke-width="2"><path d="M9.59 4.59A2 2 0 1111 8H2m10.59 11.41A2 2 0 1014 16H2m15.73-8.27A2.5 2.5 0 1119.5 12H2"/></svg>
+          <svg width="18" height="18" viewBox="0 0 256 256" fill="currentColor"><path d="M120,104H24a8,8,0,0,1-8-8.53A8.17,8.17,0,0,1,24.27,88H112a8,8,0,0,0,8-8.53A8.17,8.17,0,0,0,111.73,72H92.29a4,4,0,0,1-4-4.58A32,32,0,1,1,120,104Zm119.92-2.29a32,32,0,0,0-63.59-2.29,4,4,0,0,0,4,4.58h19.44a8.17,8.17,0,0,1,8.25,7.47,8,8,0,0,1-8,8.53H32.27A8.17,8.17,0,0,0,24,127.47,8,8,0,0,0,32,136H208A32,32,0,0,0,239.92,101.71ZM152,152H40.27A8.17,8.17,0,0,0,32,159.47,8,8,0,0,0,40,168H143.73a8.17,8.17,0,0,1,8.25,7.47,8,8,0,0,1-8,8.53H124.29a4,4,0,0,0-4,4.58A32,32,0,1,0,152,152Z"/></svg>
           <div class="wx-stat-val" id="wxWindVal">—</div>
           <div class="wx-stat-lbl">Viento</div>
         </div>
         <div class="wx-stat">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,.5)" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 8v4l3 3"/></svg>
+          <svg width="18" height="18" viewBox="0 0 256 256" fill="currentColor"><path d="M247.31,124.76c-.35-.79-8.82-19.58-27.65-38.41C194.57,61.26,162.88,48,128,48S61.43,61.26,36.34,86.35C17.51,105.18,9,124,8.69,124.76a8,8,0,0,0,0,6.5c.35.79,8.82,19.57,27.65,38.4C61.43,194.74,93.12,208,128,208s66.57-13.26,91.66-38.34c18.83-18.83,27.3-37.61,27.65-38.4A8,8,0,0,0,247.31,124.76ZM128,168a40,40,0,1,1,40-40A40,40,0,0,1,128,168Z"/></svg>
           <div class="wx-stat-val" id="wxVisVal">—</div>
           <div class="wx-stat-lbl">Visib.</div>
         </div>
         <div class="wx-stat">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,.5)" stroke-width="2"><path d="M18 10h-1.26A8 8 0 109 20h9a5 5 0 000-10z"/></svg>
+          <svg width="18" height="18" viewBox="0 0 256 256" fill="currentColor"><path d="M160.06,40A88.1,88.1,0,0,0,81.29,88.67h0A87.48,87.48,0,0,0,72,127.73,8.18,8.18,0,0,1,64.57,136,8,8,0,0,1,56,128a103.66,103.66,0,0,1,5.34-32.92,4,4,0,0,0-4.75-5.18A64.09,64.09,0,0,0,8,152c0,35.19,29.75,64,65,64H160a88.09,88.09,0,0,0,87.93-91.48C246.11,77.54,207.07,40,160.06,40Z"/></svg>
           <div class="wx-stat-val" id="wxCloudVal">—%</div>
           <div class="wx-stat-lbl">Nubes</div>
         </div>
@@ -2359,6 +2379,19 @@ const WX_SCENE_SKY = {
   foggy:'linear-gradient(135deg,#4b5563,#9ca3af)'
 };
 
+// Phosphor Fill icons dinamiche per il popup meteo — dà un feel più "app meteo reale"
+const WX_BIG_ICONS = {
+  sunny:     '<svg viewBox="0 0 256 256" fill="currentColor"><path d="M120,40V16a8,8,0,0,1,16,0V40a8,8,0,0,1-16,0Zm8,24a64,64,0,1,0,64,64A64.07,64.07,0,0,0,128,64ZM58.34,69.66A8,8,0,0,0,69.66,58.34l-16-16A8,8,0,0,0,42.34,53.66Zm0,116.68-16,16a8,8,0,0,0,11.32,11.32l16-16a8,8,0,0,0-11.32-11.32ZM192,72a8,8,0,0,0,5.66-2.34l16-16a8,8,0,0,0-11.32-11.32l-16,16A8,8,0,0,0,192,72Zm5.66,114.34a8,8,0,0,0-11.32,11.32l16,16a8,8,0,0,0,11.32-11.32ZM48,128a8,8,0,0,0-8-8H16a8,8,0,0,0,0,16H40A8,8,0,0,0,48,128Zm80,80a8,8,0,0,0-8,8v24a8,8,0,0,0,16,0V216A8,8,0,0,0,128,208Zm112-88H216a8,8,0,0,0,0,16h24a8,8,0,0,0,0-16Z"/></svg>',
+  partcloud: '<svg viewBox="0 0 256 256" fill="currentColor"><path d="M164,72a76.2,76.2,0,0,0-20.26,2.73,55.63,55.63,0,0,0-9.41-11.54l9.51-13.57a8,8,0,1,0-13.11-9.18L121.22,54A55.9,55.9,0,0,0,96,48c-.59,0-1.16,0-1.74,0L91.37,31.71a8,8,0,1,0-15.75,2.77L78.5,50.82A56.1,56.1,0,0,0,55.23,65.67L41.61,56.14a8,8,0,1,0-9.17,13.11L46,78.77A55.55,55.55,0,0,0,40,104c0,.57,0,1.15,0,1.72L23.71,108.6a8,8,0,0,0,1.38,15.88,8.24,8.24,0,0,0,1.39-.12l16.32-2.88a55.74,55.74,0,0,0,5.86,12.42A52,52,0,0,0,84,224h80a76,76,0,0,0,0-152ZM92.92,120.76a52.14,52.14,0,0,0-31,4.17,40,40,0,0,1,66.62-44.17A76.26,76.26,0,0,0,92.92,120.76Z"/></svg>',
+  cloudy:    '<svg viewBox="0 0 256 256" fill="currentColor"><path d="M160.06,40A88.1,88.1,0,0,0,81.29,88.67h0A87.48,87.48,0,0,0,72,127.73,8.18,8.18,0,0,1,64.57,136,8,8,0,0,1,56,128a103.66,103.66,0,0,1,5.34-32.92,4,4,0,0,0-4.75-5.18A64.09,64.09,0,0,0,8,152c0,35.19,29.75,64,65,64H160a88.09,88.09,0,0,0,87.93-91.48C246.11,77.54,207.07,40,160.06,40Z"/></svg>',
+  rainy:     '<svg viewBox="0 0 256 256" fill="currentColor"><path d="M158.66,196.44l-32,48a8,8,0,1,1-13.32-8.88l32-48a8,8,0,0,1,13.32,8.88ZM231.87,87.55a76,76,0,0,0-151.78.73A8.18,8.18,0,0,1,72,96l-.6,0A8.14,8.14,0,0,1,64,87.39a92.48,92.48,0,0,1,2.33-16.51,4,4,0,0,0-5-4.78A52.09,52.09,0,0,0,24,116.36C24.2,145.07,48.12,168,76.84,168h36.21L89.34,203.56a8,8,0,0,0,13.32,8.88L132.28,168H156A76.08,76.08,0,0,0,231.87,87.55Z"/></svg>',
+  stormy:    '<svg viewBox="0 0 256 256" fill="currentColor"><path d="M156,168H132.53l-14.4,24H144a8,8,0,0,1,6.86,12.12l-24,40a8,8,0,0,1-13.72-8.24L129.87,208H104a8,8,0,0,1-6.86-12.12L113.87,168h-37C48.12,168,24.2,145.07,24,116.36A52.09,52.09,0,0,1,61.35,66.1a4,4,0,0,1,5,4.78A92.48,92.48,0,0,0,64,87.39,8.14,8.14,0,0,0,71.41,96l.6,0a8.18,8.18,0,0,0,8.08-7.72A76,76,0,1,1,156,168Z"/></svg>',
+  snowy:     '<svg viewBox="0 0 256 256" fill="currentColor"><path d="M88,196a12,12,0,1,1-12-12A12,12,0,0,1,88,196Zm28,4a12,12,0,1,0,12,12A12,12,0,0,0,116,200Zm48-16a12,12,0,1,0,12,12A12,12,0,0,0,164,184ZM68,224a12,12,0,1,0,12,12A12,12,0,0,0,68,224Zm88,0a12,12,0,1,0,12,12A12,12,0,0,0,156,224ZM231.87,87.55a76,76,0,0,0-151.78.73A8.18,8.18,0,0,1,72,96l-.6,0A8.14,8.14,0,0,1,64,87.39a92.48,92.48,0,0,1,2.33-16.51,4,4,0,0,0-5-4.78A52.09,52.09,0,0,0,24,116.36C24.2,145.07,48.12,168,76.84,168H156A76.08,76.08,0,0,0,231.87,87.55Z"/></svg>',
+  foggy:     '<svg viewBox="0 0 256 256" fill="currentColor"><path d="M168,232a8,8,0,0,1-8,8H104a8,8,0,0,1,0-16h56A8,8,0,0,1,168,232Zm-40-32a8,8,0,0,0-8-8H72a8,8,0,0,0,0,16h48A8,8,0,0,0,128,200Zm56-8H160a8,8,0,0,0,0,16h24a8,8,0,0,0,0-16Zm47.87-96.45a76,76,0,0,0-151.78.73A8.18,8.18,0,0,1,72,104l-.6,0A8.14,8.14,0,0,1,64,95.39a92.48,92.48,0,0,1,2.33-16.51,4,4,0,0,0-5-4.78A52.09,52.09,0,0,0,24,124.36C24.2,153.07,48.12,176,76.84,176H156A76.08,76.08,0,0,0,231.87,95.55Z"/></svg>',
+  night:     '<svg viewBox="0 0 256 256" fill="currentColor"><path d="M235.54,150.21a104.84,104.84,0,0,1-37,52.91A104,104,0,0,1,32,120,103.09,103.09,0,0,1,52.88,57.48a104.84,104.84,0,0,1,52.91-37,8,8,0,0,1,10,10,88.08,88.08,0,0,0,109.8,109.8,8,8,0,0,1,10,10Z"/></svg>',
+  sunset:    '<svg viewBox="0 0 256 256" fill="currentColor"><path d="M120,40V16a8,8,0,0,1,16,0V40a8,8,0,0,1-16,0Zm8,24a64,64,0,1,0,64,64A64.07,64.07,0,0,0,128,64ZM58.34,69.66A8,8,0,0,0,69.66,58.34l-16-16A8,8,0,0,0,42.34,53.66Zm0,116.68-16,16a8,8,0,0,0,11.32,11.32l16-16a8,8,0,0,0-11.32-11.32ZM192,72a8,8,0,0,0,5.66-2.34l16-16a8,8,0,0,0-11.32-11.32l-16,16A8,8,0,0,0,192,72Zm5.66,114.34a8,8,0,0,0-11.32,11.32l16,16a8,8,0,0,0,11.32-11.32ZM48,128a8,8,0,0,0-8-8H16a8,8,0,0,0,0,16H40A8,8,0,0,0,48,128Zm80,80a8,8,0,0,0-8,8v24a8,8,0,0,0,16,0V216A8,8,0,0,0,128,208Zm112-88H216a8,8,0,0,0,0,16h24a8,8,0,0,0,0-16Z"/></svg>'
+};
+
 const _WX_SKY_STOPS = {
   sunny:    ['#0369a1','#0284c7','#38bdf8','#7dd3fc','#fed7aa','#fbbf24'],
   partcloud:['#1d4ed8','#2563eb','#60a5fa','#93c5fd','#bfdbfe','#dbeafe'],
@@ -2578,6 +2611,10 @@ async function loadMeteo() {
 
     // Scena animata
     _buildWxScene(sceneType);
+
+    // Icona meteo dinamica Phosphor Fill nel popup (più "app meteo reale")
+    const wxBigIcon = document.getElementById('wxBigIcon');
+    if (wxBigIcon) wxBigIcon.innerHTML = WX_BIG_ICONS[sceneType] || WX_BIG_ICONS.sunny;
 
     // Testi popup
     document.getElementById('wxTempBig').innerHTML = `${temp}<sup>°</sup>`;
