@@ -262,11 +262,13 @@ body.low-power .topbar { background: rgba(245,246,250,1); }
 .nav-icon {
   width: auto; height: auto; border-radius: 0;
   background: none !important; box-shadow: none !important;
-  font-size: 1.55rem; line-height: 1;
   display: flex; align-items: center; justify-content: center;
-  transition: transform .25s;
-  filter: drop-shadow(0 2px 6px rgba(0,0,0,.15));
+  transition: transform .25s, color .2s;
+  color: #475569;
+  filter: drop-shadow(0 2px 6px rgba(0,0,0,.12));
 }
+.nav-icon svg { width: 26px; height: 26px; display: block; }
+.nav-item.active .nav-icon { color: white; }
 .nav-item.active {
   background: linear-gradient(135deg, #2563eb 0%, #4f46e5 50%, #7c3aed 100%);
   box-shadow: 0 8px 24px rgba(99,102,241,.45), 0 2px 6px rgba(37,99,235,.25);
@@ -648,10 +650,12 @@ body.low-power .topbar { background: rgba(245,246,250,1); }
   background: linear-gradient(135deg, #ffffff 0%, #eef2ff 100%);
   border: 1.5px solid #c7d2fe;
   display: flex; align-items: center; justify-content: center;
-  font-size: 1.2rem; cursor: pointer; flex-shrink: 0;
+  color: #4f46e5;
+  cursor: pointer; flex-shrink: 0;
   box-shadow: 0 2px 8px rgba(99,102,241,.14), 0 0 0 1px rgba(255,255,255,.5) inset;
   transition: all .18s; -webkit-tap-highlight-color: transparent;
 }
+.settings-btn svg { width: 22px; height: 22px; }
 .settings-btn:active { background: linear-gradient(135deg, #e0e7ff, #c7d2fe); border-color: var(--blue); transform: rotate(30deg) scale(.95); }
 
 /* Vision Asistida — shortcut compatto in topbar */
@@ -660,11 +664,13 @@ body.low-power .topbar { background: rgba(245,246,250,1); }
   background: linear-gradient(135deg, #ecfeff 0%, #cffafe 100%);
   border: 1.5px solid #67e8f9;
   display: flex; align-items: center; justify-content: center;
-  font-size: 1.2rem; cursor: pointer; flex-shrink: 0;
+  color: #0891b2;
+  cursor: pointer; flex-shrink: 0;
   box-shadow: 0 2px 8px rgba(6,182,212,.18), 0 0 0 1px rgba(255,255,255,.5) inset;
   transition: all .18s; -webkit-tap-highlight-color: transparent;
-  text-decoration: none; color: inherit;
+  text-decoration: none;
 }
+.vision-btn svg { width: 22px; height: 22px; }
 .vision-btn:active { background: linear-gradient(135deg, #a5f3fc, #67e8f9); border-color: #06b6d4; transform: scale(.92); }
 
 .settings-menu {
@@ -703,12 +709,14 @@ body.low-power .topbar { background: rgba(245,246,250,1); }
   width: 40px; height: 40px; border-radius: 50%;
   background: linear-gradient(135deg, #dc2626, #ef4444);
   display: flex; align-items: center; justify-content: center;
-  font-size: 1.15rem; cursor: pointer; flex-shrink: 0;
+  color: white;
+  cursor: pointer; flex-shrink: 0;
   box-shadow: 0 3px 12px rgba(220,38,38,.42), 0 0 0 1px rgba(255,255,255,.18) inset;
   border: 1.5px solid rgba(255,255,255,.35);
   -webkit-tap-highlight-color: transparent;
   transition: transform .15s;
 }
+.sos-pill svg { width: 22px; height: 22px; }
 .sos-pill:active { transform: scale(.92); }
 
 /* SOS OVERLAY */
@@ -763,9 +771,9 @@ body.low-power .topbar { background: rgba(245,246,250,1); }
     <span class="topbar-beta">BETA</span>
   </div>
   <div style="flex:1"></div>
-  <a class="vision-btn" href="vision.html" aria-label="Visión Asistida" title="Visión Asistida">🔍</a>
-  <div class="settings-btn" onclick="toggleSettings()">⚙️</div>
-  <div class="sos-pill" onclick="openSOS()">🆘</div>
+  <a class="vision-btn" href="vision.html" aria-label="Visión Asistida" title="Visión Asistida"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2.062 12.348a1 1 0 0 1 0-.696 10.75 10.75 0 0 1 19.876 0 1 1 0 0 1 0 .696 10.75 10.75 0 0 1-19.876 0"/><circle cx="12" cy="12" r="3"/></svg></a>
+  <div class="settings-btn" onclick="toggleSettings()" aria-label="Ajustes"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 5H3"/><path d="M12 19H3"/><path d="M14 3v4"/><path d="M16 17v4"/><path d="M21 12h-9"/><path d="M21 19h-5"/><path d="M21 5h-7"/><path d="M8 10v4"/><path d="M8 12H3"/></svg></div>
+  <div class="sos-pill" onclick="openSOS()" aria-label="Emergencia"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="m4.93 4.93 4.24 4.24"/><path d="m14.83 9.17 4.24-4.24"/><path d="m14.83 14.83 4.24 4.24"/><path d="m9.17 14.83-4.24 4.24"/><circle cx="12" cy="12" r="4"/></svg></div>
 </div>
 
 <!-- SOS OVERLAY -->
@@ -849,19 +857,19 @@ body.low-power .topbar { background: rgba(245,246,250,1); }
 <div class="nav">
   <div class="nav-inner">
     <div class="nav-item active" id="nav0" data-page="0" onclick="goTo(0)">
-      <div class="nav-icon">🏠</div>
+      <div class="nav-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 21v-8a1 1 0 0 0-1-1h-4a1 1 0 0 0-1 1v8"/><path d="M3 10a2 2 0 0 1 .709-1.528l7-6a2 2 0 0 1 2.582 0l7 6A2 2 0 0 1 21 10v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg></div>
       <div class="nav-lbl">Inicio</div>
     </div>
     <div class="nav-item" id="nav1" data-page="1" onclick="goTo(1)">
-      <div class="nav-icon">🗣️</div>
+      <div class="nav-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 17a2 2 0 0 1-2 2H6.828a2 2 0 0 0-1.414.586l-2.202 2.202A.71.71 0 0 1 2 21.286V5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2z"/><path d="M7 11h10"/><path d="M7 15h6"/><path d="M7 7h8"/></svg></div>
       <div class="nav-lbl">AAC</div>
     </div>
     <div class="nav-item" id="nav2" data-page="2" onclick="goTo(2)">
-      <div class="nav-icon">🧠</div>
+      <div class="nav-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5a3 3 0 1 0-5.997.125 4 4 0 0 0-2.526 5.77 4 4 0 0 0 .556 6.588A4 4 0 1 0 12 18Z"/><path d="M9 13a4.5 4.5 0 0 0 3-4"/><path d="M6.003 5.125A3 3 0 0 0 6.401 6.5"/><path d="M3.477 10.896a4 4 0 0 1 .585-.396"/><path d="M6 18a4 4 0 0 1-1.967-.516"/><path d="M12 13h4"/><path d="M12 18h6a2 2 0 0 1 2 2v1"/><path d="M12 8h8"/><path d="M16 8V5a2 2 0 0 1 2-2"/><circle cx="16" cy="13" r=".5"/><circle cx="18" cy="3" r=".5"/><circle cx="20" cy="21" r=".5"/><circle cx="20" cy="8" r=".5"/></svg></div>
       <div class="nav-lbl">Rehab</div>
     </div>
     <div class="nav-item" id="nav3" data-page="3" onclick="goTo(3)">
-      <div class="nav-icon">👤</div>
+      <div class="nav-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="10" r="3"/><path d="M7 20.662V19a2 2 0 0 1 2-2h6a2 2 0 0 1 2 2v1.662"/></svg></div>
       <div class="nav-lbl">Perfil</div>
     </div>
   </div>
