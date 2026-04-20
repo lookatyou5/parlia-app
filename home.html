@@ -667,19 +667,19 @@ body.low-power .topbar { background: rgba(245,246,250,1); }
 .page > *:nth-child(5){animation-delay:.24s}
 #toast { position:fixed;bottom:90px;left:50%;transform:translateX(-50%) translateY(16px);background:#0f0f10;color:white;padding:10px 18px;border-radius:20px;font-size:0.78rem;font-weight:700;opacity:0;transition:all .3s;pointer-events:none;white-space:nowrap;z-index:300; }
 
-/* ── SETTINGS ── (palette Parlia · blu → indaco) */
-.settings-btn {
+/* ── METEO (shortcut topbar che apre il popup del meteo) ── */
+.meteo-btn {
   width: 40px; height: 40px; border-radius: 14px;
-  background: linear-gradient(135deg, #60a5fa 0%, #4f46e5 100%);
+  background: linear-gradient(135deg, #7dd3fc 0%, #0ea5e9 100%);
   border: 1.5px solid rgba(255,255,255,.25);
   display: flex; align-items: center; justify-content: center;
   color: white;
   cursor: pointer; flex-shrink: 0;
-  box-shadow: 0 3px 10px rgba(79,70,229,.38), 0 0 0 1px rgba(255,255,255,.2) inset;
+  box-shadow: 0 3px 10px rgba(14,165,233,.38), 0 0 0 1px rgba(255,255,255,.2) inset;
   transition: all .18s; -webkit-tap-highlight-color: transparent;
 }
-.settings-btn svg { width: 22px; height: 22px; }
-.settings-btn:active { transform: rotate(30deg) scale(.95); }
+.meteo-btn svg { width: 22px; height: 22px; }
+.meteo-btn:active { transform: scale(.92); }
 
 /* Vision Asistida — shortcut compatto in topbar (palette Parlia · ciano) */
 .vision-btn {
@@ -794,8 +794,8 @@ body.low-power .topbar { background: rgba(245,246,250,1); }
     <span class="topbar-beta">BETA</span>
   </div>
   <div style="flex:1"></div>
+  <div class="meteo-btn" onclick="openMeteo()" aria-label="Meteo"><svg viewBox="0 0 256 256" fill="currentColor"><path d="M164,72a76.2,76.2,0,0,0-20.26,2.73,55.63,55.63,0,0,0-9.41-11.54l9.51-13.57a8,8,0,1,0-13.11-9.18L121.22,54A55.9,55.9,0,0,0,96,48c-.59,0-1.16,0-1.74,0L91.37,31.71a8,8,0,1,0-15.75,2.77L78.5,50.82A56.1,56.1,0,0,0,55.23,65.67L41.61,56.14a8,8,0,1,0-9.17,13.11L46,78.77A55.55,55.55,0,0,0,40,104c0,.57,0,1.15,0,1.72L23.71,108.6a8,8,0,0,0,1.38,15.88,8.24,8.24,0,0,0,1.39-.12l16.32-2.88a55.74,55.74,0,0,0,5.86,12.42A52,52,0,0,0,84,224h80a76,76,0,0,0,0-152ZM92.92,120.76a52.14,52.14,0,0,0-31,4.17,40,40,0,0,1,66.62-44.17A76.26,76.26,0,0,0,92.92,120.76Z"/></svg></div>
   <a class="vision-btn" href="vision.html" aria-label="Visión Asistida" title="Visión Asistida"><svg viewBox="0 0 256 256" fill="currentColor"><path d="M247.31,124.76c-.35-.79-8.82-19.58-27.65-38.41C194.57,61.26,162.88,48,128,48S61.43,61.26,36.34,86.35C17.51,105.18,9,124,8.69,124.76a8,8,0,0,0,0,6.5c.35.79,8.82,19.57,27.65,38.4C61.43,194.74,93.12,208,128,208s66.57-13.26,91.66-38.34c18.83-18.83,27.3-37.61,27.65-38.4A8,8,0,0,0,247.31,124.76ZM128,168a40,40,0,1,1,40-40A40,40,0,0,1,128,168Z"/></svg></a>
-  <div class="settings-btn" onclick="toggleSettings()" aria-label="Ajustes"><svg viewBox="0 0 256 256" fill="currentColor"><path d="M32,80a8,8,0,0,1,8-8H77.17a28,28,0,0,1,53.66,0H216a8,8,0,0,1,0,16H130.83a28,28,0,0,1-53.66,0H40A8,8,0,0,1,32,80Zm184,88H194.83a28,28,0,0,0-53.66,0H40a8,8,0,0,0,0,16H141.17a28,28,0,0,0,53.66,0H216a8,8,0,0,0,0-16Z"/></svg></div>
   <div class="sos-pill" onclick="openSOS()" aria-label="Emergencia"><svg viewBox="0 0 256 256" fill="currentColor"><path d="M128,24A104,104,0,1,0,232,128,104.11,104.11,0,0,0,128,24ZM96,128a32,32,0,1,1,32,32A32,32,0,0,1,96,128Zm88.28-67.6L155.79,88.9a47.84,47.84,0,0,0-55.58,0L71.72,60.4a87.83,87.83,0,0,1,112.56,0ZM71.72,195.6l28.49-28.5a47.84,47.84,0,0,0,55.58,0l28.49,28.5a87.83,87.83,0,0,1-112.56,0Z"/></svg></div>
 </div>
 
