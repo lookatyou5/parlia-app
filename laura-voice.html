@@ -7,7 +7,7 @@
 <meta http-equiv="Pragma" content="no-cache">
 <title>Voz de Laura · Test</title>
 <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="laura-voice.css?v=20260418f">
+<link rel="stylesheet" href="laura-voice.css?v=20260420a">
 <script>
 // Guard PIN: se non sbloccato, rimanda subito alla home prima che la pagina renderizzi.
 // Stesso schema del widget in home.html (stessa chiave localStorage).
@@ -57,7 +57,14 @@
       <span class="lv-custom-count" id="customCount">0/500</span>
       <button id="customReadBtn" class="lv-btn-read" onclick="readCustom()">🔊 Leer con voz de Laura</button>
     </div>
+    <button id="customSaveBtn" class="lv-btn-save" onclick="saveCustom()">💾 Guardar en Frases personalizadas</button>
   </section>
+
+  <div class="lv-section">
+    <div class="lv-section-title">💜 Frases personalizadas</div>
+    <div class="lv-grid lv-grid-wide" id="gridCustom"></div>
+    <div class="lv-custom-empty" id="customEmpty" hidden>Escribe arriba y pulsa <b>Guardar</b> para añadir tus frases aquí.</div>
+  </div>
 
   <div class="lv-section">
     <div class="lv-section-title">🟣 Frases cortas</div>
@@ -170,6 +177,12 @@ document.querySelectorAll('#emoChips .lv-emo-chip').forEach(chip => {
 });
 setEmotion(currentEmotion); // applica stato salvato
 
+function escapeHtml(s) {
+  return String(s)
+    .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+}
+
 function renderGrid(containerId, phrases) {
   const el = $(containerId);
   el.innerHTML = '';
@@ -177,11 +190,90 @@ function renderGrid(containerId, phrases) {
     const btn = document.createElement('button');
     btn.className = 'lv-btn';
     btn.type = 'button';
-    btn.innerHTML = `<span class="lv-btn-text">${text}</span><span class="lv-btn-state" aria-hidden="true"></span>`;
+    btn.innerHTML = `<span class="lv-btn-text">${escapeHtml(text)}</span><span class="lv-btn-state" aria-hidden="true"></span>`;
     btn.dataset.text = text;
     btn.onclick = () => onTap(btn, text);
     el.appendChild(btn);
   });
+}
+
+// ─── Frases personalizadas (localStorage) ───
+const CUSTOM_KEY = 'parlia_laura_custom_phrases';
+const CUSTOM_SEED = [
+  'Hola! soy Laura y está es mi voz real !! te gusta? nunca la habías escuchado antes verdad? pues ahora me podré comunicar con mi voz real!',
+];
+
+function loadCustomPhrases() {
+  try {
+    const raw = localStorage.getItem(CUSTOM_KEY);
+    if (raw === null) {
+      // Primo ingresso: semina la frase iniziale di Laura
+      localStorage.setItem(CUSTOM_KEY, JSON.stringify(CUSTOM_SEED));
+      return CUSTOM_SEED.slice();
+    }
+    const arr = JSON.parse(raw);
+    return Array.isArray(arr) ? arr : [];
+  } catch (e) { return []; }
+}
+
+function persistCustomPhrases(arr) {
+  try { localStorage.setItem(CUSTOM_KEY, JSON.stringify(arr)); } catch (e) {}
+}
+
+function renderCustomGrid() {
+  const phrases = loadCustomPhrases();
+  const el = $('gridCustom');
+  const empty = $('customEmpty');
+  el.innerHTML = '';
+  if (!phrases.length) {
+    empty.hidden = false;
+    return;
+  }
+  empty.hidden = true;
+  phrases.forEach((text, idx) => {
+    const wrap = document.createElement('div');
+    wrap.className = 'lv-btn-wrap';
+
+    const btn = document.createElement('button');
+    btn.className = 'lv-btn';
+    btn.type = 'button';
+    btn.innerHTML = `<span class="lv-btn-text">${escapeHtml(text)}</span><span class="lv-btn-state" aria-hidden="true"></span>`;
+    btn.dataset.text = text;
+    btn.onclick = () => onTap(btn, text);
+    if (window.isLauraCached && window.isLauraCached(text)) btn.classList.add('cached');
+
+    const del = document.createElement('button');
+    del.className = 'lv-btn-del';
+    del.type = 'button';
+    del.setAttribute('aria-label', 'Eliminar frase');
+    del.textContent = '×';
+    del.onclick = (ev) => { ev.stopPropagation(); deleteCustomPhrase(idx); };
+
+    wrap.appendChild(btn);
+    wrap.appendChild(del);
+    el.appendChild(wrap);
+  });
+}
+
+function deleteCustomPhrase(idx) {
+  const phrases = loadCustomPhrases();
+  if (idx < 0 || idx >= phrases.length) return;
+  const removed = phrases.splice(idx, 1)[0];
+  persistCustomPhrases(phrases);
+  renderCustomGrid();
+  setStatus('🗑️ Frase eliminada: "' + (removed.length > 40 ? removed.slice(0, 40) + '…' : removed) + '"');
+}
+
+function saveCustom() {
+  const text = customInput.value.trim();
+  if (!text) { setStatus('Escribe algo primero para guardarlo.'); customInput.focus(); return; }
+  const phrases = loadCustomPhrases();
+  const exists = phrases.some(p => p.trim().toLowerCase() === text.toLowerCase());
+  if (exists) { setStatus('⚠️ Esta frase ya está guardada.'); return; }
+  phrases.push(text);
+  persistCustomPhrases(phrases);
+  renderCustomGrid();
+  setStatus('✅ Guardada en Frases personalizadas.');
 }
 
 async function onTap(btn, text) {
@@ -309,6 +401,7 @@ async function readCustom() {
 renderGrid('gridShort', PHRASES.short);
 renderGrid('gridMid',   PHRASES.mid);
 renderGrid('gridLong',  PHRASES.long);
+renderCustomGrid();
 updateStats();
 
 // Attendi il preload IndexedDB, poi aggiorna il counter + marca i bottoni
@@ -328,6 +421,8 @@ if (window.lauraVoiceReady) {
         if (t && window.isLauraCached(t)) b.classList.add('cached');
       });
     }
+    // Ri-render custom grid così eventuali cached badge compaiono
+    renderCustomGrid();
   });
 }
 </script>

@@ -205,6 +205,70 @@ html, body {
   box-shadow: none;
 }
 
+/* Guardar (secondario) sotto il bottone Leer */
+.lv-btn-save {
+  margin-top: 10px;
+  width: 100%;
+  display: flex; align-items: center; justify-content: center; gap: 8px;
+  padding: 11px 16px;
+  border-radius: 12px;
+  background: rgba(124,58,237,.08);
+  border: 1.5px solid rgba(124,58,237,.22);
+  color: var(--lv-1);
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  font-size: .88rem;
+  font-weight: 700;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  transition: transform .12s, background .18s, border-color .18s;
+}
+.lv-btn-save:active { transform: scale(.97); background: rgba(124,58,237,.14); }
+
+/* Empty-state per Frases personalizadas */
+.lv-custom-empty {
+  padding: 14px 16px;
+  border-radius: 14px;
+  background: rgba(255,255,255,.6);
+  border: 1px dashed rgba(124,58,237,.28);
+  color: var(--muted);
+  font-size: .86rem;
+  line-height: 1.4;
+  text-align: center;
+}
+.lv-custom-empty b { color: var(--lv-1); }
+
+/* Wrapper frase personalizzata: bottone frase + bottone eliminazione */
+.lv-btn-wrap {
+  position: relative;
+  display: block;
+}
+.lv-btn-wrap .lv-btn {
+  width: 100%;
+  padding-right: 44px; /* spazio per il × */
+}
+.lv-btn-del {
+  position: absolute;
+  top: 50%; right: 10px;
+  transform: translateY(-50%);
+  width: 26px; height: 26px;
+  border-radius: 50%;
+  border: 1px solid rgba(124,58,237,.2);
+  background: rgba(255,255,255,.9);
+  color: var(--lv-1);
+  font-size: 1.1rem; font-weight: 800; line-height: 1;
+  display: inline-flex; align-items: center; justify-content: center;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  transition: transform .12s, background .18s, color .18s;
+  z-index: 2;
+}
+.lv-btn-del:active { transform: translateY(-50%) scale(.9); background: #fee2e2; color: #b91c1c; border-color: #fca5a5; }
+.lv-btn-wrap .lv-btn.playing ~ .lv-btn-del {
+  background: rgba(255,255,255,.2);
+  color: white;
+  border-color: rgba(255,255,255,.35);
+}
+
 /* Sezioni */
 .lv-section-title {
   font-family: 'Bricolage Grotesque', sans-serif;
