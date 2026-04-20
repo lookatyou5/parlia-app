@@ -9,6 +9,17 @@
 <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="live-chat.css?v=20260419d">
 <link rel="stylesheet" href="headpointer.css?v=20260417k">
+<script>
+// Guard PIN: se non sbloccato, rimanda subito alla home prima che la pagina renderizzi.
+// Stesso schema del widget in home.html (chiave localStorage dedicata a Live Chat).
+(function(){
+  try {
+    if (localStorage.getItem('parlia_live_chat_unlocked') !== '1') {
+      location.replace('home.html');
+    }
+  } catch (e) { location.replace('home.html'); }
+})();
+</script>
 </head>
 <body>
 

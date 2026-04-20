@@ -962,6 +962,19 @@ body.low-power .topbar { background: rgba(245,246,250,1); }
   </div>
 </div>
 
+<!-- MODAL PIN · accesso Live AI Chat (Deepgram a consumo) -->
+<div class="pin-overlay" id="liveChatPinOverlay" onclick="closeLiveChatPin(event)">
+  <div class="pin-modal" id="liveChatPinModal" onclick="event.stopPropagation()">
+    <div class="pin-icon">🔐</div>
+    <div class="pin-title">Live AI Chat · acceso privado</div>
+    <div class="pin-sub">Esta función usa reconocimiento de voz de pago (Deepgram). Introduce el PIN para continuar.</div>
+    <input id="liveChatPinInput" class="pin-input" type="password" inputmode="numeric" pattern="[0-9]*" maxlength="4" autocomplete="off" placeholder="••••">
+    <div class="pin-error" id="liveChatPinError"></div>
+    <button class="pin-submit" onclick="submitLiveChatPin()">Entrar →</button>
+    <button class="pin-cancel" onclick="closeLiveChatPin()">Cancelar</button>
+  </div>
+</div>
+
 <div id="toast"></div>
 
 <script src="userData.js"></script>
@@ -1003,7 +1016,7 @@ if ('scrollRestoration' in history) try { history.scrollRestoration = 'manual'; 
 // e non parte sfasato.
 (async function bootstrap(){
   // Cache-bust anche sui partial HTML (query string forza il browser/SW a rifetchare)
-  const V = '20260419e';
+  const V = '20260420a';
   try {
     const [inicio, aac, rehab, perfil] = await Promise.all([
       fetch('components/inicio.html?v=' + V, {cache: 'no-cache'}).then(r => r.ok ? r.text() : Promise.reject(r.status)),
@@ -2698,6 +2711,62 @@ if (lauraVoiceIsUnlocked()) {
   if (icon) icon.textContent = '';
 }
 
+// ── Gate PIN per Live AI Chat (Deepgram a consumo) ──
+// Stesso PIN di Voz de Laura ma unlock key separato, così i due sblocchi
+// sono indipendenti (unlock Laura non sblocca Live Chat).
+const LIVECHAT_UNLOCK_KEY = 'parlia_live_chat_unlocked';
+function liveChatIsUnlocked(){ try { return localStorage.getItem(LIVECHAT_UNLOCK_KEY) === '1'; } catch(e){ return false; } }
+function liveChatGate(ev){
+  if (liveChatIsUnlocked()) return true;
+  ev.preventDefault();
+  openLiveChatPin();
+  return false;
+}
+function openLiveChatPin(){
+  const ov = document.getElementById('liveChatPinOverlay');
+  const inp = document.getElementById('liveChatPinInput');
+  const err = document.getElementById('liveChatPinError');
+  if (!ov || !inp) return;
+  inp.value = ''; err.textContent = '';
+  ov.classList.add('open');
+  setTimeout(() => { try { inp.focus(); } catch(e){} }, 200);
+}
+function closeLiveChatPin(){
+  document.getElementById('liveChatPinOverlay')?.classList.remove('open');
+}
+function submitLiveChatPin(){
+  const inp = document.getElementById('liveChatPinInput');
+  const err = document.getElementById('liveChatPinError');
+  const modal = document.getElementById('liveChatPinModal');
+  const val = (inp?.value || '').trim();
+  if (val === LAURA_PIN) {
+    try { localStorage.setItem(LIVECHAT_UNLOCK_KEY, '1'); } catch(e){}
+    const icon = document.getElementById('liveChatLockIcon');
+    if (icon) icon.textContent = '';
+    document.getElementById('liveChatPinOverlay')?.classList.remove('open');
+    location.href = 'live-chat.html';
+  } else {
+    err.textContent = 'PIN incorrecto. Inténtalo de nuevo.';
+    modal?.classList.remove('shake'); void modal?.offsetWidth; modal?.classList.add('shake');
+    inp.value = ''; try { inp.focus(); } catch(e){}
+  }
+}
+document.addEventListener('keydown', (e) => {
+  const ov = document.getElementById('liveChatPinOverlay');
+  if (!ov?.classList.contains('open')) return;
+  if (e.key === 'Enter') { e.preventDefault(); submitLiveChatPin(); }
+  else if (e.key === 'Escape') { closeLiveChatPin(); }
+});
+document.addEventListener('input', (e) => {
+  if (e.target?.id !== 'liveChatPinInput') return;
+  e.target.value = e.target.value.replace(/\D/g, '').slice(0, 4);
+  if (e.target.value.length === 4) setTimeout(submitLiveChatPin, 80);
+});
+if (liveChatIsUnlocked()) {
+  const icon = document.getElementById('liveChatLockIcon');
+  if (icon) icon.textContent = '';
+}
+
 // Espone le funzioni chiamate dagli onclick="..." nell'HTML (dopo il wrap in runApp
 // tutte le funzioni sono locali, quindi vanno promosse esplicitamente a window.*)
 Object.defineProperty(window, 'curPage', { get(){ return curPage; }, configurable:true });
@@ -2709,7 +2778,8 @@ Object.assign(window, {
   openMeteo, closeMeteo, closeMeteoBtn,
   replayLast, selCat, selSub, tapFrase, toggleTTS,
   setAiMode, sendAiText, endAiChat, restartAiChat, showAiStarter,
-  lauraVoiceGate, openLauraPin, closeLauraPin, submitLauraPin
+  lauraVoiceGate, openLauraPin, closeLauraPin, submitLauraPin,
+  liveChatGate, openLiveChatPin, closeLiveChatPin, submitLiveChatPin
 });
 
 } // fine runApp()
