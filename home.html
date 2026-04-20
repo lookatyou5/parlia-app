@@ -260,15 +260,23 @@ body.low-power .topbar { background: rgba(245,246,250,1); }
 }
 .nav-item:active { transform: scale(.92); }
 .nav-icon {
-  width: auto; height: auto; border-radius: 0;
-  background: none !important; box-shadow: none !important;
+  width: 32px; height: 32px; border-radius: 10px;
   display: flex; align-items: center; justify-content: center;
-  transition: transform .25s, color .2s;
-  color: #475569;
-  filter: drop-shadow(0 2px 6px rgba(0,0,0,.12));
+  color: white;
+  transition: transform .25s, background .2s, box-shadow .2s;
+  box-shadow: 0 2px 6px rgba(0,0,0,.12);
 }
-.nav-icon svg { width: 26px; height: 26px; display: block; }
-.nav-item.active .nav-icon { color: white; }
+.nav-icon svg { width: 20px; height: 20px; display: block; stroke-width: 2.25; }
+/* Per-tab color chip (state inattivo) */
+#nav0 .nav-icon { background: linear-gradient(135deg,#60a5fa,#3b82f6); }
+#nav1 .nav-icon { background: linear-gradient(135deg,#f472b6,#ec4899); }
+#nav2 .nav-icon { background: linear-gradient(135deg,#34d399,#10b981); }
+#nav3 .nav-icon { background: linear-gradient(135deg,#a78bfa,#8b5cf6); }
+/* In stato attivo (pill gradient blu→viola) il chip diventa glass bianco */
+.nav-item.active .nav-icon {
+  background: rgba(255,255,255,.22) !important;
+  box-shadow: 0 0 0 1px rgba(255,255,255,.3) inset, 0 2px 8px rgba(0,0,0,.18);
+}
 .nav-item.active {
   background: linear-gradient(135deg, #2563eb 0%, #4f46e5 50%, #7c3aed 100%);
   box-shadow: 0 8px 24px rgba(99,102,241,.45), 0 2px 6px rgba(37,99,235,.25);
@@ -647,31 +655,31 @@ body.low-power .topbar { background: rgba(245,246,250,1); }
 /* ── SETTINGS ── */
 .settings-btn {
   width: 40px; height: 40px; border-radius: 14px;
-  background: linear-gradient(135deg, #ffffff 0%, #eef2ff 100%);
-  border: 1.5px solid #c7d2fe;
+  background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%);
+  border: 1.5px solid rgba(255,255,255,.25);
   display: flex; align-items: center; justify-content: center;
-  color: #4f46e5;
+  color: white;
   cursor: pointer; flex-shrink: 0;
-  box-shadow: 0 2px 8px rgba(99,102,241,.14), 0 0 0 1px rgba(255,255,255,.5) inset;
+  box-shadow: 0 3px 10px rgba(79,70,229,.38), 0 0 0 1px rgba(255,255,255,.2) inset;
   transition: all .18s; -webkit-tap-highlight-color: transparent;
 }
-.settings-btn svg { width: 22px; height: 22px; }
-.settings-btn:active { background: linear-gradient(135deg, #e0e7ff, #c7d2fe); border-color: var(--blue); transform: rotate(30deg) scale(.95); }
+.settings-btn svg { width: 22px; height: 22px; stroke-width: 2.25; }
+.settings-btn:active { transform: rotate(30deg) scale(.95); }
 
 /* Vision Asistida — shortcut compatto in topbar */
 .vision-btn {
   width: 40px; height: 40px; border-radius: 14px;
-  background: linear-gradient(135deg, #ecfeff 0%, #cffafe 100%);
-  border: 1.5px solid #67e8f9;
+  background: linear-gradient(135deg, #22d3ee 0%, #06b6d4 100%);
+  border: 1.5px solid rgba(255,255,255,.25);
   display: flex; align-items: center; justify-content: center;
-  color: #0891b2;
+  color: white;
   cursor: pointer; flex-shrink: 0;
-  box-shadow: 0 2px 8px rgba(6,182,212,.18), 0 0 0 1px rgba(255,255,255,.5) inset;
+  box-shadow: 0 3px 10px rgba(6,182,212,.4), 0 0 0 1px rgba(255,255,255,.2) inset;
   transition: all .18s; -webkit-tap-highlight-color: transparent;
   text-decoration: none;
 }
-.vision-btn svg { width: 22px; height: 22px; }
-.vision-btn:active { background: linear-gradient(135deg, #a5f3fc, #67e8f9); border-color: #06b6d4; transform: scale(.92); }
+.vision-btn svg { width: 22px; height: 22px; stroke-width: 2.25; }
+.vision-btn:active { transform: scale(.92); }
 
 .settings-menu {
   position: fixed; top: calc(var(--top-h) + 8px); right: 14px;
@@ -716,7 +724,7 @@ body.low-power .topbar { background: rgba(245,246,250,1); }
   -webkit-tap-highlight-color: transparent;
   transition: transform .15s;
 }
-.sos-pill svg { width: 22px; height: 22px; }
+.sos-pill svg { width: 22px; height: 22px; stroke-width: 2.25; }
 .sos-pill:active { transform: scale(.92); }
 
 /* SOS OVERLAY */
