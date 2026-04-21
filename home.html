@@ -1067,7 +1067,7 @@ if ('scrollRestoration' in history) try { history.scrollRestoration = 'manual'; 
 // e non parte sfasato.
 (async function bootstrap(){
   // Cache-bust anche sui partial HTML (query string forza il browser/SW a rifetchare)
-  const V = '20260420d';
+  const V = '20260420e';
   try {
     const [inicio, aac, rehab, perfil] = await Promise.all([
       fetch('components/inicio.html?v=' + V, {cache: 'no-cache'}).then(r => r.ok ? r.text() : Promise.reject(r.status)),
@@ -1680,9 +1680,38 @@ function buildCats() {
 }
 function buildSubcats() {
   const col = _catColors();
-  document.getElementById('subcatScroll').innerHTML = curCat.subcats.map(s => {
+  const root = document.getElementById('subcatAccordion');
+  if (!root) return;
+  // Accordion: ogni subcat è una riga larga. La riga attiva è colorata e
+  // espande sotto un pannello con Sugerencias IA + Frases rápidas.
+  root.innerHTML = curCat.subcats.map(s => {
     const isActive = s.id === curSub.id;
-    return `<div class="subcat-chip${isActive?' active':''}" style="${isActive?`background:${col.faint};border-color:${col.accent};color:${col.text}`:''}" onclick="selSub('${s.id}')">${s.label}</div>`;
+    const rowStyle = isActive
+      ? `background:${col.faint};border-color:${col.accent};color:${col.text}`
+      : '';
+    const panelStyle = `border-color:${col.accent}`;
+    const row = `
+      <div class="subcat-row${isActive?' active':''}" style="${rowStyle}" onclick="selSub('${s.id}')">
+        <span class="subcat-row-label">${s.label}</span>
+        <span class="subcat-chev" aria-hidden="true">${isActive?'▾':'▸'}</span>
+      </div>`;
+    const panel = isActive
+      ? `<div class="subcat-panel" style="${panelStyle}">
+          <div class="ai-sec-header">
+            <div class="ai-sec-label">Sugerencias IA</div>
+            <div class="ai-sec-tag">✨ AI</div>
+          </div>
+          <div class="ai-suggestions" id="aiSuggestions">
+            <div class="ai-loading-row">
+              <div class="ai-loading-dots"><span></span><span></span><span></span></div>
+              <div class="ai-loading-txt">Generando…</div>
+            </div>
+          </div>
+          <div class="frases-section-label">Frases rápidas</div>
+          <div class="frases-grid" id="frasiGrid"></div>
+        </div>`
+      : '';
+    return row + panel;
   }).join('');
 }
 function selCat(id) {
