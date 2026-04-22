@@ -1,6 +1,5 @@
-<!-- Inicio · Parlia AI come core della home.
-     L'agenda è fusa come strip sotto il core (più "orbita" che card separata).
-     Obiettivo rimane per ora; verrà spostato su Rehab in un commit successivo. -->
+<!-- Inicio · Parlia AI come action launcher (non più chat libera).
+     Ordine: Agenda (utile) → Tutorial → Laura voice → AI Core (azioni) → Profilo. -->
 
 <!-- Tutorial widget -->
 <a href="tutorial.html" id="tutorialWidget" class="tutorial-widget" style="text-decoration:none;display:flex;align-items:center;gap:10px;padding:10px 14px;margin:0 0 10px;border-radius:14px;background:linear-gradient(135deg,#3b82f6,#6366f1);box-shadow:0 2px 12px rgba(59,130,246,.3);-webkit-tap-highlight-color:transparent;">
@@ -19,9 +18,18 @@
   <span style="font-size:0.78rem;font-weight:700;color:white;background:rgba(255,255,255,.2);border-radius:10px;padding:5px 10px;">Abrir →</span>
 </a>
 
-<!-- Meteo widget rimosso da Inicio — ora accessibile via bottone nella topbar -->
+<!-- Agenda del giorno — promossa a protagonista (fuori da AI Core) -->
+<div class="agenda-standalone">
+  <div class="agenda-standalone-head">
+    <div class="agenda-standalone-title">📅 Tu día</div>
+    <div class="agenda-standalone-sub" id="nextSession">—</div>
+  </div>
+  <div class="agenda-scroll" id="agendaScroll"></div>
+</div>
 
-<!-- Parlia AI CORE · contiene saluto, chat, chips E l'agenda (fusa dentro) -->
+<!-- Meteo widget rimosso da Inicio — accessibile via bottone nella topbar -->
+
+<!-- Parlia AI CORE · ora è un action launcher (4 azioni utili), non chat libera -->
 <div class="ai-core-wrap">
   <div id="aiHeroWrap"></div>
 </div>
