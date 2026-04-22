@@ -7,8 +7,8 @@ Parlia è una PWA (app web progressiva) per comunicazione aumentativa (AAC) dest
 
 - **Portare `tts.js` su cache IndexedDB (persistente)**. Oggi ha solo Map in memoria (60 frasi LRU), che si svuota a ogni chiusura PWA → al riavvio ogni frase paga una nuova call Google TTS. Applicando lo stesso pattern a 2 livelli di `laura-voice.js` (Map + IndexedDB `audio` store), le frasi ripetute restano istantanee anche dopo chiusura/riavvio del device → risparmio reale di chiamate API e più snappy sul primo uso di ogni sessione. ~30 min di lavoro. Priorità media — il free tier Google è generoso (1M char/mese) ma la fluidità migliora.
 - **Setup worker in repo (`workers/voci-ai-proxy`, `workers/parlia-tts`, `workers/parlia-minimax`)** con `wrangler.toml`. Oggi i worker vivono solo sul dashboard Cloudflare → nessun version control, nessuna diff visibility. I secret (API key) restano su Cloudflare come env secrets. ~15 min setup, da fare quando serve la prossima modifica a un worker.
-- **Supporto emozione nella voce di Laura (MiniMax)**. Passare il parametro `emotion` (happy/sad/tranquila/ecc.) in `laura-voice.js` + UI con chips preset. Richiede modifica del worker `parlia-minimax` per accettare e inoltrare il campo. ~30 min totali.
 - **Voice cloning per altri utenti (in ottica futura)**. Flusso di onboarding voce → upload audio → worker `parlia-voice-clone` → `voice_id` MiniMax per-utente. Punto critico: flusso di consenso legale, non la tecnica. Vedi discussione sessione 18 aprile 2026.
+- **Idee aperte per l'AI Core della home** (esplorate sessione 20 aprile, non scelta definitiva): (a) orb espressivo con stati emotivi CSS/canvas, (b) memoria persistente Claude con fact-bank locale, (c) agente "L1" con tool use (chiama speakTTS/openAAC/logFact da solo), (d) avatar 3D Ready Player Me gratuito con lipsync. HeyGen scartato per costo. Attualmente la home rimane: agenda standalone + chat AI classica.
 
 ## URL
 - App Parlia: https://app.parlia.app
@@ -1429,6 +1429,115 @@ Era stato disabilitato nella sessione 18 apr parte 2 (rimosso da init + pull-to-
 - **Rimossi**:
   - `parlia-p.webp` (vecchia P icon ritagliata, rimpiazzata dal logo completo)
   - `IMG_20260419_005707_877.webp` (source iniziale, non più necessario dopo il rebrand FullLogo)
+
+---
+
+## Sessione 20 aprile 2026 — Design system Parlia + icone Phosphor + restyle AAC/Home
+
+Sessione lunga di iterazioni visuali e di design system. Il filo conduttore: unificare i colori sulla gradient del logo Parlia (ciano→blu→viola→magenta) e sostituire tutte le emoji di navigazione con un'icon-set coerente (Phosphor Fill). Nel mezzo, parecchi tentativi di ridisegno di AAC e Home che sono stati scartati (accordion AAC, AI Core come action launcher) e rollbackati.
+
+### Voz de Laura · Frases personalizadas
+- Nuova sezione "💜 Frases personalizadas" in `laura-voice.html` con seed-frase iniziale di Laura ("Hola! soy Laura y está es mi voz real…"). Salvate in `localStorage.parlia_laura_custom_phrases` (dedupe case-insensitive).
+- Bottone "💾 Guardar en Frases personalizadas" sotto la textarea → aggiunge la frase digitata alla lista.
+- Ogni frase personalizzata ha bottone × circolare per rimuoverla. Si riproducono come le preset (stessa cache MiniMax).
+
+### PIN gate Live AI Chat
+- Stesso schema Voz Laura: PIN `0512` (costante `LAURA_PIN` condivisa), unlock key separato `parlia_live_chat_unlocked` → i due sblocchi sono indipendenti.
+- Nuovo modal `#liveChatPinOverlay` parallelo a quello Laura (riusa le stesse regole CSS `.pin-*`).
+- Guard script in testa a `live-chat.html` fa `location.replace('home.html')` se non sbloccato.
+- Widget "🎙️ Conversación en vivo" in `components/aac.html` ora ha `onclick='return liveChatGate(event)'` + icona `🔒`.
+
+### Palette Parlia come design system (token CSS)
+- Aggiunti token in `:root` di `home.html`: `--p-cyan` / `--p-blue` / `--p-indigo` / `--p-violet` + gradient `--g-parlia` e per-feature `--g-inicio` / `--g-aac` / `--g-rehab` / `--g-perfil`.
+- Prima iterazione: palette completa ciano→blu→viola→magenta. L'utente ha trovato "troppo viola".
+- **Versione finale (blu-dominante)**: `--g-parlia` = ciano → blu → indaco → viola (stop magenta rimosso). Le singole feature pescano zone distinte: Inicio blu, AAC blu→indaco, Rehab indaco→viola, Perfil ciano→blu.
+- Magenta resta SOLO come accento finale del Voz Laura widget (è "voce umana"). Rosso riservato SOLO a SOS.
+
+### Navbar — chip colorati + icone Phosphor Fill
+- 4 chip colorati per tab (32×32, radius 10) con icona bianca + label sotto:
+  - `#nav0` Inicio → blu (`--g-inicio`), icona `house-fill`
+  - `#nav1` AAC → indaco-viola (`--g-aac`), icona `chat-circle-text-fill`
+  - `#nav2` Rehab → viola pieno (`--g-rehab`), icona `brain-fill`
+  - `#nav3` Perfil → ciano (`--g-perfil`), icona `user-circle-fill`
+- Pill attivo → gradient full `--g-parlia`; il chip dietro l'icona diventa glass bianco semi-trasparente per non perdere contrasto.
+- Passaggio icone: emoji (🏠🗣️🧠👤) → Lucide stroke (troppo sottili, "poco visibili") → Phosphor Fill silhouette piene (final).
+
+### Topbar — redesign completo
+- Bottoni da 32/36px a **40×40**, tutti con background colorato + icona bianca Phosphor Fill (pattern coerente).
+- **Settings rimosso** dalla topbar (i suoi item — Editar perfil, Tutorial — sono accessibili altrove). La funzione `toggleSettings()` e il div `#settingsMenu` restano come dead code per rollback rapido.
+- **Meteo aggiunto come primo bottone** (gradient `#7dd3fc → #0ea5e9`, icona `cloud-sun-fill`). Apre lo stesso popup `openMeteo()`.
+- Ordine finale: **Meteo · Visión · SOS**.
+- Widget meteo grande rimosso da `components/inicio.html` (ridondante ora che il bottone topbar apre il popup).
+
+### Meteo popup — più "app meteo vera"
+- 4 stats icons (Humedad / Viento / Visib. / Nubes) sostituiti da Phosphor Fill: `drop-fill` / `wind-fill` / `eye-fill` / `cloud-fill` (18px, bianche 65%).
+- **Big weather icon dinamico** 64px in alto a destra dello sky, Phosphor Fill mappata su `sceneType` via nuova const `WX_BIG_ICONS` parallela a `WX_SCENE_SKY`:
+  - sunny→`sun-fill` · partcloud→`cloud-sun-fill` · cloudy→`cloud-fill`
+  - rainy→`cloud-rain-fill` · stormy→`cloud-lightning-fill`
+  - snowy→`cloud-snow-fill` · foggy→`cloud-fog-fill` · night→`moon-fill`
+- `loadMeteo()` popola `#wxBigIcon.innerHTML` al refresh. Animazione `wxBigIconFloat` 5s subtle.
+
+### AAC — redesign (iterato, versione finale: sidebar verticale)
+Le subcategorie orizzontali (font 0.68rem, padding 5px/11px) erano troppo piccole per tap comfortabile. **Due tentativi**:
+1. **Accordion verticale** (commit `f03ecfe`) — ogni subcat una riga larga tappabile, la attiva espande sotto con Sugerencias + frasi. **Scartato**: l'utente l'ha trovato "dispersivo".
+2. **Sidebar verticale** (commit `42f4103`, finale) — layout 2-col:
+   - `.cat-sidebar` 82px a sinistra: 6 categorie verticali (emoji grande + label sotto, min-height 60px, wordbreak+hyphens per i nomi lunghi come "Necesidades"/"Actividades")
+   - `.aac-main` flex:1 a destra: subcategorías come chip orizzontali (ripristinate, padding 7×13, font 0.76rem — un filo più grandi del v1) + Sugerencias IA + Frases rápidas grid 2-col
+- Activa di una categoria: `.cat-sidebar-item.active` ha background pieno del colore accent + label bianca + shadow colorata.
+
+### AAC — icone categorie a Phosphor Fill
+- 6 categorie passano da emoji a Phosphor Fill (stesso linguaggio navbar/topbar):
+  - Necesidades → `hand-heart-fill`
+  - Emociones → `smiley-fill`
+  - Social → `users-fill`
+  - Actividades → `palette-fill`
+  - Lugares → `map-pin-fill`
+  - Urgencias → `warning-fill`
+- Nuova const `CAT_ICONS` in `home.html`. `buildCats()` ora renderizza SVG invece di `c.emoji` (la emoji resta come fallback se id non in mapping).
+- Icone inattive nel colore accent della categoria (blu/teal/viola/arancio/verde/rosso via `fill=currentColor` + inline `color:${col.accent}`). Attive bianche (inline `color:white` sul chip attivo).
+- Le **emoji delle frasi** (💧🍽️🚽😴 ecc.) sono state lasciate intenzionalmente: sono "contenuto emotivo", non navigazione.
+
+### Home Inicio — agenda standalone + AI Core alla fine
+- **Agenda promossa**: estratta da dentro l'AI Core (dove era come strip dopo divider "📅 Tu día") e diventata card standalone in cima alla pagina. Card bianca con border+shadow, titolo "📅 Tu día", subtitle con `#nextSession`, poi `.agenda-scroll` con cards light-theme compatibili (prima erano scoped sotto `.ai-hero-inner` con stile glass bianco su gradient — ora rigenerate come light-theme: bg `--bg`, accento NOW su gradient verde smeraldo, reminder su ambra).
+- **Tentativo AI Core come action launcher** (commit `d5681c2` poi revertito `28c9e0d`): 4 azioni in grid 2×2 (🌅 Resumen del día via TTS auto-generato, 💬 Comunicador → AAC, 🎙️ Hablar en vivo → Live Chat, ✨ Charlar con Parlia → chat classica) + `body.ai-launcher` che nascondeva input/chips/end-btn. **Scartato**: l'utente ha detto "gli shortcut non sono utili, basta fare swipe" → ripristinata chat libera come prima.
+- Funzioni `readDailySummary()` e `openLiveChatFromAi()` rimosse col revert.
+- **Risultato finale home**: Tutorial → Laura voice → Agenda standalone → AI Core chat classica → Profile card.
+
+### Onboarding copy
+- `onboarding.html` screen iniziale: "Tu voz, **amplificada**." → "Tu voz, **siempre**." (coerente con la tagline del logo Parlia).
+
+### Brainstorm idee AI Core (esplorate, non implementate)
+L'utente ha fatto presente che la chat AI "non è stimolante" → serie di proposte discusse e parcheggiate:
+- Daily rotating card (mood/affirmation/riddle/diario/summary) — scartata
+- Quick phrases on home (griglia frasi più usate) — scartata ("basta swipe ad AAC")
+- Family bridge (feed messaggi da Luca/team medico)
+- Diario parlado (voice note quotidiana 30s → AI trascrive + summary)
+- Memoria persistente continua (Claude ricorda fatti session su session)
+- Agente "L1" con tool use (Claude chiama speakTTS/openAAC/logFact da solo)
+- Avatar visivo: **HeyGen/D-ID/Tavus** analizzati — tutti **scartati per costo** ($4-300/mese ricorrenti)
+- Alternative visive cheap: orb espressivo con CSS/canvas (zero costi, MVP ideale), mascotte 2D AI-generata, Ready Player Me 3D gratuito
+- **Conclusione per ora**: AI Core rimane chat classica + agenda fuori. Idee tracciate nel TODO in cima per futuro.
+
+### Bug fix (cache-bust)
+- Prima release icone Phosphor AAC non visibili → **aac.css e inicio.css non avevano cache-bust bumpato** (`v20260414aa` / `v20260417d`). Browser serviva CSS vecchi senza `.cat-sidebar-item-emoji svg { width:26px; height:26px }` → SVG renderizzavano 0×0 invisibili.
+- Fix: bump `aac.css` e `inicio.css` a `v20260420a` + aggiunto `width="26" height="26"` inline su tutti i 6 SVG in `CAT_ICONS` come belt-and-braces.
+
+### Backup branches creati (per rollback selettivo)
+- `backup/pre-palette-unification-20260420` (prima del design system Parlia)
+- `backup/pre-phosphor-icons-20260420` (prima del passaggio a Phosphor Fill)
+- `backup/pre-aac-accordion-20260420` (prima della prima iterazione AAC accordion)
+- `backup/pre-inicio-restructure-20260420` (prima del tentativo action launcher Home)
+
+### Cache-bust di sessione
+- `home.html` partial V: `20260419e` → `20260420i` (multiple bumps durante iterazioni)
+- `aac.css`: `20260414aa` → `20260420a`
+- `inicio.css`: `20260417d` → `20260420a`
+- `laura-voice.css`: `20260418f` → `20260420a`
+
+### File toccati
+- **Modificati**: `home.html` (pesante: topbar/navbar ridesign, palette tokens, PIN live-chat, CAT_ICONS, WX_BIG_ICONS, agenda fuori da AI Core), `components/inicio.html`, `components/aac.html`, `aac.css`, `inicio.css`, `laura-voice.html`, `laura-voice.css`, `live-chat.html`, `onboarding.html`
+- **Nuovi**: nessuno (tutto inline)
+- **Worker non toccati**
 
 ---
 
