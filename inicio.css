@@ -525,60 +525,6 @@ body.is-scrolling .ai-hero-inner .agenda-scroll .agenda-done-card { animation-pl
 }
 .agenda-standalone .agenda-scroll .agenda-add-chip:active { transform: scale(.96); background: var(--border); }
 
-/* ══════════════════════════════════════════════════════════════
-   AI LAUNCHER · azioni utili dentro l'AI Core (sostituisce la chat libera)
-   ══════════════════════════════════════════════════════════════ */
-.ai-launcher {
-  padding: 4px 2px;
-  animation: fadeUp .32s ease both;
-}
-.ai-launcher-prompt {
-  font-family: 'Bricolage Grotesque', sans-serif;
-  font-size: 0.9rem;
-  font-weight: 700;
-  color: white;
-  line-height: 1.3;
-  margin-bottom: 12px;
-}
-.ai-launcher-prompt span { color: rgba(255,255,255,.75); font-weight: 600; }
-.ai-launcher-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 8px;
-}
-.ai-action {
-  display: flex; flex-direction: column;
-  align-items: flex-start; gap: 8px;
-  padding: 13px 12px 12px;
-  border-radius: 14px;
-  background: rgba(255,255,255,.1);
-  border: 1px solid rgba(255,255,255,.2);
-  cursor: pointer;
-  transition: all .18s;
-  -webkit-tap-highlight-color: transparent;
-  min-height: 76px;
-}
-.ai-action:active { transform: scale(.97); background: rgba(255,255,255,.2); }
-.ai-action-icon { font-size: 1.55rem; line-height: 1; }
-.ai-action-lbl {
-  font-size: 0.74rem; font-weight: 700;
-  color: white; line-height: 1.2;
-  font-family: 'Plus Jakarta Sans', sans-serif;
-}
-
-/* In launcher mode nascondi i controlli chat che non servono */
-body.ai-launcher .ai-text-input,
-body.ai-launcher .ai-mode-toggle,
-body.ai-launcher .ai-tts-btn,
-body.ai-launcher .ai-end-btn,
-body.ai-launcher .ai-chips,
-body.ai-launcher .ctx-badge,
-body.ai-launcher .ai-session-pill { display: none !important; }
-
-/* ══════════════════════════════════════════════════════════════
-   Fine AI LAUNCHER
-   ══════════════════════════════════════════════════════════════ */
-
 /* Agenda card timeline row */
 .ac-time { font-size: 0.62rem; font-weight: 800; color: var(--muted); margin-bottom: 3px; display: flex; align-items: center; gap: 4px; }
 .ac-now-badge { background: var(--blue); color: white; font-size: 0.48rem; font-weight: 800; border-radius: 20px; padding: 1px 5px; letter-spacing: .04em; }

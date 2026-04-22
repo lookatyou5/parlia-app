@@ -1067,7 +1067,7 @@ if ('scrollRestoration' in history) try { history.scrollRestoration = 'manual'; 
 // e non parte sfasato.
 (async function bootstrap(){
   // Cache-bust anche sui partial HTML (query string forza il browser/SW a rifetchare)
-  const V = '20260420g';
+  const V = '20260420h';
   try {
     const [inicio, aac, rehab, perfil] = await Promise.all([
       fetch('components/inicio.html?v=' + V, {cache: 'no-cache'}).then(r => r.ok ? r.text() : Promise.reject(r.status)),
@@ -2207,32 +2207,12 @@ function showAiStarter(){
   if (chipsEl) chipsEl.innerHTML = '';
   if (!thread) return;
   const name = (typeof profile !== 'undefined' && profile && profile.userName) ? profile.userName : '';
-  const hh = new Date().getHours();
-  const greet = hh < 12 ? 'Buenos días' : hh < 19 ? 'Buenas tardes' : 'Buenas noches';
-  // State "launcher": 4 azioni utili + bottone implicito "Charlar con Parlia".
-  // body.ai-launcher nasconde i controlli chat (input, mode toggle, end btn, chips).
-  document.body.classList.add('ai-launcher');
+  const greet = name ? `Hola, ${name}` : 'Hola';
   thread.innerHTML = `
-    <div class="ai-launcher">
-      <div class="ai-launcher-prompt">${greet}${name?`, ${name}`:''}. <span>¿Qué puedo hacer por ti?</span></div>
-      <div class="ai-launcher-grid">
-        <div class="ai-action" onclick="readDailySummary()">
-          <div class="ai-action-icon">🌅</div>
-          <div class="ai-action-lbl">Resumen<br>del día</div>
-        </div>
-        <div class="ai-action" onclick="goTo(1)">
-          <div class="ai-action-icon">💬</div>
-          <div class="ai-action-lbl">Comunicador</div>
-        </div>
-        <div class="ai-action" onclick="openLiveChatFromAi()">
-          <div class="ai-action-icon">🎙️</div>
-          <div class="ai-action-lbl">Hablar<br>en vivo</div>
-        </div>
-        <div class="ai-action" onclick="restartAiChat()">
-          <div class="ai-action-icon">✨</div>
-          <div class="ai-action-lbl">Charlar<br>con Parlia</div>
-        </div>
-      </div>
+    <div class="ai-chat-ended">
+      <div class="ai-chat-ended-icon">👋</div>
+      <div class="ai-chat-ended-text">${greet} · Toca para charlar conmigo</div>
+      <button class="ai-chat-ended-btn" onclick="restartAiChat()">Empezar conversación →</button>
     </div>`;
   const status = document.getElementById('aiStatusText');
   if (status) status.textContent = 'Listo';
@@ -2268,55 +2248,7 @@ function endAiChat(){
 }
 
 // Riapre una nuova conversazione fresh dopo endAiChat()
-// Azione launcher: genera un riassunto vocale del giorno (saluto + meteo +
-// prossima sessione) e lo legge con Neural2. NON apre la chat, resta in launcher.
-function readDailySummary(){
-  try {
-    const hh = new Date().getHours();
-    const greet = hh < 12 ? 'Buenos días' : hh < 19 ? 'Buenas tardes' : 'Buenas noches';
-    const name = (typeof profile !== 'undefined' && profile && profile.userName) ? profile.userName : '';
-    const ctx = (typeof _getCtx === 'function') ? _getCtx() : null;
-    const meteoCtx = (window._meteoCtx || '').replace(/^Tiempo:\s*/i, '');
-    let parts = [];
-    parts.push(`${greet}${name ? ', ' + name : ''}.`);
-    if (meteoCtx) parts.push(meteoCtx);
-    if (ctx) {
-      if (ctx.isWeekend) {
-        parts.push('Hoy es fin de semana, sin sesiones programadas.');
-      } else if (ctx.dayOver) {
-        parts.push('Las sesiones de hoy ya están completadas. ¡Buen trabajo!');
-      } else if (ctx.now) {
-        parts.push(`Ahora tienes ${ctx.now.label}.`);
-      } else if (ctx.soon) {
-        parts.push(`En pocos minutos empieza ${ctx.soon.label}.`);
-      } else if (ctx.next) {
-        parts.push(`Tu próxima sesión es ${ctx.next.label} a las ${ctx.next.time}.`);
-      }
-    }
-    const summary = parts.join(' ');
-    if (window.speakNeural) window.speakNeural(summary, { rate: 0.95 });
-    // Feedback visivo nello status
-    const status = document.getElementById('aiStatusText');
-    if (status) {
-      status.textContent = 'Leyendo resumen…';
-      setTimeout(() => { if (status.textContent === 'Leyendo resumen…') status.textContent = 'Listo'; }, 8000);
-    }
-  } catch(e){}
-}
-
-// Azione launcher: apre Live Chat (passa per il gate PIN se non sbloccato).
-function openLiveChatFromAi(){
-  if (localStorage.getItem('parlia_live_chat_unlocked') === '1') {
-    location.href = 'live-chat.html';
-  } else if (typeof openLiveChatPin === 'function') {
-    openLiveChatPin();
-  }
-}
-
 function restartAiChat(){
-  // Esce dal launcher: riattiva la UI chat (input, chips, end-btn, tts) +
-  // svuota thread e fa partire il saluto AI.
-  document.body.classList.remove('ai-launcher');
   const thread = document.getElementById('chatThread');
   if (thread) thread.innerHTML = '';
   _lastAiText = '';
@@ -2919,7 +2851,6 @@ Object.assign(window, {
   openMeteo, closeMeteo, closeMeteoBtn,
   replayLast, selCat, selSub, tapFrase, toggleTTS,
   setAiMode, sendAiText, endAiChat, restartAiChat, showAiStarter,
-  readDailySummary, openLiveChatFromAi,
   lauraVoiceGate, openLauraPin, closeLauraPin, submitLauraPin,
   liveChatGate, openLiveChatPin, closeLiveChatPin, submitLiveChatPin
 });
