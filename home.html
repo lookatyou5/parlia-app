@@ -1067,7 +1067,7 @@ if ('scrollRestoration' in history) try { history.scrollRestoration = 'manual'; 
 // e non parte sfasato.
 (async function bootstrap(){
   // Cache-bust anche sui partial HTML (query string forza il browser/SW a rifetchare)
-  const V = '20260420e';
+  const V = '20260420f';
   try {
     const [inicio, aac, rehab, perfil] = await Promise.all([
       fetch('components/inicio.html?v=' + V, {cache: 'no-cache'}).then(r => r.ok ? r.text() : Promise.reject(r.status)),
@@ -1672,46 +1672,28 @@ let curCat = CATS[0], curSub = CATS[0].subcats[0];
 let _lastBtn = null, _lastText = '';
 
 function buildCats() {
-  document.getElementById('catScroll').innerHTML = CATS.map(c => {
+  const root = document.getElementById('catSidebar');
+  if (!root) return;
+  // Sidebar verticale: emoji grande sopra + label sotto. La attiva ha bg colorato.
+  root.innerHTML = CATS.map(c => {
     const col = CAT_COLORS[c.id] || CAT_COLORS.necesidades;
     const isActive = c.id === curCat.id;
-    return `<div class="cat-chip${isActive?' active':''}" style="${isActive?`background:${col.accent};border-color:${col.accent};box-shadow:0 4px 12px ${col.accent}44`:''}" onclick="selCat('${c.id}')">${c.emoji} ${c.label}</div>`;
+    const style = isActive
+      ? `background:${col.accent};border-color:${col.accent};box-shadow:0 4px 12px ${col.accent}55;color:white`
+      : '';
+    return `<div class="cat-sidebar-item${isActive?' active':''}" style="${style}" onclick="selCat('${c.id}')">
+      <div class="cat-sidebar-item-emoji">${c.emoji}</div>
+      <div class="cat-sidebar-item-label">${c.label}</div>
+    </div>`;
   }).join('');
 }
 function buildSubcats() {
   const col = _catColors();
-  const root = document.getElementById('subcatAccordion');
+  const root = document.getElementById('subcatScroll');
   if (!root) return;
-  // Accordion: ogni subcat è una riga larga. La riga attiva è colorata e
-  // espande sotto un pannello con Sugerencias IA + Frases rápidas.
   root.innerHTML = curCat.subcats.map(s => {
     const isActive = s.id === curSub.id;
-    const rowStyle = isActive
-      ? `background:${col.faint};border-color:${col.accent};color:${col.text}`
-      : '';
-    const panelStyle = `border-color:${col.accent}`;
-    const row = `
-      <div class="subcat-row${isActive?' active':''}" style="${rowStyle}" onclick="selSub('${s.id}')">
-        <span class="subcat-row-label">${s.label}</span>
-        <span class="subcat-chev" aria-hidden="true">${isActive?'▾':'▸'}</span>
-      </div>`;
-    const panel = isActive
-      ? `<div class="subcat-panel" style="${panelStyle}">
-          <div class="ai-sec-header">
-            <div class="ai-sec-label">Sugerencias IA</div>
-            <div class="ai-sec-tag">✨ AI</div>
-          </div>
-          <div class="ai-suggestions" id="aiSuggestions">
-            <div class="ai-loading-row">
-              <div class="ai-loading-dots"><span></span><span></span><span></span></div>
-              <div class="ai-loading-txt">Generando…</div>
-            </div>
-          </div>
-          <div class="frases-section-label">Frases rápidas</div>
-          <div class="frases-grid" id="frasiGrid"></div>
-        </div>`
-      : '';
-    return row + panel;
+    return `<div class="subcat-chip${isActive?' active':''}" style="${isActive?`background:${col.faint};border-color:${col.accent};color:${col.text}`:''}" onclick="selSub('${s.id}')">${s.label}</div>`;
   }).join('');
 }
 function selCat(id) {

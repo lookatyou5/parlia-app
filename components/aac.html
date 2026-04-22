@@ -28,9 +28,22 @@
   <div class="aac-replay" onclick="replayLast()">🔊</div>
 </div>
 
-<!-- Categorie principali -->
-<div class="cat-scroll" id="catScroll"></div>
-
-<!-- Subcategorie in accordion verticale: la subcategoría attiva espande sotto
-     con Sugerencias IA + Frases rápidas. Più tap-friendly del chip strip. -->
-<div class="subcat-accordion" id="subcatAccordion"></div>
+<!-- Categorias come sidebar verticale a sinistra, subcat/sugerencias/frasi a destra -->
+<div class="aac-layout">
+  <aside class="cat-sidebar" id="catSidebar" aria-label="Categorías"></aside>
+  <div class="aac-main">
+    <div class="subcat-scroll" id="subcatScroll"></div>
+    <div class="ai-sec-header">
+      <div class="ai-sec-label">Sugerencias IA</div>
+      <div class="ai-sec-tag">✨ AI</div>
+    </div>
+    <div class="ai-suggestions" id="aiSuggestions">
+      <div class="ai-loading-row">
+        <div class="ai-loading-dots"><span></span><span></span><span></span></div>
+        <div class="ai-loading-txt">Generando…</div>
+      </div>
+    </div>
+    <div class="frases-section-label">Frases rápidas</div>
+    <div class="frases-grid" id="frasiGrid"></div>
+  </div>
+</div>
