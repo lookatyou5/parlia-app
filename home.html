@@ -6,7 +6,7 @@
 <title>Parlia</title>
 <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <!-- Stili specifici di ogni pagina della home (?v= cache-bust su ogni deploy) -->
-<link rel="stylesheet" href="inicio.css?v=20260420a">
+<link rel="stylesheet" href="inicio.css?v=20260422a">
 <link rel="stylesheet" href="aac.css?v=20260420a">
 <link rel="stylesheet" href="rehab.css?v=20260418c">
 <link rel="stylesheet" href="perfil.css?v=20260414aa">
@@ -1067,7 +1067,7 @@ if ('scrollRestoration' in history) try { history.scrollRestoration = 'manual'; 
 // e non parte sfasato.
 (async function bootstrap(){
   // Cache-bust anche sui partial HTML (query string forza il browser/SW a rifetchare)
-  const V = '20260420i';
+  const V = '20260422a';
   try {
     const [inicio, aac, rehab, perfil] = await Promise.all([
       fetch('components/inicio.html?v=' + V, {cache: 'no-cache'}).then(r => r.ok ? r.text() : Promise.reject(r.status)),
@@ -2210,22 +2210,29 @@ async function _sendMsg(userText) {
   });
 }
 
-// Stato iniziale del core AI: niente chat automatica. L'utente tocca
-// "Empezar conversación" per avviare il saluto AI (e quindi la chiamata
-// all'API Claude Haiku). Evita chiamate a vuoto quando la home viene aperta
-// solo per vedere ora/meteo/agenda.
+// Stato iniziale del core AI: mood check + task contestuale.
+// Invece di una chat libera "senza scopo", l'apertura propone:
+//  1. mood check (Bien / Regular / Mal) → salva mood + decide il branch
+//  2. Bien/Regular → task breve contestuale (pre/post sessione, memoria, ora)
+//  3. Mal → sub-opzioni con azioni utili (SOS, chat empatica, respiro, riposo)
+// La chat libera resta accessibile via "Solo charlar →" (fallback).
+// Nessuna chiamata API finché l'utente non tocca un chip → zero costi a vuoto.
 function showAiStarter(){
   const thread  = document.getElementById('chatThread');
   const chipsEl = document.getElementById('aiChips');
   if (chipsEl) chipsEl.innerHTML = '';
   if (!thread) return;
   const name = (typeof profile !== 'undefined' && profile && profile.userName) ? profile.userName : '';
-  const greet = name ? `Hola, ${name}` : 'Hola';
+  const title = name ? `¿Cómo estás ahora, ${name}?` : '¿Cómo estás ahora?';
   thread.innerHTML = `
-    <div class="ai-chat-ended">
-      <div class="ai-chat-ended-icon">👋</div>
-      <div class="ai-chat-ended-text">${greet} · Toca para charlar conmigo</div>
-      <button class="ai-chat-ended-btn" onclick="restartAiChat()">Empezar conversación →</button>
+    <div class="ai-mood-check">
+      <div class="ai-mood-title">${title}</div>
+      <div class="ai-mood-chips">
+        <button class="ai-mood-chip bien"    onclick="moodSelected('bien')">😊 Bien</button>
+        <button class="ai-mood-chip regular" onclick="moodSelected('regular')">😐 Regular</button>
+        <button class="ai-mood-chip mal"     onclick="moodSelected('mal')">😢 Mal</button>
+      </div>
+      <button class="ai-mood-link" onclick="restartAiChat()">Solo charlar →</button>
     </div>`;
   const status = document.getElementById('aiStatusText');
   if (status) status.textContent = 'Listo';
@@ -2234,6 +2241,210 @@ function showAiStarter(){
   _hasChipsForLastAi = false;
   _isTyping = false;
   try { window.stopNeural && stopNeural(); } catch(e){}
+}
+
+// Salva il mood selezionato e instrada il branch appropriato.
+function moodSelected(mood){
+  try {
+    _mem.mood_log.last_mood = mood;
+    _mem.mood_log.last_mood_date = new Date().toLocaleDateString('es-ES');
+    _saveMemory();
+  } catch(e){}
+  if (mood === 'mal') { showMalOptions(); return; }
+  showContextualTask(mood);
+}
+
+// Branch "Mal": 4 sub-chip con azioni concrete invece di chat generica.
+// Ogni azione porta a qualcosa di utile (SOS, chat empatica, respiro, consiglio).
+function showMalOptions(){
+  const thread = document.getElementById('chatThread');
+  if (!thread) return;
+  thread.innerHTML = `
+    <div class="ai-mood-check">
+      <div class="ai-mood-title">Lo siento. ¿Qué sientes?</div>
+      <div class="ai-mood-chips ai-mood-chips-grid">
+        <button class="ai-mood-chip sub" onclick="malAction('dolor')">😣 Dolor</button>
+        <button class="ai-mood-chip sub" onclick="malAction('tristeza')">😢 Tristeza</button>
+        <button class="ai-mood-chip sub" onclick="malAction('ansiedad')">😰 Ansiedad</button>
+        <button class="ai-mood-chip sub" onclick="malAction('cansancio')">😴 Cansancio</button>
+      </div>
+      <button class="ai-mood-link" onclick="showAiStarter()">← Volver</button>
+    </div>`;
+}
+
+function malAction(type){
+  if (type === 'dolor') {
+    try { openSOS && openSOS(); } catch(e){}
+    return;
+  }
+  if (type === 'ansiedad') { showBreathing(); return; }
+  // tristeza + cansancio → chat empatica AI col mood di partenza
+  const seed = type === 'tristeza'
+    ? 'Me siento triste. Necesito que me escuches un momento.'
+    : 'Estoy muy cansada. No tengo mucha energía.';
+  _startChatWithSeed(seed);
+}
+
+// Mini esercizio di respirazione guidata (4s inspira · 4s trattieni · 6s espira ×3).
+// Zero costo API, visivo + TTS locale. Idea parcheggiata dalla sessione 20 aprile.
+function showBreathing(){
+  const thread = document.getElementById('chatThread');
+  if (!thread) return;
+  thread.innerHTML = `
+    <div class="ai-mood-check">
+      <div class="ai-mood-title">Respiremos juntas 🌬️</div>
+      <div class="ai-breath-orb" id="breathOrb"><span id="breathLabel">Prepárate…</span></div>
+      <button class="ai-mood-link" onclick="showAiStarter()">✕ Terminar</button>
+    </div>`;
+  const orb = document.getElementById('breathOrb');
+  const lbl = document.getElementById('breathLabel');
+  if (!orb || !lbl) return;
+  const steps = [
+    {t:'Inspira',   ms:4000, cls:'in'},
+    {t:'Mantén',    ms:4000, cls:'hold'},
+    {t:'Exhala',    ms:6000, cls:'out'}
+  ];
+  let cycle = 0, i = 0;
+  const run = () => {
+    if (!document.getElementById('breathOrb')) return; // abortito dall'utente
+    if (cycle >= 3) { lbl.textContent = '¡Muy bien!'; orb.className = 'ai-breath-orb'; return; }
+    const s = steps[i];
+    lbl.textContent = s.t;
+    orb.className = 'ai-breath-orb ' + s.cls;
+    try { window.speakNeural && speakNeural(s.t, { rate: 0.85 }); } catch(e){}
+    setTimeout(() => {
+      i++; if (i >= steps.length) { i = 0; cycle++; }
+      run();
+    }, s.ms);
+  };
+  setTimeout(run, 800);
+}
+
+// Branch Bien/Regular: propone una task contestuale con 3-4 chip.
+// Il tap del chip lancia la chat AI passando mood+risposta come primo turno →
+// l'AI prosegue naturalmente con context concreto (non saluto generico).
+function showContextualTask(mood){
+  const thread = document.getElementById('chatThread');
+  if (!thread) return;
+  const task = _pickContextualTask(mood);
+  const chipsHtml = task.chips.map(c =>
+    `<button class="ai-mood-chip task" onclick="taskChipSelected('${task.topic}', ${JSON.stringify(c).replace(/"/g,'&quot;')}, '${mood}')">${c}</button>`
+  ).join('');
+  thread.innerHTML = `
+    <div class="ai-mood-check">
+      <div class="ai-mood-title">${task.question}</div>
+      <div class="ai-mood-chips ai-mood-chips-grid">${chipsHtml}</div>
+      <button class="ai-mood-link" onclick="restartAiChat()">Solo charlar →</button>
+    </div>`;
+}
+
+// Tap di un chip task → avvia la chat AI con un primo messaggio che porta
+// già mood + risposta + topic → il system prompt dà ad Haiku una conversazione
+// concreta da proseguire, non un saluto generico.
+function taskChipSelected(topic, chipText, mood){
+  const moodLabel = mood === 'bien' ? 'bien' : 'regular';
+  const seed = `Me siento ${moodLabel}. Sobre ${topic}: ${chipText}`;
+  _startChatWithSeed(seed);
+}
+
+// Helper: apre la chat con un primo turno user già popolato.
+// Riusa _sendMsg(text) che gestisce history + chips + TTS normalmente.
+function _startChatWithSeed(text){
+  const thread = document.getElementById('chatThread');
+  if (thread) thread.innerHTML = '';
+  _history = [];
+  _lastAiText = '';
+  _hasChipsForLastAi = false;
+  _sendMsg(text);
+}
+
+// Task bank contestuale: sceglie domanda + chip in base a _getCtx() + memoria utente.
+// Ordine di priorità (il primo match vince):
+//  1. ctx.done        → feedback post-sessione
+//  2. ctx.soon        → preparazione pre-sessione
+//  3. ctx.now         → mini check-in durante la sessione
+//  4. ctx.dayOver     → riflessione fine giornata
+//  5. weekend         → casual / tempo libero
+//  6. early morning   → desayuno
+//  7. memory anchor   → domanda personale (hobby/música/comida/familia)
+//  8. fallback        → general mood-follow-up
+function _pickContextualTask(mood){
+  const ctx = (typeof _getCtx === 'function') ? _getCtx() : {};
+  const mp  = (_mem && _mem.user_profile) || {};
+  const um  = (_ud && _ud.memory) || {};
+
+  if (ctx.done) {
+    return {
+      topic: ctx.done.label,
+      question: `¿Cómo fue ${ctx.done.label}?`,
+      chips: ['💪 Bien', '😓 Ha sido dura', '😴 Cansada', '😊 Satisfecha']
+    };
+  }
+  if (ctx.soon) {
+    const [sh,sm] = ctx.soon.time.split(':').map(Number);
+    const mins = sh*60 + sm - (ctx.cur||0);
+    return {
+      topic: `la próxima sesión (${ctx.soon.label})`,
+      question: `En ${mins} min: ${ctx.soon.label}. ¿Lista?`,
+      chips: ['✅ Sí, lista', '⏰ Más tiempo', '😟 Nerviosa', '💪 Vamos']
+    };
+  }
+  if (ctx.now) {
+    return {
+      topic: `la sesión en curso (${ctx.now.label})`,
+      question: `Estás en ${ctx.now.label}. ¿Cómo va?`,
+      chips: ['💪 Bien', '😅 Es dura', '🎤 Pausa', '😊 Genial']
+    };
+  }
+  if (ctx.dayOver) {
+    return {
+      topic: 'el día de hoy',
+      question: '¿Qué recuerdas del día?',
+      chips: ['😊 Momento feliz', '💪 Un logro', '😴 Estoy agotada', '🍽️ La comida']
+    };
+  }
+  if (ctx.isWeekend) {
+    return {
+      topic: 'el fin de semana',
+      question: '¿Qué te apetece hoy?',
+      chips: ['📺 Ver algo', '🎵 Escuchar música', '👪 Ver a familia', '💤 Descansar']
+    };
+  }
+  if (_H < 10) {
+    return {
+      topic: 'el desayuno',
+      question: '¿Ya has desayunado?',
+      chips: ['☕ Café', '🥐 Algo dulce', '🥗 Ligero', '🚫 Aún no']
+    };
+  }
+  // memory anchor — rotazione tra hobbies/música/comida/familia se definiti
+  const anchors = [];
+  if (mp.hobbies && mp.hobbies.length) {
+    const h = mp.hobbies[Math.floor(Math.random()*mp.hobbies.length)];
+    anchors.push({ topic: `mi hobby ${h}`, question: `¿Has pensado en ${h} hoy?`, chips: ['💭 Sí', '🙂 Un poco', '❌ No', '💬 Hablemos'] });
+  }
+  if (mp.musica) {
+    anchors.push({ topic: 'la música', question: `¿Te apetece ${mp.musica}?`, chips: ['🎵 Sí', '🙂 Otra cosa', '🔇 Silencio', '💬 Cuéntame'] });
+  }
+  if (mp.comida) {
+    anchors.push({ topic: 'la comida', question: `¿Pensando en ${mp.comida}?`, chips: ['😋 Sí', '🥗 Otra cosa', '🚫 No tengo hambre', '💬 Hablemos'] });
+  }
+  if (mp.family && mp.family.length) {
+    const f = mp.family[Math.floor(Math.random()*mp.family.length)];
+    anchors.push({ topic: `${f}`, question: `¿Has hablado con ${f} hoy?`, chips: ['✅ Sí', '📞 Quiero llamar', '💭 Lo echo de menos', '🙂 Luego'] });
+  }
+  if (um.interests && um.interests.length) {
+    const it = um.interests[Math.floor(Math.random()*um.interests.length)];
+    anchors.push({ topic: it, question: `¿Qué tal con ${it} últimamente?`, chips: ['🙂 Bien', '😐 Regular', '❌ Nada', '💬 Cuéntame'] });
+  }
+  if (anchors.length) return anchors[Math.floor(Math.random()*anchors.length)];
+
+  // fallback neutro
+  return {
+    topic: 'este momento',
+    question: '¿Qué te apetece ahora?',
+    chips: ['💬 Charlar', '🎵 Música', '📺 Algo distraído', '💤 Descansar']
+  };
 }
 
 // Termina la conversazione: svuota history + thread, mostra placeholder con
@@ -2864,6 +3075,7 @@ Object.assign(window, {
   openMeteo, closeMeteo, closeMeteoBtn,
   replayLast, selCat, selSub, tapFrase, toggleTTS,
   setAiMode, sendAiText, endAiChat, restartAiChat, showAiStarter,
+  moodSelected, malAction, showMalOptions, showBreathing, showContextualTask, taskChipSelected,
   lauraVoiceGate, openLauraPin, closeLauraPin, submitLauraPin,
   liveChatGate, openLiveChatPin, closeLiveChatPin, submitLiveChatPin
 });

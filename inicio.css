@@ -281,6 +281,63 @@ body.ai-mode-texto .ai-text-input { display: flex; }
 }
 .ai-chat-ended-btn:active { transform: scale(.95); background: rgba(255,255,255,.28); }
 
+/* ── Mood check + task contestuale (nuovo starter AI Core) ─────────── */
+.ai-mood-check {
+  display: flex; flex-direction: column; align-items: center; gap: 14px;
+  padding: 18px 10px 12px; text-align: center;
+  animation: fadeUpB .3s ease both;
+}
+.ai-mood-title {
+  font-size: .95rem; font-weight: 700; color: white;
+  letter-spacing: .005em; line-height: 1.3; max-width: 280px;
+}
+.ai-mood-chips {
+  display: flex; flex-wrap: wrap; gap: 9px; justify-content: center;
+  width: 100%; max-width: 320px;
+}
+.ai-mood-chips-grid { gap: 8px; }
+.ai-mood-chips-grid .ai-mood-chip { flex: 1 1 46%; }
+.ai-mood-chip {
+  flex: 0 0 auto;
+  background: rgba(255,255,255,.16);
+  border: 1px solid rgba(255,255,255,.32);
+  color: white; font-family: 'Plus Jakarta Sans', sans-serif;
+  font-size: .82rem; font-weight: 700;
+  padding: 10px 16px; border-radius: 100px;
+  cursor: pointer; -webkit-tap-highlight-color: transparent;
+  transition: transform .15s, background .18s, border-color .18s;
+  white-space: nowrap;
+}
+.ai-mood-chip:active { transform: scale(.94); background: rgba(255,255,255,.28); }
+.ai-mood-chip.bien    { background: rgba(34,197,94,.22);  border-color: rgba(110,231,183,.55); }
+.ai-mood-chip.regular { background: rgba(251,191,36,.22); border-color: rgba(253,224,71,.55); }
+.ai-mood-chip.mal     { background: rgba(244,63,94,.22);  border-color: rgba(253,164,175,.55); }
+.ai-mood-chip.sub, .ai-mood-chip.task {
+  font-size: .78rem; padding: 9px 14px;
+}
+.ai-mood-link {
+  background: transparent; border: none;
+  color: rgba(255,255,255,.55); font-family: 'Plus Jakarta Sans', sans-serif;
+  font-size: .72rem; font-weight: 600;
+  padding: 4px 8px; cursor: pointer;
+  -webkit-tap-highlight-color: transparent; transition: color .18s;
+}
+.ai-mood-link:active { color: white; }
+
+/* ── Orb respirazione guidata (ansiedad → respiremos juntas) ───────── */
+.ai-breath-orb {
+  width: 110px; height: 110px; border-radius: 50%;
+  background: radial-gradient(circle at 35% 30%, rgba(255,255,255,.45), rgba(255,255,255,.12) 60%, rgba(255,255,255,.04) 100%);
+  border: 1px solid rgba(255,255,255,.35);
+  display: flex; align-items: center; justify-content: center;
+  color: white; font-weight: 700; font-size: .78rem;
+  transition: transform 4s cubic-bezier(.4,0,.2,1), background 4s ease;
+  box-shadow: 0 0 40px rgba(255,255,255,.15);
+}
+.ai-breath-orb.in   { transform: scale(1.35); background: radial-gradient(circle at 35% 30%, rgba(110,231,183,.5), rgba(110,231,183,.15) 60%, rgba(110,231,183,.04) 100%); }
+.ai-breath-orb.hold { transform: scale(1.35); transition-duration: 4s; }
+.ai-breath-orb.out  { transform: scale(.9);  background: radial-gradient(circle at 35% 30%, rgba(147,197,253,.45), rgba(147,197,253,.12) 60%, rgba(147,197,253,.04) 100%); transition-duration: 6s; }
+
 /* Badge "AHORA" o "PRÓXIMO" — session pill che emerge dall'hero */
 .ai-session-pill {
   display: inline-flex; align-items: center; gap: 5px;
