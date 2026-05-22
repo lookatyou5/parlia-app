@@ -7,7 +7,7 @@
 <meta http-equiv="Pragma" content="no-cache">
 <title>Live AI Chat · Parlia</title>
 <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="live-chat.css?v=20260522b">
+<link rel="stylesheet" href="live-chat.css?v=20260522c">
 <link rel="stylesheet" href="headpointer.css?v=20260417k">
 <script>
 // Guard PIN: se non sbloccato, rimanda subito alla home prima che la pagina renderizzi.
@@ -85,10 +85,23 @@
 
 </main>
 
+<!-- MODAL PIN · acceso a "Voz de Laura" (MiniMax voce clonada a pagamento) -->
+<div class="pin-overlay" id="lauraVoicePinOverlay" onclick="closeLauraVoicePin(event)">
+  <div class="pin-modal" id="lauraVoicePinModal" onclick="event.stopPropagation()">
+    <div class="pin-icon">🎙️</div>
+    <div class="pin-title">Voz de Laura · acceso privado</div>
+    <div class="pin-sub">Usar la voz clonada de Laura tiene un coste por uso. Introduce el PIN para activarla.</div>
+    <input id="lauraVoicePinInput" class="pin-input" type="password" inputmode="numeric" pattern="[0-9]*" maxlength="4" autocomplete="off" placeholder="••••">
+    <div class="pin-error" id="lauraVoicePinError"></div>
+    <button class="pin-submit" onclick="submitLauraVoicePin()">Activar →</button>
+    <button class="pin-cancel" onclick="closeLauraVoicePin()">Cancelar</button>
+  </div>
+</div>
+
 <script src="userData.js"></script>
 <script src="tts.js?v=20260417c"></script>
 <script src="laura-voice.js?v=20260522a"></script>
-<script src="live-chat.js?v=20260522b"></script>
+<script src="live-chat.js?v=20260522c"></script>
 <script src="headpointer.js?v=20260417k"></script>
 </body>
 </html>

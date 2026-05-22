@@ -349,7 +349,10 @@
     try { window.stopLauraVoice && window.stopLauraVoice(); } catch(e){}
     try { window.stopNeural && window.stopNeural(); } catch(e){}
 
-    if (_useLauraVoice() && window.fetchMiniMaxAudio) {
+    // Double-check: oltre alla preferenza utente, esigi che il gate PIN
+    // sia stato superato → previene attivazione MiniMax se l'unlock è
+    // stato revocato ma il toggle on è rimasto in localStorage.
+    if (_useLauraVoice() && _lauraVoiceUnlocked() && window.fetchMiniMaxAudio) {
       window.fetchMiniMaxAudio(text).catch(err => {
         console.warn('[LiveChat] Laura voice fallback → Neural2:', err?.message || err);
         _playNeural(text);
@@ -800,9 +803,27 @@
     }
   };
 
+  // Gate PIN per la voce di Laura nella Live Chat. La voce clonata MiniMax
+  // ha un costo per uso (~$0.06/1K char fuori cache) → quando l'utente fa
+  // provare l'app a terze persone, vogliamo evitare che attivino la voce
+  // di Laura inavvertitamente.
+  // PIN condiviso con Voz Laura · Test (0512). Unlock persistito separatamente
+  // così l'utente può sbloccare Live Chat (per Deepgram) senza sbloccare la
+  // voce di Laura, e viceversa.
+  const LAURA_VOICE_PIN = '0512';
+  const LAURA_VOICE_UNLOCK_KEY = 'parlia_live_laura_voice_unlocked';
+  function _lauraVoiceUnlocked() {
+    return localStorage.getItem(LAURA_VOICE_UNLOCK_KEY) === '1';
+  }
+
   // Toggle voce: off (default) = Google Neural2-H, on = MiniMax voce di Laura.
   // Stato persistito in localStorage. Fallback automatico a Neural2 in _playChipVoice.
+  // Se non sbloccato con PIN, apre il modal invece di attivare.
   window.toggleLauraVoice = function() {
+    if (!_useLauraVoice() && !_lauraVoiceUnlocked()) {
+      _openLauraVoicePin();
+      return;
+    }
     const on = !_useLauraVoice();
     localStorage.setItem('parlia_live_use_laura_voice', on ? '1' : '0');
     _syncLauraVoiceBtn();
@@ -819,6 +840,55 @@
   }
   // Inizializza lo stato del bottone al load
   document.addEventListener('DOMContentLoaded', _syncLauraVoiceBtn);
+
+  // ─── Modal PIN voce Laura ─────────────────────────────────────────────
+  function _openLauraVoicePin() {
+    const ov  = document.getElementById('lauraVoicePinOverlay');
+    const inp = document.getElementById('lauraVoicePinInput');
+    const err = document.getElementById('lauraVoicePinError');
+    if (!ov || !inp) return;
+    inp.value = ''; if (err) err.textContent = '';
+    ov.classList.add('open');
+    setTimeout(() => { try { inp.focus(); } catch(e){} }, 200);
+  }
+  window.closeLauraVoicePin = function(ev) {
+    if (ev && ev.target && ev.target.id && ev.target.id !== 'lauraVoicePinOverlay') return;
+    const ov = document.getElementById('lauraVoicePinOverlay');
+    if (ov) ov.classList.remove('open');
+  };
+  window.submitLauraVoicePin = function() {
+    const inp   = document.getElementById('lauraVoicePinInput');
+    const err   = document.getElementById('lauraVoicePinError');
+    const modal = document.getElementById('lauraVoicePinModal');
+    if (!inp) return;
+    const val = (inp.value || '').trim();
+    if (val === LAURA_VOICE_PIN) {
+      localStorage.setItem(LAURA_VOICE_UNLOCK_KEY, '1');
+      window.closeLauraVoicePin();
+      // Attivazione immediata della voce dopo lo sblocco — l'utente ha appena
+      // toccato 🎙️ con l'intento "voglio voce di Laura", quindi compie il
+      // toggle automaticamente senza doverlo tappare una seconda volta.
+      localStorage.setItem('parlia_live_use_laura_voice', '1');
+      _syncLauraVoiceBtn();
+      try { window.stopNeural && window.stopNeural(); } catch(e){}
+    } else {
+      if (err) err.textContent = 'PIN incorrecto. Inténtalo de nuevo.';
+      modal?.classList.remove('shake'); void modal?.offsetWidth; modal?.classList.add('shake');
+      inp.value = ''; try { inp.focus(); } catch(e){}
+    }
+  };
+  // Submit con Enter + auto-submit al 4° digit
+  document.addEventListener('keydown', (e) => {
+    const ov = document.getElementById('lauraVoicePinOverlay');
+    if (!ov?.classList.contains('open')) return;
+    if (e.key === 'Enter')  { e.preventDefault(); window.submitLauraVoicePin(); }
+    else if (e.key === 'Escape') { window.closeLauraVoicePin(); }
+  });
+  document.addEventListener('input', (e) => {
+    if (e.target?.id !== 'lauraVoicePinInput') return;
+    e.target.value = e.target.value.replace(/\D/g, '').slice(0, 4);
+    if (e.target.value.length === 4) setTimeout(window.submitLauraVoicePin, 80);
+  });
 
   // ─── Power-down automatico ───
   function powerDown() {
