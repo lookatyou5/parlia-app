@@ -323,13 +323,39 @@
     // Aggiungi il turno dell'UTENTE alla history per le chips successive
     pushHistory('me', text);
 
-    if (!S.ttsMuted && window.speakNeural) {
-      try { window.stopNeural && window.stopNeural(); } catch(e){}
-      if (typeof window.speakNeural.chip === 'function') {
-        window.speakNeural.chip(text);
-      } else {
-        window.speakNeural(text, { rate: 1.0 });
-      }
+    if (!S.ttsMuted) _playChipVoice(text);
+  }
+
+  // Stato persistito: se attivo, le chips vengono lette con la voce clonata
+  // di Laura (MiniMax via fetchMiniMaxAudio) invece di Google Neural2-H.
+  // Fallback automatico a Neural2-H se MiniMax fallisce (rete, balance, ecc.)
+  // → l'app non resta mai muta sulla chip che Laura ha tappato.
+  function _useLauraVoice() {
+    return localStorage.getItem('parlia_live_use_laura_voice') === '1';
+  }
+
+  function _playNeural(text) {
+    if (!window.speakNeural) return;
+    try { window.stopNeural && window.stopNeural(); } catch(e){}
+    if (typeof window.speakNeural.chip === 'function') {
+      window.speakNeural.chip(text);
+    } else {
+      window.speakNeural(text, { rate: 1.0 });
+    }
+  }
+
+  function _playChipVoice(text) {
+    // Stop di qualsiasi audio precedente (entrambi i motori)
+    try { window.stopLauraVoice && window.stopLauraVoice(); } catch(e){}
+    try { window.stopNeural && window.stopNeural(); } catch(e){}
+
+    if (_useLauraVoice() && window.fetchMiniMaxAudio) {
+      window.fetchMiniMaxAudio(text).catch(err => {
+        console.warn('[LiveChat] Laura voice fallback → Neural2:', err?.message || err);
+        _playNeural(text);
+      });
+    } else {
+      _playNeural(text);
     }
   }
 
@@ -768,13 +794,37 @@
     S.ttsMuted = !S.ttsMuted;
     ttsBtn().textContent = S.ttsMuted ? '🔇' : '🔊';
     ttsBtn().classList.toggle('muted', S.ttsMuted);
-    if (S.ttsMuted && window.stopNeural) { try { window.stopNeural(); } catch(e){} }
+    if (S.ttsMuted) {
+      try { window.stopNeural && window.stopNeural(); } catch(e){}
+      try { window.stopLauraVoice && window.stopLauraVoice(); } catch(e){}
+    }
   };
+
+  // Toggle voce: off (default) = Google Neural2-H, on = MiniMax voce di Laura.
+  // Stato persistito in localStorage. Fallback automatico a Neural2 in _playChipVoice.
+  window.toggleLauraVoice = function() {
+    const on = !_useLauraVoice();
+    localStorage.setItem('parlia_live_use_laura_voice', on ? '1' : '0');
+    _syncLauraVoiceBtn();
+    // Stop audio in corso così il prossimo chip parte col nuovo motore
+    try { window.stopNeural && window.stopNeural(); } catch(e){}
+    try { window.stopLauraVoice && window.stopLauraVoice(); } catch(e){}
+  };
+
+  function _syncLauraVoiceBtn() {
+    const btn = document.getElementById('voiceBtn');
+    if (!btn) return;
+    btn.classList.toggle('on', _useLauraVoice());
+    btn.setAttribute('aria-pressed', _useLauraVoice() ? 'true' : 'false');
+  }
+  // Inizializza lo stato del bottone al load
+  document.addEventListener('DOMContentLoaded', _syncLauraVoiceBtn);
 
   // ─── Power-down automatico ───
   function powerDown() {
     if (S.listening) stopListening(true);
     if (window.stopNeural) { try { window.stopNeural(); } catch(e){} }
+    if (window.stopLauraVoice) { try { window.stopLauraVoice(); } catch(e){} }
   }
   document.addEventListener('visibilitychange', () => {
     if (document.visibilityState === 'hidden') powerDown();
