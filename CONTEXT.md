@@ -8,7 +8,11 @@ Parlia è una PWA (app web progressiva) per comunicazione aumentativa (AAC) dest
 - **Portare `tts.js` su cache IndexedDB (persistente)**. Oggi ha solo Map in memoria (60 frasi LRU), che si svuota a ogni chiusura PWA → al riavvio ogni frase paga una nuova call Google TTS. Applicando lo stesso pattern a 2 livelli di `laura-voice.js` (Map + IndexedDB `audio` store), le frasi ripetute restano istantanee anche dopo chiusura/riavvio del device → risparmio reale di chiamate API e più snappy sul primo uso di ogni sessione. ~30 min di lavoro. Priorità media — il free tier Google è generoso (1M char/mese) ma la fluidità migliora.
 - **Setup worker in repo (`workers/voci-ai-proxy`, `workers/parlia-tts`, `workers/parlia-minimax`)** con `wrangler.toml`. Oggi i worker vivono solo sul dashboard Cloudflare → nessun version control, nessuna diff visibility. I secret (API key) restano su Cloudflare come env secrets. ~15 min setup, da fare quando serve la prossima modifica a un worker.
 - **Voice cloning per altri utenti (in ottica futura)**. Flusso di onboarding voce → upload audio → worker `parlia-voice-clone` → `voice_id` MiniMax per-utente. Punto critico: flusso di consenso legale, non la tecnica. Vedi discussione sessione 18 aprile 2026.
-- **Idee aperte per l'AI Core della home** (esplorate sessione 20 aprile, non scelta definitiva): (a) orb espressivo con stati emotivi CSS/canvas, (b) memoria persistente Claude con fact-bank locale, (c) agente "L1" con tool use (chiama speakTTS/openAAC/logFact da solo), (d) avatar 3D Ready Player Me gratuito con lipsync. HeyGen scartato per costo. Attualmente la home rimane: agenda standalone + chat AI classica.
+- **Idee aperte per l'AI Core della home** (esplorate sessione 20 aprile, non scelta definitiva): (a) orb espressivo con stati emotivi CSS/canvas, (b) memoria persistente Claude con fact-bank locale, (c) agente "L1" con tool use (chiama speakTTS/openAAC/logFact da solo), (d) avatar 3D Ready Player Me gratuito con lipsync. HeyGen scartato per costo. ⚠️ Aggiornamento sessione 22 mag: l'AI Core ora apre con mood check + task contestuale (non più "Empezar conversación" generico). Resta valida la riflessione di fondo che la home "non fa impazzire" — 3 direzioni aperte in canna ma non implementate: (1) hero benvenuto personale con foto/avatar + stat viva, (2) gerarchia per momento del giorno (mattina = agenda; pomeriggio = recap; sera = riflessione), (3) memoria visiva con foto famiglia ruotanti.
+- **Invio "Send mail as" da info@parlia.app via Gmail** — Email Routing oggi inoltra solo in ricezione. Per *inviare* da info@parlia.app via Gmail: generare App password (richiede 2FA), aggiungere alias in Gmail Impostazioni → Account → Invia messaggi come (SMTP smtp.gmail.com:587 TLS), aggiornare SPF Cloudflare con `include:_spf.google.com` per evitare warning di autenticità sui destinatari. Setup parcheggiato sessione 22 mag, riprendere quando serve.
+- **Live Chat — storico conversazioni**. Oggi tutto in-memory (`S.history`), esci dalla pagina e perdi. Da decidere se persistere transcript completo (privacy considerations) o solo metadata (timestamp, durata, #chips, interlocutor).
+- **Live Chat — bottone "repetir"** per rileggere l'ultima frase tappata (uso cache TTS → zero costo).
+- **Live Chat — modifica chip prima del TTS** (es. cambiare "Sí" in "Sí, claro" prima di farla leggere).
 
 ## URL
 - App Parlia: https://app.parlia.app
@@ -1538,6 +1542,147 @@ L'utente ha fatto presente che la chat AI "non è stimolante" → serie di propo
 - **Modificati**: `home.html` (pesante: topbar/navbar ridesign, palette tokens, PIN live-chat, CAT_ICONS, WX_BIG_ICONS, agenda fuori da AI Core), `components/inicio.html`, `components/aac.html`, `aac.css`, `inicio.css`, `laura-voice.html`, `laura-voice.css`, `live-chat.html`, `onboarding.html`
 - **Nuovi**: nessuno (tutto inline)
 - **Worker non toccati**
+
+---
+
+## Sessione 22 maggio 2026 — AI Core mood + email + Live Chat rework
+
+Sessione lunga distribuita su più sotto-task: ridisegno dell'apertura del Parlia AI in Inicio, setup completo email del dominio, riconnessione GitHub della landing, e un rework profondo della Live Chat (fix bug chips ripetitive + voce di Laura + restyling A+C + tema cromatico per interlocutore).
+
+### Inicio · AI Core — mood check + task contestuale
+L'utente trovava la chat AI in Home "senza scopo". Sostituito lo starter "Empezar conversación" con un flusso a 2 livelli che dà *direzione* all'apertura.
+
+- **Mood check iniziale**: "¿Cómo estás ahora, [nome]?" con 3 chip colorati grandi 😊 Bien (verde) · 😐 Regular (ambra) · 😢 Mal (rosa). Link piccolo "Solo charlar →" sotto come fallback alla chat libera.
+- **Branch Bien/Regular → task contestuale** (`_pickContextualTask`) basato su priorità:
+  1. `ctx.done` → feedback post-sessione ("¿Cómo fue la fisio?")
+  2. `ctx.soon` → preparazione pre-sessione ("En 10 min: logopedia. ¿Lista?")
+  3. `ctx.now` → check-in durante la sessione
+  4. `dayOver` → riflessione fine giornata
+  5. weekend → casual tempo libero
+  6. early morning (<10h) → desayuno
+  7. memory anchor (hobby/música/comida/familia/interests dal profilo)
+  8. fallback neutro
+- Tap del chip → `_startChatWithSeed("Me siento X. Sobre Y: Z")` → Haiku riceve già il contesto concreto invece di un saluto generico.
+- **Branch Mal → azioni utili**: sub-chip 😣 Dolor (→ `openSOS()`) · 😢 Tristeza (chat empatica con seed) · 😰 Ansiedad (`showBreathing()` orb animato 4s inspira ↑ · 4s mantén · 6s exhala ↓ × 3 cicli con TTS Neural2 locale per scandire le fasi, zero costo API) · 😴 Cansancio (chat empatica con seed stanchezza).
+- Salva mood in `_mem.mood_log.last_mood` (campo già esistente).
+- `showAiStarter()` mantenuto come alias per back-compat con bootstrap + pull-to-refresh.
+
+File: `home.html` (+234 righe), `inicio.css` (+57 righe stili `.ai-mood-*` + `.ai-breath-orb`). Cache-bust: `inicio.css v20260420a → 20260422a`, partial V `20260420i → 20260422a`. Commit `8c55bdf`.
+
+### Setup email · info@parlia.app
+Configurata casella `info@parlia.app` con DNS Cloudflare. Setup completo:
+
+- **Cloudflare Email Routing** attivato sulla zona `parlia.app` — i 5 record DNS richiesti (3 MX `route1/2/3.mx.cloudflare.net`, DKIM `cf2024-1._domainkey`, SPF `v=spf1 include:_spf.mx.cloudflare.net ~all`) aggiunti automaticamente con "Add records automatically" → status `Configured` ✓ + MX `Locked` ✓.
+- **Destination address** `luca.peltrini@gmail.com` verificato via link Cloudflare → status `Verified`.
+- **Route attiva**: `info@parlia.app → luca.peltrini@gmail.com` (Send to an email, Active ✓).
+- **Test di ricezione**: ✓ funzionante da account esterni. Nota: mail inviate dal *proprio* Gmail allo stesso account vengono **deduplicate da Gmail** (non un bug — Cloudflare lo documenta esplicitamente nei suoi log).
+- **Activity log** Cloudflare consultabile in caso di problemi futuri (Forwarded / Rejected / Dropped + raw text).
+- **Diagnosi rapida MX**: https://mxtoolbox.com/SuperTool.aspx?action=mx%3aparlia.app
+
+#### Invio "Send mail as" da Gmail
+Setup parcheggiato per ora — quando si farà:
+1. Generare App password Gmail (richiede 2FA): myaccount.google.com/apppasswords
+2. Gmail → Impostazioni → Account → Invia messaggi come → `info@parlia.app` con SMTP `smtp.gmail.com:587` (TLS), username Gmail completo, password = App password 16 char.
+3. Aggiornare SPF di Cloudflare: `v=spf1 include:_spf.mx.cloudflare.net include:_spf.google.com ~all` per evitare warning "questa mail potrebbe non essere autentica" sui destinatari.
+
+### Landing parlia.app · migrazione Direct Upload → Git auto-deploy
+La landing su `parlia-landing.pages.dev` (custom domain `parlia.app`) era configurata come **Direct Upload** (zip manuale) → modifiche su GitHub non triggeravano deploy. Migrata a Git integration:
+
+1. Rimosso custom domain `parlia.app` dal vecchio progetto `parlia-landing`.
+2. **Eliminato** il vecchio progetto (Settings → Delete project).
+3. Creato **nuovo progetto** `parlia-landing` con **Connect to Git** → repo `lookatyou5/parlia-landing` → production branch `main` → framework preset None, build command vuoto, output `/`.
+4. Riassegnato custom domain `parlia.app` al nuovo progetto.
+5. Cambiato `hello@parlia.app` → `info@parlia.app` nella landing (edit via GitHub web).
+6. Da ora in poi: ogni `git push` su `main` di `parlia-landing` → auto-deploy come `parlia-app`.
+
+Repo `parlia-landing` NON è nello scope MCP GitHub di Claude (limitato a `lookatyou5/parlia-app`) → modifiche da fare via GitHub web o clone locale.
+
+### Live AI Chat · fix chip generation (Sí/No/No lo sé sempre uguali)
+Bug segnalato dall'utente: durante le conversazioni live le chips erano sempre `Sí / No / No lo sé` indipendentemente da cosa diceva l'interlocutore.
+
+**Diagnosi**: il fallback hardcoded in `runChipGen` (linea 430) restituiva esattamente queste 3 frasi quando la chiamata Claude Haiku falliva o ritornava JSON non parsabile. Quattro fix:
+
+1. **System prompt rilassato** (`_buildChipPrompt`): rimosso il vincolo "1° chip sempre breve sí/no/gracias". Sostituito con 3 intenzioni emotive distinte (afectiva / concreta / pregunta devuelta), longitudes variate (2-5, 5-10, 10-16 parole), divieto esplicito di iniziare con monosillabi e di usare "No lo sé" come comodín, esempio negativo `["Sí","No","No lo sé"]` ← NON HAGAS ESTO.
+2. **`max_tokens` 200 → 320** — margine sicuro per JSON 3 strings con la frase più lunga (potenzialmente 14-16 parole) senza troncare.
+3. **`CHIP_FALLBACK_POOL`** — 12 frasi per ognuno dei 4 interlocutori (Luca/Médicos/Familia/Amigos), shuffle Fisher-Yates con esclusione dell'ultimo set mostrato. Anche se l'AI continua a fallire, l'utente vede 3 chip diverse ogni volta.
+4. **Logging verbose nel catch**: `[LiveChat] chip gen fallback → HTTP <status> · <body snippet>` o `AI raw non parsabile: <raw>` → diagnosi causa root la prossima volta dalla console.
+
+**Risultato test**: dopo il deploy l'utente ha confermato chips realmente variate → il problema vero era il **prompt troppo rigido**, non l'API che falliva (il modello obbediva alla lettera al "1° muy breve"). Il fallback più ricco e il logging restano come safety net.
+
+File: `live-chat.js` (+82 righe), `live-chat.html` cache-bust. Commit `0207355`.
+
+### Live AI Chat · voce di Laura (MiniMax) + PIN gate
+Integrata la voce clonata MiniMax come opzione per la lettura delle chip tappate, con gate PIN per evitare consumo accidentale quando l'app viene fatta provare a terze persone.
+
+- **Toggle `👩` in topbar** (icona scelta perché 🎙️ era confondibile col mic principale grande in basso). Off (default) = Google Neural2-H. On (gradient lavender + halo pulsante `lvPulse 2.2s`) = MiniMax voce di Laura.
+- **Stato persistito** in `localStorage.parlia_live_use_laura_voice` ('1'/'0').
+- **`_playChipVoice(text)`**: stop di entrambi i motori prima di ogni nuovo chip; se voce on E unlock superato E `fetchMiniMaxAudio` disponibile → MiniMax; catch error → fallback automatico a Neural2 (l'app non resta mai muta in caso di rete giù / balance MiniMax esaurito / voice_id invalido). Logging fallback: `[LiveChat] Laura voice fallback → Neural2: <err>`.
+- **PIN gate**: stesso PIN `0512` di Voz Laura · Test e Live Chat (costante `LAURA_VOICE_PIN`). Unlock persistito in `parlia_live_laura_voice_unlocked` — **indipendente** dagli altri due unlock (`parlia_live_chat_unlocked`, `parlia_laura_voice_unlocked`).
+- **Flusso UX**: off + non sbloccato → tap apre modal PIN; PIN corretto → unlock + auto-activa la voce (l'utente aveva già intenzione di accenderla, evita secondo tap). Off + sbloccato → toggle libero. On → toggle libero per spegnere (no PIN per spegnere).
+- **Double-check di sicurezza** in `_playChipVoice`: oltre alla preferenza on, esige unlock superato → previene partenza voce se unlock è stato revocato ma il toggle on è rimasto in localStorage.
+- Modal `#lauraVoicePinOverlay` con stessi stili `.pin-*` (duplicati in `live-chat.css` perché la pagina è standalone, non eredita da `home.html`).
+
+File: `live-chat.html` (+modal + import laura-voice.js), `live-chat.css` (+stili `.topbar-voice` + `.pin-*` ~80 righe), `live-chat.js` (+toggle + gate + playChipVoice). Cache-bust live-chat.js `v20260417f → 20260522c`, live-chat.css `v20260419d → 20260522c`. Commit `8050506` + `50620bd`.
+
+### Live AI Chat · restyling A+C (wave audio-reattivo + glass + bouncy + haptic)
+L'utente trovava la pagina "troppo statica". Implementate due direzioni di restyling in combinazione (su 3 proposte: A audio-reattivo / B stage centrale con orb / C glassmorphism + bouncy + haptic).
+
+**A — Wave visualizer audio-reattivo:**
+- `<canvas id="lcWave">` 56px height in cima al thread (sotto i pill interlocutore).
+- `AnalyserNode` parallelo al `workletNode`, agganciato su `sourceNode` (vede lo stesso PCM linear16 di Deepgram, NO loopback audio). `fftSize: 256`, `smoothingTimeConstant: 0.55`.
+- RAF loop `_startWaveLoop()`: disegna waveform con gradient dinamico quando il mic è attivo. Quando spento: idle sinusoidale soft pulsante (`_drawWaveIdle()` con onda sin a frequenza 0.35 + tempo 1.4) — sensazione "pagina viva che respira".
+- RMS smoothed (0.7 mantieni / 0.3 nuovo) → CSS var `--audio-level` [0..1] sul body. Stop completo del loop + reset audioLevel in `stopAudioCapture`.
+
+**C — Glass + bouncy + haptic:**
+- **Bolle them in glass**: `backdrop-filter: blur(14px) saturate(180%)` + bordo bianco soft + shadow doppia (depth reale). Interim in glass rosato dashed col colore tema.
+- **Chip tap**: classe `.bounced` rilasciata via JS al tap → animazione `chipBounce .42s cubic-bezier(.34,1.56,.64,1)` (scale .92 → 1.06 → 1 con bounce) + glow rosa marcato.
+- **Haptic**: `navigator.vibrate(12)` al tap chip (Android, iOS ignora silenziosamente).
+- **Mic button listening**: anello esterno reattivo al volume reale via `box-shadow: 0 0 0 calc(8px + var(--audio-level) * 18px) rgba(244,63,94, calc(.18 + var(--audio-level) * .22))`. Transition 80ms per sentire la dinamica audio. Effetto "il mic respira al volume della voce dell'interlocutore".
+- **Pannello admin in glass** (coerente con bolle).
+- **`body.low-power`** → spegne tutti i `backdrop-filter` per non perdere fluidità su Android lenti (graceful degradation).
+
+**Icona toggle voce Laura** cambiata da `🎙️` a `👩` per non confondersi col mic principale.
+
+File: `live-chat.html` (+canvas + cache-bust), `live-chat.css` (+87 righe sez. RESTYLING v20260522d), `live-chat.js` (+130 righe: AnalyserNode + wave loop + audioLevel + haptic + bounce). Cache-bust → `v20260522d`. Commit `8e78456`.
+
+### Live AI Chat · tema cromatico per interlocutore
+Sulla base del restyling, ogni categoria interlocutore ha la sua palette distintiva. Quando l'utente cambia da Luca → Médicos (o altro), la pagina si "veste" del nuovo colore senza riload, mantenendo il senso di contesto.
+
+| Interlocutore | c1 | c2 | c3 | Sensazione |
+|---|---|---|---|---|
+| 💑 Luca       | `#ec4899` | `#f43f5e` | `#a78bfa` | rosa/fucsia/lavender — intimo (default) |
+| 🩺 Médicos    | `#0ea5e9` | `#06b6d4` | `#14b8a6` | sky/cyan/teal — pulito clinico |
+| 👨‍👩‍👧 Familia | `#f97316` | `#fb923c` | `#fbbf24` | arancio/coral/amber — caldo affettuoso |
+| 🙋 Amigos     | `#8b5cf6` | `#a78bfa` | `#c4b5fd` | viola/lavender/lilla — rilassato friendly |
+
+**Implementazione:**
+- Campo `theme: { c1, c2, c3, soft, shadowRgb }` aggiunto a ogni elemento di `CONTACTS`.
+- `_applyContactTheme(c)` setta CSS vars su `<body>`: `--lc-accent-1/2/3`, `--lc-accent-soft`, `--lc-accent-shadow` (rgb triplet per `rgba(var(...), .X)`), `--lc-accent-gradient` pre-composto come stringa.
+- Chiamato in `_loadInterlocutor` (init) + `selectInterlocutor` (cambio).
+- CSS: bolle me, pill active, mic button (off-listening), chip:active, chip.played, chip.bounced, interim border, wave drop-shadow ora usano le var dinamiche.
+- Wave canvas: gradient e idle stroke leggono `S.themeC1/C2/C3` invece dei rosa hardcoded.
+
+**Non cambiano (per design):**
+- Topbar bg/border + lc-wrap + skeleton: restano in tinta rosa come brand "Live Chat" della pagina.
+- `mic.listening`: rosso fisso (è "alert mic on", non legato al tema).
+- Bolle them: glass bianco neutro (l'interlocutore non è "se stesso", è il contesto della conversazione).
+
+File: `live-chat.css` (var dinamiche), `live-chat.js` (`_applyContactTheme` + theme in CONTACTS + draw loop dinamico). Cache-bust → `v20260522e`. Commit `007a556`.
+
+### Hygiene git
+Durante il push iniziale del lavoro mood-check, è emerso che il `main` locale del container era **divergente** da `origin/main` (50 commit orfani senza antenato comune — residuo di un rebase/force-push passato su GitHub). Risolto con:
+1. Backup del main locale orfano nel branch `backup-local-main-pre-reset-20260423` (solo locale, non pushato).
+2. `git reset --hard origin/main` per allineare local main al remote.
+3. Da quel momento i fast-forward merge dal branch di sviluppo (`claude/review-reader-context-pkxRs`) funzionano regolarmente.
+
+### Cache-bust riepilogo sessione
+- `inicio.css`: `v20260420a → 20260422a`
+- `home.html` partial V: `20260420i → 20260422a`
+- `live-chat.js`: `v20260417f → 20260522a → b → c → d → e`
+- `live-chat.css`: `v20260419d → 20260522b → c → d → e`
+
+### Worker non toccati
+Nessun cambiamento ai worker Cloudflare in questa sessione.
 
 ---
 
