@@ -14,6 +14,16 @@
   --fuchsia-1: #d946ef;
   --accent-gradient: linear-gradient(135deg, #ec4899 0%, #f43f5e 55%, #fb7185 100%);
   --accent-gradient-soft: linear-gradient(135deg, rgba(236,72,153,.10), rgba(244,63,94,.10));
+
+  /* Tema dinamico per interlocutore (sovrascritto da JS in _applyContactTheme).
+     Default = Luca (rosa). Quando l'utente cambia contatto, JS aggiorna queste
+     proprietà sul <body> → bolle me, pill active, mic, shadows si adattano. */
+  --lc-accent-1: #ec4899;
+  --lc-accent-2: #f43f5e;
+  --lc-accent-3: #a78bfa;
+  --lc-accent-soft: rgba(236,72,153,.22);
+  --lc-accent-shadow: 236,72,153;
+  --lc-accent-gradient: linear-gradient(135deg, var(--lc-accent-1) 0%, var(--lc-accent-2) 55%, var(--lc-accent-3) 100%);
 }
 
 * { box-sizing: border-box; }
@@ -165,10 +175,10 @@ html, body {
 }
 .lc-interlocutor:active { transform: scale(.94); }
 .lc-interlocutor.active {
-  background: var(--accent-gradient);
+  background: var(--lc-accent-gradient);
   color: white;
   border-color: transparent;
-  box-shadow: 0 4px 14px rgba(236,72,153,.32);
+  box-shadow: 0 4px 14px rgba(var(--lc-accent-shadow), .32);
 }
 .lc-interlocutor-emoji { font-size: 1.05rem; line-height: 1; }
 
@@ -253,13 +263,14 @@ html, body {
   box-shadow: none;
 }
 
-/* Utente (Laura, chip tappata → risposta letta dalla voce) → DESTRA, rosa */
+/* Utente (Laura, chip tappata → risposta letta dalla voce) → DESTRA,
+   colore dinamico del tema dell'interlocutore corrente */
 .lc-bubble.me {
   align-self: flex-end;
-  background: var(--accent-gradient);
+  background: var(--lc-accent-gradient);
   color: white;
   border-bottom-right-radius: 6px;
-  box-shadow: 0 4px 14px rgba(236,72,153,.28);
+  box-shadow: 0 4px 14px rgba(var(--lc-accent-shadow), .28);
   font-weight: 600;
 }
 
@@ -294,10 +305,10 @@ html, body {
 .lc-chip:nth-child(3) { animation-delay: 140ms; }
 .lc-chip:active {
   transform: scale(.96);
-  box-shadow: 0 4px 16px rgba(236,72,153,.22);
+  box-shadow: 0 4px 16px rgba(var(--lc-accent-shadow), .22);
 }
 .lc-chip.played {
-  background: var(--accent-gradient);
+  background: var(--lc-accent-gradient);
   color: white;
   border-color: transparent;
 }
@@ -395,14 +406,14 @@ html, body {
   padding: 20px 22px;
   border: none;
   border-radius: 24px;
-  background: var(--accent-gradient);
+  background: var(--lc-accent-gradient);
   color: white;
   font-family: 'Bricolage Grotesque', sans-serif;
   font-size: 1.2rem; font-weight: 800;
   cursor: pointer;
   -webkit-tap-highlight-color: transparent;
   box-shadow:
-    0 10px 30px rgba(236,72,153,.5),
+    0 10px 30px rgba(var(--lc-accent-shadow), .5),
     0 0 0 1px rgba(255,255,255,.25) inset;
   transition: transform .12s, box-shadow .18s, background .25s;
   overflow: hidden;
@@ -528,9 +539,9 @@ html, body {
   height: 56px;
   display: block;
   margin: 4px 0 6px;
-  filter: drop-shadow(0 2px 8px rgba(236,72,153,.18));
+  filter: drop-shadow(0 2px 8px rgba(var(--lc-accent-shadow), .18));
   opacity: .9;
-  transition: opacity .3s ease;
+  transition: opacity .3s ease, filter .3s ease;
 }
 
 /* Glassmorphism delle bolle conversazione — depth/blur + bordo soft.
@@ -547,11 +558,11 @@ html, body {
   background: rgba(255,228,242,.45);
   backdrop-filter: blur(10px);
   -webkit-backdrop-filter: blur(10px);
-  border: 1px dashed rgba(236,72,153,.4);
+  border: 1px dashed var(--lc-accent-soft);
 }
 .lc-bubble.me {
   box-shadow:
-    0 6px 22px rgba(236,72,153,.35),
+    0 6px 22px rgba(var(--lc-accent-shadow), .35),
     0 1px 0 rgba(255,255,255,.3) inset;
 }
 
@@ -566,13 +577,15 @@ html, body {
 }
 @keyframes chipBounce {
   0%   { transform: scale(1); }
-  35%  { transform: scale(.92); box-shadow: 0 1px 4px rgba(236,72,153,.18); }
-  70%  { transform: scale(1.06); box-shadow: 0 8px 28px rgba(236,72,153,.45); }
+  35%  { transform: scale(.92); box-shadow: 0 1px 4px rgba(var(--lc-accent-shadow), .18); }
+  70%  { transform: scale(1.06); box-shadow: 0 8px 28px rgba(var(--lc-accent-shadow), .45); }
   100% { transform: scale(1); }
 }
 .lc-chip.played {
-  background: linear-gradient(135deg, #fdf2f8 0%, #fce7f3 100%);
-  box-shadow: 0 4px 18px rgba(236,72,153,.28), 0 0 0 2px rgba(236,72,153,.35) inset;
+  background: var(--lc-accent-gradient);
+  color: white;
+  border-color: transparent;
+  box-shadow: 0 4px 18px rgba(var(--lc-accent-shadow), .35);
 }
 
 /* Mic button con halo audio-reattivo. La variabile --audio-level (0..1)

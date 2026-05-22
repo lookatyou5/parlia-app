@@ -49,6 +49,7 @@
       emoji: '💑',
       relationship: 'pareja / compañero sentimental',
       context: 'Luca es el compañero/pareja del usuario. Relación cercana, íntima, cariñosa, de confianza total. Tono natural, afectuoso, con inside jokes y complicidad. Pueden hablar de cualquier cosa: planes, sentimientos, miedos, recuerdos, vida cotidiana, deseos, pequeñas tonterías.',
+      theme: { c1: '#ec4899', c2: '#f43f5e', c3: '#a78bfa', soft: 'rgba(236,72,153,.22)', shadowRgb: '236,72,153' },
     },
     {
       id: 'medicos',
@@ -56,6 +57,7 @@
       emoji: '🩺',
       relationship: 'equipo médico / terapéutico',
       context: 'Es el equipo médico o terapéutico (fisioterapeuta, logopeda, neurólogo, enfermería, psicólogo). Tono respetuoso y colaborativo, directo cuando hace falta. Temas típicos: cómo me siento, dolor, cansancio, progresos, dudas sobre el tratamiento o los ejercicios, efectos de la medicación, objetivos de rehabilitación.',
+      theme: { c1: '#0ea5e9', c2: '#06b6d4', c3: '#14b8a6', soft: 'rgba(14,165,233,.22)', shadowRgb: '14,165,233' },
     },
     {
       id: 'familia',
@@ -63,6 +65,7 @@
       emoji: '👨‍👩‍👧',
       relationship: 'familiar (padres, hermanos, hijos)',
       context: 'Es un miembro cercano de la familia. Tono cálido, familiar, afectuoso. Temas: salud y cómo me va hoy, noticias de la familia, recuerdos compartidos, vida cotidiana, preocupaciones suaves, planes próximos. Evita lenguaje técnico-médico.',
+      theme: { c1: '#f97316', c2: '#fb923c', c3: '#fbbf24', soft: 'rgba(249,115,22,.22)', shadowRgb: '249,115,22' },
     },
     {
       id: 'amigos',
@@ -70,6 +73,7 @@
       emoji: '🙋',
       relationship: 'amigo/a',
       context: 'Es un amigo/a. Tono relajado, cercano, con humor ligero si viene natural. Temas: cómo me va, qué hago estos días, planes, anécdotas del día a día, intereses compartidos.',
+      theme: { c1: '#8b5cf6', c2: '#a78bfa', c3: '#c4b5fd', soft: 'rgba(139,92,246,.22)', shadowRgb: '139,92,246' },
     },
   ];
 
@@ -701,12 +705,13 @@
       S.audioLevel = S.audioLevel * 0.7 + rms * 0.3;
       document.body.style.setProperty('--audio-level', Math.min(1, S.audioLevel * 3).toFixed(3));
 
-      // Path waveform
+      // Path waveform — gradient dinamico secondo il tema dell'interlocutore.
+      // Fallback ai rosa di Luca se il tema non è ancora stato applicato.
       ctx.lineWidth = 2 * (window.devicePixelRatio || 1);
       const grad = ctx.createLinearGradient(0, 0, w, 0);
-      grad.addColorStop(0, '#ec4899');
-      grad.addColorStop(0.5, '#f43f5e');
-      grad.addColorStop(1, '#a78bfa');
+      grad.addColorStop(0,   S.themeC1 || '#ec4899');
+      grad.addColorStop(0.5, S.themeC2 || '#f43f5e');
+      grad.addColorStop(1,   S.themeC3 || '#a78bfa');
       ctx.strokeStyle = grad;
       ctx.beginPath();
       const slice = w / dataArr.length;
@@ -742,7 +747,8 @@
     if (!_idleStart) _idleStart = performance.now();
     const t = (performance.now() - _idleStart) / 1000;
     ctx.lineWidth = 1.5 * (window.devicePixelRatio || 1);
-    ctx.strokeStyle = 'rgba(236,72,153,.35)';
+    // Idle wave usa la versione "soft" del tema corrente
+    ctx.strokeStyle = (S.themeC1 ? S.themeC1 + '5C' : 'rgba(236,72,153,.35)');
     ctx.beginPath();
     const samples = 60;
     for (let i = 0; i <= samples; i++) {
@@ -1040,6 +1046,25 @@
       const saved = localStorage.getItem('parlia_live_interlocutor');
       if (saved && CONTACTS.some(c => c.id === saved)) S.interlocutorId = saved;
     } catch(e) {}
+    _applyContactTheme(_currentContact());
+  }
+
+  // Applica il tema cromatico dell'interlocutore corrente.
+  // Setta CSS custom properties sul <body> → CSS le usa per bolle me, pill
+  // active, mic button (off-listening), shadows. Inoltre aggiorna i 3 colori
+  // del gradient del wave visualizer (canvas) che li legge dal stesso S.
+  function _applyContactTheme(c) {
+    const t = (c && c.theme) || CONTACTS[0].theme;
+    const root = document.body;
+    root.style.setProperty('--lc-accent-1',    t.c1);
+    root.style.setProperty('--lc-accent-2',    t.c2);
+    root.style.setProperty('--lc-accent-3',    t.c3);
+    root.style.setProperty('--lc-accent-soft', t.soft);
+    root.style.setProperty('--lc-accent-shadow', t.shadowRgb);
+    root.style.setProperty('--lc-accent-gradient',
+      `linear-gradient(135deg, ${t.c1} 0%, ${t.c2} 55%, ${t.c3} 100%)`);
+    // Esposti al draw loop del wave canvas (sostituiscono i rosa hardcoded)
+    S.themeC1 = t.c1; S.themeC2 = t.c2; S.themeC3 = t.c3;
   }
   function _saveInterlocutor() {
     try { localStorage.setItem('parlia_live_interlocutor', S.interlocutorId); } catch(e) {}
@@ -1097,6 +1122,7 @@
     _updateEmptyState();
 
     renderInterlocutors();
+    _applyContactTheme(_currentContact());
     if (prev) toast('Interlocutor: ' + _currentContact().name);
   }
 
