@@ -361,19 +361,81 @@
       '\n\nAdapta registro, tono, nivel de formalidad y temas al interlocutor. ' +
       'No uses lenguaje técnico con familiares/amigos, ni demasiada confianza con médicos. ' +
       'Con la pareja el tono puede ser más íntimo y cariñoso; con amigos más relajado.' +
-      '\n\nReglas estrictas:' +
+      '\n\nReglas de VARIEDAD (importantísimas — evitar respuestas repetitivas):' +
       '\n- Respuestas en PRIMERA PERSONA (yo/me/mi), en español natural y conversacional' +
-      '\n- 3 respuestas VARIADAS en intención, nunca repetitivas:' +
-      '\n   · 1 muy breve (1-4 palabras): sí/no/gracias/etc' +
-      '\n   · 1 corta con matiz (3-7 palabras)' +
-      '\n   · 1 un poco más larga (6-14 palabras) con contexto o pregunta inversa' +
+      '\n- Las 3 respuestas deben ser CLARAMENTE DISTINTAS en intención emocional:' +
+      '\n   · una EMOCIONAL/AFECTIVA (cómo me siento, qué me gustaría)' +
+      '\n   · una CONCRETA con detalle (algo que sí/no he hecho, una preferencia específica)' +
+      '\n   · una con PREGUNTA DEVUELTA o invitación a seguir la conversación' +
+      '\n- PROHIBIDO empezar las 3 con monosílabos genéricos (Sí, No, Vale, Claro) — usa máximo UNA respuesta corta y solo si encaja claramente' +
+      '\n- PROHIBIDO el comodín "No lo sé" salvo que la pregunta lo requiera literalmente' +
+      '\n- Longitudes variadas: una breve (2-5 palabras), una media (5-10), una larga (10-16 palabras con un detalle o pregunta inversa)' +
       '\n- NUNCA repitas literalmente lo que ha dicho el interlocutor' +
-      '\n- Si ya hay historia previa, haz que las respuestas sean coherentes' +
+      '\n- Si ya hay historia previa, sé coherente y NO repitas respuestas ya dichas' +
       (userName ? `\n- La persona se llama ${userName}` : '') +
       (condicion ? `\n- Condición: ${condicion}` : '') +
-      (hobbies ? `\n- Intereses del usuario: ${hobbies}` : '') +
+      (hobbies ? `\n- Intereses del usuario: ${hobbies} (úsalos como ganchos cuando encajen)` : '') +
       '\n\nResponde SOLO con un JSON array de 3 strings, sin markdown, sin comentarios.' +
-      '\nEjemplo: ["Sí","No mucho hoy","Ahora mismo estoy un poco cansado, ¿podemos hablar luego?"]';
+      '\nEjemplo BUENO: ["Hoy ha sido un día duro","He dormido fatal esta noche, sigo cansada","¿Y tú cómo llevas la semana?"]' +
+      '\nEjemplo MALO (NO HAGAS ESTO): ["Sí","No","No lo sé"]';
+  }
+
+  // Pool di fallback per interlocutore — usato solo se la chiamata AI fallisce.
+  // Più ricco delle 3 frasi statiche di prima, randomizzato per evitare percezione
+  // di app "che dice sempre le stesse cose" quando l'AI è giù/lenta.
+  const CHIP_FALLBACK_POOL = {
+    luca: [
+      'Estoy bien, amor', 'Cuéntame más', 'Te echaba de menos',
+      'Ahora estoy un poco cansada', '¿Y tú qué tal hoy?',
+      'Más tarde hablamos mejor', '¿Me das un abrazo?',
+      'Hoy me siento más fuerte', '¿Has comido ya?',
+      'Estoy pensando en ti', '¿Salimos un rato?',
+      'Quiero descansar contigo',
+    ],
+    medicos: [
+      'Sí, todo bien', 'Tengo algo de dolor', 'No, gracias',
+      '¿Puede repetirlo, por favor?', 'Estoy un poco cansada hoy',
+      'Mejor que ayer', 'Me cuesta entenderlo',
+      '¿Cuánto durará?', 'Necesito una pausa, por favor',
+      'Sí, hago los ejercicios', '¿Es normal sentir esto?',
+      'Prefiero descansar ahora',
+    ],
+    familia: [
+      'Hola, me alegro de verte', 'Estoy bien, no te preocupes',
+      'Cuéntame qué tal todo', 'Hoy ha sido un buen día',
+      'Te echaba de menos', '¿Cómo están los demás?',
+      'Estoy un poco cansada hoy', 'Me apetece hablar contigo',
+      '¿Hay novedades por casa?', 'Gracias por venir',
+      'Estoy mejor, gracias', '¿Cuándo vuelves a verme?',
+    ],
+    amigos: [
+      '¡Qué bueno verte!', 'Cuéntame qué hay de nuevo',
+      'Estoy mejor, gracias', 'Hoy un poco cansada',
+      '¿Y tú qué tal andas?', 'Eso suena genial',
+      'Me has hecho reír', '¿Quedamos pronto?',
+      'Cuéntamelo todo', 'No me lo puedo creer',
+      'Te he echado de menos', 'Hablamos otro día con calma',
+    ],
+  };
+
+  // Seleziona 3 frasi RANDOM diverse dal pool dell'interlocutore corrente.
+  // Evita ripetizioni rispetto all'ultimo set mostrato.
+  let _lastFallbackChips = [];
+  function _pickFallbackChips() {
+    const id = (_currentContact() && _currentContact().id) || 'luca';
+    const pool = (CHIP_FALLBACK_POOL[id] || CHIP_FALLBACK_POOL.luca).slice();
+    // Rimuovi quelle viste l'ultima volta per massimizzare percezione di varietà
+    const avoid = new Set(_lastFallbackChips);
+    let candidates = pool.filter(p => !avoid.has(p));
+    if (candidates.length < 3) candidates = pool; // pool troppo piccolo, usalo tutto
+    // Shuffle Fisher-Yates parziale
+    for (let i = candidates.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [candidates[i], candidates[j]] = [candidates[j], candidates[i]];
+    }
+    const picked = candidates.slice(0, 3);
+    _lastFallbackChips = picked;
+    return picked;
   }
 
   async function runChipGen(tentativeInterim) {
@@ -401,7 +463,7 @@
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           model: 'claude-haiku-4-5-20251001',
-          max_tokens: 200,
+          max_tokens: 320,
           system: systemPrompt,
           messages: [{ role: 'user', content: userMsg }],
         }),
@@ -409,7 +471,12 @@
 
       if (myToken !== S.chipToken) return;           // superato (altro pre-gen o final)
 
-      if (!resp.ok) throw new Error('AI HTTP ' + resp.status);
+      if (!resp.ok) {
+        // Log verbose per diagnosi: status + body parziale
+        let bodySnippet = '';
+        try { bodySnippet = (await resp.text()).slice(0, 300); } catch(e){}
+        throw new Error(`HTTP ${resp.status} · ${bodySnippet}`);
+      }
       const data = await resp.json();
       const raw = (data.content?.[0]?.text || '[]').replace(/```json|```/g, '').trim();
       let arr = [];
@@ -417,17 +484,18 @@
         // Fallback: estrai manualmente stringhe quotate
         const m = raw.match(/"([^"]+)"/g);
         arr = m ? m.map(s => s.slice(1, -1)) : [];
+        if (!arr.length) console.warn('[LiveChat] AI raw non parsabile:', raw.slice(0, 200));
       }
-      if (!Array.isArray(arr) || arr.length === 0) throw new Error('AI empty');
+      if (!Array.isArray(arr) || arr.length === 0) throw new Error('AI empty (raw: ' + raw.slice(0, 120) + ')');
       arr = arr.slice(0, 3).map(s => String(s).trim()).filter(Boolean);
-      if (arr.length === 0) throw new Error('AI empty');
+      if (arr.length === 0) throw new Error('AI empty after trim');
 
       if (myToken !== S.chipToken) return;
       renderChips(arr);
     } catch (err) {
-      console.warn('[LiveChat] chip gen fallback:', err?.message || err);
+      console.warn('[LiveChat] chip gen fallback →', err?.message || err);
       if (myToken !== S.chipToken) return;
-      renderChips(['Sí', 'No lo sé', 'Espera un momento, por favor']);
+      renderChips(_pickFallbackChips());
     }
   }
 
