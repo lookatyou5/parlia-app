@@ -7,7 +7,7 @@
 <meta http-equiv="Pragma" content="no-cache">
 <title>Live AI Chat · Parlia</title>
 <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="live-chat.css?v=20260522c">
+<link rel="stylesheet" href="live-chat.css?v=20260522d">
 <link rel="stylesheet" href="headpointer.css?v=20260417k">
 <script>
 // Guard PIN: se non sbloccato, rimanda subito alla home prima che la pagina renderizzi.
@@ -31,7 +31,7 @@
     <span class="lc-dot" id="lcDot"></span>
     <span>Live AI Chat</span>
   </div>
-  <button class="topbar-voice" id="voiceBtn" onclick="toggleLauraVoice()" aria-label="Voz de Laura" title="Voz de Laura">🎙️</button>
+  <button class="topbar-voice" id="voiceBtn" onclick="toggleLauraVoice()" aria-label="Voz de Laura" title="Voz de Laura">👩</button>
   <button class="topbar-tts" id="ttsBtn" onclick="toggleTTS()" aria-label="Silenciar voz">🔊</button>
 </header>
 
@@ -39,6 +39,9 @@
 
   <!-- Selector interlocutor (pill orizzontali, scrollabile) -->
   <nav class="lc-interlocutors" id="lcInterlocutors" aria-label="Interlocutor"></nav>
+
+  <!-- Wave visualizer audio-reattivo (riempito da JS quando il mic è attivo) -->
+  <canvas class="lc-wave" id="lcWave" aria-hidden="true"></canvas>
 
   <!-- Thread della conversazione -->
   <section class="lc-thread" id="lcThread">
@@ -101,7 +104,7 @@
 <script src="userData.js"></script>
 <script src="tts.js?v=20260417c"></script>
 <script src="laura-voice.js?v=20260522a"></script>
-<script src="live-chat.js?v=20260522c"></script>
+<script src="live-chat.js?v=20260522d"></script>
 <script src="headpointer.js?v=20260417k"></script>
 </body>
 </html>

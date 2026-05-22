@@ -90,6 +90,9 @@
     stream: null,
     sourceNode: null,
     workletNode: null,
+    analyserNode: null,            // AnalyserNode parallelo al worklet per il visualizer
+    waveRaf: 0,                    // requestAnimationFrame id del draw loop
+    audioLevel: 0,                 // RMS smoothed [0..1] usato per mic-ring reattivo
 
     // WebSocket
     ws: null,
@@ -315,6 +318,10 @@
     resetSafety();
     document.querySelectorAll('.lc-chip.played').forEach(c => c.classList.remove('played'));
     btn.classList.add('played');
+    // Micro-bounce + haptic feedback (Android Chrome). Soft 12ms — appena
+    // percettibile, non invasivo. iOS Safari ignora silenziosamente.
+    btn.classList.remove('bounced'); void btn.offsetWidth; btn.classList.add('bounced');
+    try { navigator.vibrate && navigator.vibrate(12); } catch(e){}
 
     // Aggiungi la risposta come bolla "me" (destra, rosa) nel thread →
     // conversazione visibile a entrambi i lati, come WhatsApp.
@@ -629,16 +636,137 @@
     S.sourceNode.connect(S.workletNode);
     // NON connettiamo il worklet alla destinazione (niente loopback audio)
 
+    // Analyser parallelo per il visualizer (waveform + ring reattivo del mic).
+    // Connesso anche lui a sourceNode → vede lo stesso PCM dell'interlocutore.
+    // Non collegato a destination → nessun feedback audio.
+    S.analyserNode = S.audioCtx.createAnalyser();
+    S.analyserNode.fftSize = 256;
+    S.analyserNode.smoothingTimeConstant = 0.55;
+    S.sourceNode.connect(S.analyserNode);
+    _startWaveLoop();
+
     return S.audioCtx.sampleRate;
   }
 
   function stopAudioCapture() {
+    _stopWaveLoop();
+    try { if (S.analyserNode) { S.analyserNode.disconnect(); } } catch(e){}
     try { if (S.workletNode) { S.workletNode.port.onmessage = null; S.workletNode.disconnect(); } } catch(e){}
     try { if (S.sourceNode) { S.sourceNode.disconnect(); } } catch(e){}
     try { if (S.audioCtx && S.audioCtx.state !== 'closed') { S.audioCtx.close(); } } catch(e){}
     try { if (S.stream) { S.stream.getTracks().forEach(t => t.stop()); } } catch(e){}
-    S.workletNode = null; S.sourceNode = null; S.audioCtx = null; S.stream = null;
+    S.analyserNode = null; S.workletNode = null; S.sourceNode = null;
+    S.audioCtx = null; S.stream = null;
+    S.audioLevel = 0;
+    _drawWaveIdle(); // disegna stato idle dopo lo stop
   }
+
+  // ─── Wave visualizer (canvas reattivo all'audio dell'interlocutore) ───
+  // Disegna onde sinusoidali animate basate sull'AnalyserNode quando il mic
+  // è attivo. Quando spento, mostra un'onda sottile pulsante (idle).
+  // Aggiorna anche S.audioLevel + CSS var --audio-level sul body così il
+  // ring del mic button può reagire al volume in modo coerente.
+  function _waveCanvas() {
+    const cv = document.getElementById('lcWave');
+    if (!cv) return null;
+    // HiDPI: scala canvas alla pixel density del device
+    const dpr = window.devicePixelRatio || 1;
+    const targetW = cv.clientWidth | 0;
+    const targetH = cv.clientHeight | 0;
+    if (cv.width !== targetW * dpr || cv.height !== targetH * dpr) {
+      cv.width = targetW * dpr; cv.height = targetH * dpr;
+    }
+    return cv;
+  }
+
+  function _startWaveLoop() {
+    _stopWaveLoop();
+    const dataArr = new Uint8Array(S.analyserNode ? S.analyserNode.fftSize : 256);
+    const draw = () => {
+      const cv = _waveCanvas();
+      if (!cv || !S.analyserNode) { S.waveRaf = 0; return; }
+      const ctx = cv.getContext('2d');
+      const w = cv.width, h = cv.height;
+      ctx.clearRect(0, 0, w, h);
+
+      S.analyserNode.getByteTimeDomainData(dataArr);
+
+      // RMS per audioLevel smoothed (0..1)
+      let sum = 0;
+      for (let i = 0; i < dataArr.length; i++) {
+        const v = (dataArr[i] - 128) / 128;
+        sum += v * v;
+      }
+      const rms = Math.sqrt(sum / dataArr.length);
+      S.audioLevel = S.audioLevel * 0.7 + rms * 0.3;
+      document.body.style.setProperty('--audio-level', Math.min(1, S.audioLevel * 3).toFixed(3));
+
+      // Path waveform
+      ctx.lineWidth = 2 * (window.devicePixelRatio || 1);
+      const grad = ctx.createLinearGradient(0, 0, w, 0);
+      grad.addColorStop(0, '#ec4899');
+      grad.addColorStop(0.5, '#f43f5e');
+      grad.addColorStop(1, '#a78bfa');
+      ctx.strokeStyle = grad;
+      ctx.beginPath();
+      const slice = w / dataArr.length;
+      let x = 0;
+      for (let i = 0; i < dataArr.length; i++) {
+        // Amplifica leggermente il segnale per visibilità (clip)
+        const v = (dataArr[i] - 128) / 128;
+        const y = h / 2 + Math.max(-1, Math.min(1, v * 1.8)) * (h / 2 - 4);
+        if (i === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+        x += slice;
+      }
+      ctx.stroke();
+      S.waveRaf = requestAnimationFrame(draw);
+    };
+    S.waveRaf = requestAnimationFrame(draw);
+  }
+
+  function _stopWaveLoop() {
+    if (S.waveRaf) cancelAnimationFrame(S.waveRaf);
+    S.waveRaf = 0;
+    document.body.style.setProperty('--audio-level', '0');
+  }
+
+  // Idle wave: linea sinusoidale soft pulsante quando il mic non è attivo.
+  // Più "morta" di una linea retta — dà sensazione che la pagina sia viva.
+  let _idleStart = 0;
+  function _drawWaveIdle() {
+    const cv = _waveCanvas();
+    if (!cv) return;
+    const ctx = cv.getContext('2d');
+    const w = cv.width, h = cv.height;
+    ctx.clearRect(0, 0, w, h);
+    if (!_idleStart) _idleStart = performance.now();
+    const t = (performance.now() - _idleStart) / 1000;
+    ctx.lineWidth = 1.5 * (window.devicePixelRatio || 1);
+    ctx.strokeStyle = 'rgba(236,72,153,.35)';
+    ctx.beginPath();
+    const samples = 60;
+    for (let i = 0; i <= samples; i++) {
+      const x = (i / samples) * w;
+      const y = h / 2 + Math.sin(i * 0.35 + t * 1.4) * (h * 0.06);
+      if (i === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+    }
+    ctx.stroke();
+  }
+
+  // Anima il livello idle continuamente (anche se mic spento, la linea respira)
+  function _idleAnimLoop() {
+    if (!S.analyserNode) {
+      _drawWaveIdle();
+      requestAnimationFrame(_idleAnimLoop);
+    } else {
+      // mic attivo: il draw loop principale prende il sopravvento
+      requestAnimationFrame(_idleAnimLoop);
+    }
+  }
+  // Avvia l'idle loop al load
+  document.addEventListener('DOMContentLoaded', () => {
+    setTimeout(_idleAnimLoop, 100);
+  });
 
   // ─── WebSocket Deepgram ───
   function buildDeepgramUrl(sampleRate) {

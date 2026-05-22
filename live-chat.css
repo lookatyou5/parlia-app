@@ -515,3 +515,90 @@ html, body {
   cursor: pointer; padding: 6px;
   -webkit-tap-highlight-color: transparent;
 }
+
+/* ══════════════════════════════════════════════════════════════════════
+   RESTYLING v20260522d — audio-reattivo (A) + glassmorphism/bouncy (C)
+   ══════════════════════════════════════════════════════════════════════ */
+
+/* Wave visualizer canvas (sopra il thread, sotto i pill interlocutore).
+   Riempito dal RAF loop in live-chat.js. Sempre visibile: idle = sin pulsante
+   tenue, live = onde reali rosa→fucsia→lavender col volume dell'interlocutore. */
+.lc-wave {
+  width: 100%;
+  height: 56px;
+  display: block;
+  margin: 4px 0 6px;
+  filter: drop-shadow(0 2px 8px rgba(236,72,153,.18));
+  opacity: .9;
+  transition: opacity .3s ease;
+}
+
+/* Glassmorphism delle bolle conversazione — depth/blur + bordo soft.
+   Sostituisce il bianco piatto con un effetto vetro che reagisce al
+   background della pagina (mesh blob viola/rosa). */
+.lc-bubble.them {
+  background: rgba(255,255,255,.55);
+  backdrop-filter: blur(14px) saturate(180%);
+  -webkit-backdrop-filter: blur(14px) saturate(180%);
+  border: 1px solid rgba(255,255,255,.7);
+  box-shadow: 0 4px 18px rgba(15,23,42,.08), 0 1px 0 rgba(255,255,255,.6) inset;
+}
+.lc-bubble.them.interim {
+  background: rgba(255,228,242,.45);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 1px dashed rgba(236,72,153,.4);
+}
+.lc-bubble.me {
+  box-shadow:
+    0 6px 22px rgba(236,72,153,.35),
+    0 1px 0 rgba(255,255,255,.3) inset;
+}
+
+/* Chip bouncy: micro-bounce all'attivazione + glow rosa più marcato.
+   La keyframe .bounced viene rimessa via JS al tap (classList toggle). */
+.lc-chip {
+  transition: transform .14s cubic-bezier(.34,1.56,.64,1),
+              box-shadow .18s, background .2s;
+}
+.lc-chip.bounced {
+  animation: chipBounce .42s cubic-bezier(.34,1.56,.64,1);
+}
+@keyframes chipBounce {
+  0%   { transform: scale(1); }
+  35%  { transform: scale(.92); box-shadow: 0 1px 4px rgba(236,72,153,.18); }
+  70%  { transform: scale(1.06); box-shadow: 0 8px 28px rgba(236,72,153,.45); }
+  100% { transform: scale(1); }
+}
+.lc-chip.played {
+  background: linear-gradient(135deg, #fdf2f8 0%, #fce7f3 100%);
+  box-shadow: 0 4px 18px rgba(236,72,153,.28), 0 0 0 2px rgba(236,72,153,.35) inset;
+}
+
+/* Mic button con halo audio-reattivo. La variabile --audio-level (0..1)
+   viene aggiornata dal RAF loop in live-chat.js dal RMS dell'analyser.
+   Effetto: durante listening, l'anello esterno respira al volume reale
+   della voce dell'interlocutore — molto più "vivo" del semplice pulse fisso. */
+.lc-mic-btn.listening {
+  box-shadow:
+    0 10px 34px rgba(239,68,68,.55),
+    0 0 0 1px rgba(255,255,255,.25) inset,
+    0 0 0 calc(8px + (var(--audio-level, 0) * 18px)) rgba(244,63,94, calc(.18 + var(--audio-level, 0) * .22));
+  transition: box-shadow .08s linear;
+}
+
+/* Pannello admin in glass (coerente con le bolle) */
+.lc-admin {
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+}
+
+/* Low-power mode: spegne blur su Android lenti (saving GPU) */
+body.low-power .lc-bubble.them,
+body.low-power .lc-bubble.them.interim,
+body.low-power .lc-admin {
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+body.low-power .lc-bubble.them { background: white; }
+body.low-power .lc-bubble.them.interim { background: rgba(236,72,153,.05); }
