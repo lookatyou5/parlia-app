@@ -1,6 +1,6 @@
 # Parlia — Contesto progetto
 
-Parlia è una PWA (app web progressiva) per comunicazione aumentativa (AAC) destinata a persone con difficoltà del linguaggio, sviluppata per Laura che è in riabilitazione neurologica al Institut Guttmann di Barcellona.
+Parlia è una PWA (app web progressiva) per comunicazione aumentativa (AAC) destinata a persone con difficoltà del linguaggio, sviluppata per Laura, in riabilitazione neurologica: oggi fisioterapia a casa e in ospedale + logopedia pubblica e privata (dopo due cicli completati all'Institut Guttmann di Barcellona).
 
 ## 🚧 TODO — Prossimi lavori
 > **Claude: leggi sempre questa sezione a inizio sessione e ricorda all'utente i punti aperti.**
@@ -9,7 +9,6 @@ Parlia è una PWA (app web progressiva) per comunicazione aumentativa (AAC) dest
 - **Setup worker in repo (`workers/voci-ai-proxy`, `workers/parlia-tts`, `workers/parlia-minimax`)** con `wrangler.toml`. Oggi i worker vivono solo sul dashboard Cloudflare → nessun version control, nessuna diff visibility. I secret (API key) restano su Cloudflare come env secrets. ~15 min setup, da fare quando serve la prossima modifica a un worker.
 - **Voice cloning per altri utenti (in ottica futura)**. Flusso di onboarding voce → upload audio → worker `parlia-voice-clone` → `voice_id` MiniMax per-utente. Punto critico: flusso di consenso legale, non la tecnica. Vedi discussione sessione 18 aprile 2026.
 - **Idee aperte per l'AI Core della home** (esplorate sessione 20 aprile, non scelta definitiva): (a) orb espressivo con stati emotivi CSS/canvas, (b) memoria persistente Claude con fact-bank locale, (c) agente "L1" con tool use (chiama speakTTS/openAAC/logFact da solo), (d) avatar 3D Ready Player Me gratuito con lipsync. HeyGen scartato per costo. ⚠️ Aggiornamento sessione 22 mag: l'AI Core ora apre con mood check + task contestuale (non più "Empezar conversación" generico). Resta valida la riflessione di fondo che la home "non fa impazzire" — 3 direzioni aperte in canna ma non implementate: (1) hero benvenuto personale con foto/avatar + stat viva, (2) gerarchia per momento del giorno (mattina = agenda; pomeriggio = recap; sera = riflessione), (3) memoria visiva con foto famiglia ruotanti.
-- **Invio "Send mail as" da info@parlia.app via Gmail** — Email Routing oggi inoltra solo in ricezione. Per *inviare* da info@parlia.app via Gmail: generare App password (richiede 2FA), aggiungere alias in Gmail Impostazioni → Account → Invia messaggi come (SMTP smtp.gmail.com:587 TLS), aggiornare SPF Cloudflare con `include:_spf.google.com` per evitare warning di autenticità sui destinatari. Setup parcheggiato sessione 22 mag, riprendere quando serve.
 - **Live Chat — storico conversazioni**. Oggi tutto in-memory (`S.history`), esci dalla pagina e perdi. Da decidere se persistere transcript completo (privacy considerations) o solo metadata (timestamp, durata, #chips, interlocutor).
 - **Live Chat — bottone "repetir"** per rileggere l'ultima frase tappata (uso cache TTS → zero costo).
 - **Live Chat — modifica chip prima del TTS** (es. cambiare "Sí" in "Sí, claro" prima di farla leggere).
@@ -1683,6 +1682,79 @@ Durante il push iniziale del lavoro mood-check, è emerso che il `main` locale d
 
 ### Worker non toccati
 Nessun cambiamento ai worker Cloudflare in questa sessione.
+
+---
+
+## Sessione 4 novembre 2026 — Primi contatti esterni + email setup + Parlia Hub
+
+### 📬 Primi 2 contatti dal form di parlia.app
+Dopo mesi di landing silenziosa arrivano 2 richieste dal form di contatto:
+- **Un privato** (argomento specifico non ancora chiaro)
+- **Talma.cat** — org catalana che lavora con persone in situazione di vulnerabilità (rehab, inserimento, housing)
+
+Luca è aperto a trasformare Parlia in qualcosa di più di un progetto personale: adattamento per altri utenti, eventuale collaborazione sostenibile. Risposte scritte in spagnolo a entrambi, con tono trasparente ("non sono un esperto del settore sanitario, ho imparato costruendo per Laura") ma concreto (base tecnica esistente + disponibilità a esplorare/collaborare). Per Talma proposta una call 15-20 min. Risposta privato già inviata, Talma pronta all'invio.
+
+### ✉️ Setup email info@parlia.app via Gmail "Send mail as" — TODO 22mag CHIUSO
+Completato il TODO parcheggiato dal 22 maggio:
+- Generata App Password Google (2FA già attiva)
+- Aggiunto alias in Gmail Impostazioni → Account → Invia messaggi come (SMTP `smtp.gmail.com:587` TLS, auth con App Password)
+- Verifica alias confermata via link ricevuto grazie all'Email Routing Cloudflare (`info@parlia.app` → `luca.peltrini@gmail.com`)
+- SPF record Cloudflare aggiornato con `include:_spf.google.com`
+- Firma Gmail configurata **solo** per `info@parlia.app` (indipendente dalla firma personale su `luca.peltrini@gmail.com`) con logo Parlia (FullLogo croppato + ridimensionato a 400px) + tagline
+- Test di invio OK: mittente visibile ai destinatari esterni è `info@parlia.app`
+
+### 🌐 Landing (parlia.app): rimozione link app + fix auto-deploy
+Decisione prodotto: l'app non è ancora pronta per essere pubblicizzata sulla landing. Rimossi:
+- Card contatto "🌐 App · app.parlia.app"
+- Link "Abrir app" nel footer
+
+Scoperto durante il lavoro che l'**auto-deploy Cloudflare Pages → GitHub era rotto da 6 mesi** (ultimo deploy di maggio: commit `608283d`; webhook silenziosamente scollegato perché la Cloudflare Pages GitHub App non aveva permessi su `parlia-landing`, solo su `parlia-app`). Fix: aggiunti permessi dalla pagina Installations GitHub → poi Disconnect + Reconnect del Git da Cloudflare Pages. Ora auto-deploy funzionante come su `parlia-app`.
+
+Branch `claude/remove-app-links` mergeata come PR #1 su `parlia-landing`.
+
+**Durante il lavoro**: incident GitHub (Pull Requests + Git Operations degradati ~09:49–11:17 UTC) che ha causato vari 500 e "File could not be edited" nel web editor. Workaround: retry con backoff, upload zip manuale come fallback, poi tutto sistemato.
+
+### 🗺️ Parlia Hub (nuovo artifact di coordinamento)
+Luca aveva molte chat Claude Code aperte in parallelo per varie feature, con difficoltà a orientarsi (chat lunghe mesi, miste). Creato **Parlia Hub**: dashboard HTML artifact pinnabile nella sidebar claude.ai.
+
+**URL**: https://claude.ai/artifact/FRdkKQc9yxYWftxoL82N5d
+
+Contenuto:
+- Header con stats (quante card stabili / in sviluppo / parcheggiate / TODO aperti)
+- **Card featured "💡 Idee & Strategia"** in cima, full-width con gradient viola
+- Grid di 12 card per gli stream di lavoro (Home, AI Core, AAC, Logopedia, Vision, Live Chat, TTS, Laura Voice, Head Pointer, Profile, Landing, Workers)
+- Ogni card: icona, scope, status badge, file principali, TODO aperti, link alla chat Claude Code dedicata
+- Filter chip per status
+- TODO globali collassabili in fondo
+- Tema chiaro/scuro con persistenza localStorage
+
+Palette: Parlia indigo/violet + status colors (ok green / warn amber / idle slate / danger red). Font: Bricolage Grotesque + Plus Jakarta Sans + JetBrains Mono (coerente con l'app).
+
+### 🧭 Nuovo workflow chat
+Gerarchia stabilita per il futuro:
+
+- **1 chat "Idee & Strategia"** (meta): brainstorming, decisioni di prodotto, risposte a contatti esterni, visione. Qui NON si scrive codice.
+  - ID: `session_01EzhxXSNfvXMZEfgs2he2pu`
+  - Spawnata via `create_session` MCP (Claude Code Remote)
+- **N chat "sviluppo"** (una per feature attiva): dove si scrive codice, si pusha, si testa.
+
+Quando dalla chat idee qualcosa matura e diventa "da costruire", si spawna una nuova chat sviluppo dedicata (via `create_session` o manualmente da claude.ai), poi si aggiorna la card corrispondente nell'hub col link.
+
+### 📎 Mapping chat ↔ stream (al 4 nov 2026)
+Chat esistenti collegate nell'hub:
+
+| Stream | Chat |
+|---|---|
+| 💡 Idee & Strategia (meta) | `session_01EzhxXSNfvXMZEfgs2he2pu` (creata oggi) |
+| 💬 Live Chat + 🎤 Laura Voice | `cshk_01FfEnZd1yYbAKm5R1qerunMLCAFQJEmnTscUfa1z5bUuD` ("DeepGram + LiveChat AI + MiniMax") |
+| 🎙️ Logopedia | `cshk_0123RBSTGuHP8oKzQknsaqDCAehuyMZ3c9umSYNU454EWt` |
+| 🔊 TTS + 👁️ Head Pointer | `cshk_01TatqyaoYtJNahDqYkxTUHZ2p8oiGT37hsbEruNkHgyna` ("TTS Neural2 + MediaPipe") |
+| 👓 Vision | `cshk_01DmmtMkMqaWUBeUGr2ynpmSP9sDYRrrbN8GnbWoKbLyWQ` ("Vision API") |
+
+Le altre 7 card dell'hub ("Chat da collegare") si popolano man mano che si aprono chat dedicate per quelle feature.
+
+### 👩 Nota su Laura (stato aggiornato)
+Aggiornato lo stato di Laura nell'intro di CONTEXT.md: 2 cicli completati all'Institut Guttmann, ora continua rehabilitazione con fisioterapia a casa + ospedale e logopedia pubblica + privata.
 
 ---
 
